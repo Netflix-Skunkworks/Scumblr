@@ -27,9 +27,6 @@ class ResultsController < ApplicationController
   skip_authorization_check :only=>:update_screenshot
   skip_before_filter :authenticate_user!, :only=>:update_screenshot
 
-
-
-
   # GET /results
   # GET /results.json
   def index
@@ -46,18 +43,6 @@ class ResultsController < ApplicationController
     end
 
     @results = @results.page(params[:page]).per(params[:per_page]) if @results
-
-
-    # if params[:tag]
-    #   #@results =  Kaminari.paginate_array(Result.tagged_with(params[:tag]))
-    #   #Tag.first.taggings.where(:taggable_type=>"Result").includes(:taggable)
-    #   tag = Tag.find_by_name(params[:tag])
-    #   @results = Kaminari.paginate_array(tag.taggings.where(:taggable_type=>"Result").includes(:taggable=>[:search_results,:tags, :status]).map(&:taggable).compact!).page(params[:page]).per(params[:per_page])
-
-
-    # else
-    #   @results = Result.includes(:tags,:status, :search_results).page(params[:page]).per(params[:per_page])
-    # end
 
     #We delete commit to prevent the parameter value from being picked up in pagination, etc.
     params.delete(:commit)
@@ -95,21 +80,10 @@ class ResultsController < ApplicationController
     @search_results_without_flags = Search.joins(:results).where.not(:id=>ResultFlag.select(:id)).references(:results).group("searches.id").count
     @search_results_with_flags = Search.joins(:results=>:flags).group(["searches.id", "flags.id"]).count
 
-    #Result.where('id not in (select distinct(result_id) from result_flags)').count
-    #Search.joins(:results).where.not(:id=>ResultFlag.select(:id)).references(:results).group("searches.id").count
-
-    #Search.joins(:results).where("results.id not in (select distinct(result_id) from result_flags)").group("searches.id").count
-
-    #Search.joins(:results=>:flags).group(["searches.id", "flags.name"]).count
 
     render layout: "dashboard"
 
   end
-
-  #Benchmark.bm { |x| x.report { 100.times {
-
-  #}}}
-
 
 
   # GET /results/1
@@ -248,17 +222,6 @@ class ResultsController < ApplicationController
 
   def flag
 
-
-
-
-    # params[:flags].split(",").each do |flag|
-    #   if(@result.flags.map(&:id).include?(flag.to_i))
-    #     redirect_to @result, notice: "Result already flagged."
-    #   else
-    #     @result.flags << Flag.find_by_id(flag)
-    #     #redirect_to @result, notice: "Result flagged."
-    #   end
-    # end
     @notice=""
     @options=""
 
@@ -284,7 +247,6 @@ class ResultsController < ApplicationController
       #Not sure why this is necessary...
       @result.reload
       @result.result_flags.reload
-      #@result_flag.validate_actions(@flag.workflow.initial_stage_id, params[:options])
     else
       @options = @result_flag.next_step_options(@flag.workflow.initial_stage_id, params[:options], current_user)
     end
@@ -326,22 +288,6 @@ class ResultsController < ApplicationController
       @options = @result_flag.next_step_options(@next_stage.id, params[:options], current_user)
     end
   end
-
-  # def action
-  #   @result_flag = @result.result_flags.find(params[:result_flag_id])
-  #   @next_stage = @result_flag.stage.next_steps.find_by_id(params[:stage_id])
-
-
-
-
-  #   @result_flag.set_stage(@next_stage.id, params[:options], current_user )
-
-  #   #redirect_to @result
-
-  #   render action
-
-
-  # end
 
   def tag
 
