@@ -128,7 +128,7 @@ class ResultsController < ApplicationController
 
 
     if(params[:action_name])
-      @associated_objects = @associated_objects.select{|obj| obj[:method] == params[:action_name].to_sym}
+      @associated_objects = @associated_objects.select{|obj| obj[:method].to_s == params[:action_name].to_s}
     end
 
 
