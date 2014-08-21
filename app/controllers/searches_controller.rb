@@ -33,7 +33,12 @@ class SearchesController < ApplicationController
   # GET /searches/1
   # GET /searches/1.json
   def show
-    @provider_options = @search.provider.constantize.options
+
+    if (@search.provider.match(/\ASearchProvider::/) && SearchProvider::Provider.subclasses.include?(@search.provider.to_s.constantize) )
+      @provider_options = @search.provider.constantize.options
+    else
+      @provider_options = []
+    end
 
     respond_to do |format|
       format.html # show.html.erb

@@ -21,8 +21,9 @@ class ProvidersController < ApplicationController
     @search = Search.find_by_id(params[:id])
     provider = params[:provider]
 
-
-    @provider_options = provider.constantize.options if SearchProvider::Provider.subclasses.include?(provider.to_s.constantize)
+    if(provider.to_s.match(/\ASearchProvider::/))
+      @provider_options = provider.constantize.options if SearchProvider::Provider.subclasses.include?(provider.to_s.constantize)
+    end
 
     respond_to do |format|
       format.js
