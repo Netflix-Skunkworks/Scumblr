@@ -1,0 +1,2 @@
+$('#provider_options').html("<%= escape_javascript(render :partial=>"options_fields", :locals => {:search_options=>@search.try(:options), provider_options: @provider_options, }) %>");
+$(function(){ $(document).foundation(); });

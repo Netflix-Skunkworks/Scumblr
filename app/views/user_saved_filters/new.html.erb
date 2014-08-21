@@ -1,0 +1,7 @@
+<%= search_form_for @q, :url=>search_results_path, :method=>:post, :authenticity_token => false, id:"search_form"  do |f| %>
+  <%= render partial: 'results/search_fields', locals: {f: f}%>
+  <%= f.submit class: "button small" %>
+  <%= f.submit "Clear Search", class: "button secondary small" %>
+  <%= link_to "Save", "#", class: "button secondary small add-saved-search" %>
+  <%#= f.button "Reset", type: :reset, class:"secondary" %>
+<% end %>

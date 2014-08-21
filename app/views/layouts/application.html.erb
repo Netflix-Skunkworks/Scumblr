@@ -1,0 +1,16 @@
+<div class="row">
+  <% content_for :content do %>
+    <div class="large-9 columns">
+      <div id="preloader-modal" class="reveal-modal" data-reveal>
+        <div class="preloader" ></div>
+      </div>
+      <%= yield :main_content_top %>
+      <%= render partial: 'shared/notification', locals: {message: flash[:notice] } if flash[:notice] %>
+      <%= yield %>
+    </div>
+    <div class="large-3 columns">
+      <%= yield :sidebar %>
+    </div>
+  <% end %>
+</div>
+<%= render template: "layouts/layout" %>

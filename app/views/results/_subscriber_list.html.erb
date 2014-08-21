@@ -1,0 +1,13 @@
+<h2>Subscribers</h2>
+<% if @result.subscribers.count == 0 %>
+  <p>No subscribers</p>
+<% else %>
+  <% @result.subscribers.each do |s| %>
+    <%= s.subscriber_email %>
+    (<%= link_to "X", unsubscribe_result_path(:user_id=>s.user_id), remote: true, method: :post %>)<br/>
+  <% end %>
+<% end %>
+<h3>Add subscriber</h3>
+<%= form_tag subscribe_result_path(@result), remote: true do %>
+  <input type="hidden" class="remote_select2" data-autosubmit="true" data-attribute="email" data-object="users" data-path="<%= users_path %>" name="user_id" />
+<% end %>

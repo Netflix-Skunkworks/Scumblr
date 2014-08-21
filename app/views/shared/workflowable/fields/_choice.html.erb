@@ -1,0 +1,11 @@
+<dl class="dl-horizontal dl-form">
+  <dt class=>
+    <%= label_tag do %>
+      <%= label.to_s.titleize %>
+      <%= "*" if value_hash[:required] == true  %>
+    <% end %>
+  </dt>
+  <dd>
+    <%= f.select "#{key}][value", value_hash[:choices].collect{|v| [v[:name],v.to_json]},{ include_blank: true, selected: value_hash[:value] || value_hash[:default], :class=>"select2"} %>
+  </dd>
+</dl>

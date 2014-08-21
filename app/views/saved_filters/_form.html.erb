@@ -1,0 +1,29 @@
+<%= form_for @saved_filter, id:"search_form"  do |f| %>
+  <% if @saved_filter.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@saved_filter.errors.count, "error") %>
+        prohibited this result from being saved:</h2>
+      <ul>
+        <% @saved_filter.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <h4>Filter Details</h4>
+  <%= label_tag do %>Name
+    <%= f.text_field :name %>
+  <% end %>
+  <div id="subscribers">
+    <%= f.label :subscribers %><br />
+    <%= f.hidden_field "subscriber_list", {value: @saved_filter.subscriber_list, class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"email" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"users", "data-attribute"=>"email" , "data-path"=>users_path} %>
+  </div>
+  <%= f.check_box :public %>
+  <%= label_tag "Share publicly?" %><br/>
+  <h4>Filter Criteria</h4>
+  <%= fields_for @q do |f2| %>
+    <%= render partial: 'results/search_fields', locals: {f: f2}%>
+  <% end %>
+  <%= f.submit class: "button small" %>
+  <%#= f.button "Reset", type: :reset, class:"secondary" %>
+<% end %>

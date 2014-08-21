@@ -1,0 +1,606 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
+ * or vendor/assets/stylesheets of plugins, if any, can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the top of the
+ * compiled file, but it's generally better to create a new file per style scope.
+ *
+ * require formtastic-bootstrap 
+ * require bootstrap_and_overrides
+ *= require_self
+ *= require foundation_and_overrides
+ *= require foundation_datatables
+ *= require foundation-icons
+ *= require foundation_datepicker
+ *= require nvd3.min
+ *= require select2_overrides
+ *= require results
+ *= require sonic
+ * require dataTables/jquery.dataTables.bootstrap
+ * require active_scaffold
+ * require_tree .
+ */
+
+
+
+.preloader
+{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: none
+}
+
+.shaded 
+{
+  background-color: rgba(0,0,0,0.6); /*dim the background*/
+}
+
+
+span.tooltip
+{
+  z-index:950;
+}
+
+.italic
+{
+  font-style: italic;
+}
+
+
+/*nav img.logo
+{
+  height:44px;
+}
+
+*/
+
+ul.f-dropdown.f-dropdown-wide
+{
+  max-width: 300px;
+}
+
+body#homepage
+{
+  background-color: #222;
+}
+
+#homepage-hero {
+
+  background: image-url('bubble_background.svg');
+  background-color: #333;
+  background-size: 50%; 
+  height: 650px;
+  text-align: left;
+  position: relative;
+  padding: 100px 20px 0 20px;
+  h1, h2, h3, label
+  {
+    font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif !important; 
+    font-weight: lighter;
+  }
+
+  .row {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    max-width: 62.5rem;
+
+  }
+  label
+  {
+    color: white;
+  }
+}
+  @media screen and (max-width: 768px) {
+    #homepage-hero {
+      padding: 40px 5px 30px 5px; } }
+  @media screen and (max-width: 1024px) {
+    #homepage-hero {
+      height: 500px; } }
+  #homepage-hero h1 {
+    font-size: 4em;
+    color: white;
+    
+    margin-bottom: 0;
+    line-height: 100%; }
+    @media screen and (max-width: 768px) {
+      #homepage-hero h1 {
+        font-size: 50px; } }
+  #homepage-hero h4 {
+    font-size: 1.35em;
+    color: white;
+    font-weight: 300; }
+  #homepage-hero h3 {
+    color: white; }
+    @media screen and (max-width: 768px) {
+      #homepage-hero h3 {
+        font-size: 18px;
+        line-height: 28px; } }
+  #homepage-hero .floatingyeti img {
+    max-width: 33%;
+    position: absolute;
+    right: 200px;
+    top: 30px; }
+    @media only screen and (max-width: 40em) {
+      #homepage-hero .floatingyeti img {
+        width: 100%;
+        position: relative;
+        right: 0;
+        bottom: 0px;
+        top: 0px;
+        left: 120px; } }
+    @media only screen and (min-width:40.063em) and (max-width:64em) {
+      #homepage-hero .floatingyeti img {
+        width: 80%;
+        position: absolute;
+        right: 0;
+        bottom: 0px; } }
+
+
+section.pagination
+{
+  margin: 7px 10px 0 0;  
+  float: right;
+
+  ul.pagination
+  {
+    margin: 0;
+    padding: 0
+  }
+}
+
+.clearing-assembled .clearing-container .visible-img
+{
+  overflow: scroll !important;
+
+}
+
+table tr th, table tr td {
+  input[type="checkbox"] {
+    margin: 0;
+  }
+}
+
+
+.visible-img img
+{
+  max-width: none !important;
+  max-height: none !important;
+  top: 0px !important;
+  margin-top: 0px !important;
+}
+
+.top-bar-section .dropdown 
+{
+  z-index: 105 !important;
+}
+
+nav.top-bar, nav.warning-bar
+{
+  
+
+  #logo
+  {
+    height:50px;
+    width:200px;
+    margin-bottom: 5px;
+    
+  }
+}
+
+nav.warning-bar
+{
+  background-color: #A60000;
+  margin-bottom:0px;
+  color: white;
+
+  .top-bar-section ul li a
+  {
+    background-color: #A60000 !important;
+  }
+}
+
+div.row
+{
+  max-width: 100% 
+}
+
+nav label
+{
+  font-size: 13px !important;
+  
+}
+
+.tab-bar h1 span.small-heading
+{
+  font-size: 11px;
+}
+
+.tab-bar.secondary
+{
+  background-color: #BBB; 
+
+  h1, h2, h3, h4, h5, h6
+  {
+    color: #000;
+  }
+}
+
+
+.hidden
+{
+  display:none;
+}
+
+.profiler-results
+{
+  float:right;
+}
+
+
+.comment .comment
+{
+  margin-left: 25px;
+  padding-left: 5px;
+  border-left:1px solid #eee;
+}
+
+.comment_head
+{
+  padding-bottom: 7px;
+  color: #666;
+}
+
+.comment_body p
+{
+  margin-bottom: 5px;
+}
+
+.comment_reply
+{
+  display:none;
+}
+
+.label a, .badge a {
+  color: white;
+  text-decoration: none;
+}
+
+.label
+{
+  margin-right: 5px;
+}
+
+
+
+.label a:hover
+{
+  background-color: transparent;
+  text-decoration: none
+}
+
+.label a:visited
+{
+  
+  color: #FFF;
+}
+
+
+table button,table .button
+{
+  margin-bottom: 0px;
+}
+
+.thumbnail-box
+{
+  position: relative;
+}
+
+.thumbnail-image:hover
+{
+  border: 2px solid #0086b8;
+  opacity: 0.5;
+}
+
+.thumbnail-image
+{
+  border: 2px solid #FFF;
+}
+
+.thumbnail-buttons
+{
+  position: absolute;
+  top: 15px;
+  width: 91%;
+  text-align: center;
+}
+
+.thumbnail-button
+{
+  
+  
+}
+
+
+
+
+header {
+  background-color: #074e68;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+header h1
+{
+  color: #fff;
+}
+
+header .menu-bar
+{
+  padding-top: 15px;
+}
+
+.centered
+{
+  text-align: center;
+}
+
+.dl-horizontal dd 
+{
+  font-size: 14px;
+  margin-bottom: 5px;
+  padding-left: 25%;
+  
+}
+
+
+
+.dl-horizontal > dd:after {
+  display: table;
+  content: "";
+  clear: both;
+}
+
+.dl-horizontal dt
+{
+  vertical-align: center;
+  font-size: 14px;
+  float: left;
+  width: 25%;
+  clear: left;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dl-horizontal dt.half
+{
+  vertical-align: center;
+  font-size: 14px;
+  float: left;
+  width: 50%;
+  clear: left;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.dl-horizontal.dl-form
+{
+  
+  dt {
+    width: 200px;
+    padding-top: 7px;
+    padding-right: 25px;
+    text-align: right;
+  }
+
+  dd {
+    padding-left: 200px;
+  }
+}
+
+
+dd.active td a
+{
+  background-color: rgba(0,0,0,0.0) !important;
+}
+
+#result_workflow dl.dl-horizontal
+{
+  margin-bottom: 5px;
+}
+
+#result_workflow dl.dl-horizontal dd>a
+{
+  margin-bottom: 10px;
+}
+
+table
+{
+  border-spacing: 0px;  
+  width: 100%;
+}
+
+.sidebar nav.tabbar
+{
+  background-color :#343C48 ;
+}
+
+
+section.sidepanel
+{
+  overflow: hidden;
+}
+
+
+
+section.listpanel
+{
+  overflow: hidden;
+}
+
+
+
+fieldset
+{
+  margin: 10px !important;
+  padding: 10px !important;
+}
+
+div.seven
+{
+  width: 14.28%;
+  position: relative;
+}
+
+td.slim_column
+{
+  width:3px;
+  border: 0px;
+  padding: 0;
+  margin: 0;
+}
+
+
+
+
+.inlinesparkline
+{
+  
+  color: rgba(11,11,11,0.0);
+}
+
+.jqstooltip{ 
+       width:50px;
+       height:25px!important;
+}
+
+ul#status_notifications
+{
+  width: 600px;
+}
+
+ul#status_notifications a
+{
+  padding: 5px 10px 10px 20px;
+}
+
+ul#status_notifications div.title
+{
+  float: left;
+  width: 90%;
+/*  padding-right:15px; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  line-height: 20px;
+}
+
+ul#status_notifications div.subtitle
+{
+  float:left;
+  line-height: 20px
+}
+
+
+ul#status_notifications div.progress
+{
+  clear: both;
+  background: transparent;
+  border: 1px solid #444;
+  margin: 0px;
+  
+  height: 17px;
+}
+
+label{
+  input[type="text"], input[type="password"], input[type="date"], input[type="datetime"], input[type="datetime-local"], input[type="month"], input[type="week"], input[type="email"], input[type="number"], input[type="search"], input[type="tel"], input[type="time"], input[type="url"]
+  {
+    
+    border-color: rgb(170, 170, 170); 
+  }
+}
+
+form {
+  label {
+    font-weight: bold;
+  }
+}
+
+.tabs
+{
+  border: solid 1px #f7f7f7;
+}
+
+.tabs-content  > .content.active
+{
+  border: solid 1px #f7f7f7;
+  padding: 10px;
+  margin-top: -1px;
+}
+
+td.header 
+{
+  font-weight: bold;
+}
+
+header.popup-header
+{
+  background-color: #DDD;
+  padding-top: 7px;
+  border-top-right-radius:5px;
+  border-top-left-radius: 5px;
+}
+
+div.custom-modal
+{
+  padding:0px;
+  border-top-right-radius:5px;
+  border-top-left-radius: 5px;
+
+  h5{
+    border-bottom: 1px solid #eee;
+  }
+  
+}
+
+div#workflow_options_modal
+{
+  padding:0px;
+  border-top-right-radius:5px;
+  border-top-left-radius: 5px;
+
+  h5{
+    border-bottom: 1px solid #eee;
+  }
+
+  
+}
+
+
+
+
+.alert-box > p
+{
+  margin-bottom: 5px
+}
+
+.alert-box > ul
+{
+  margin-bottom: 0px
+}
+
+

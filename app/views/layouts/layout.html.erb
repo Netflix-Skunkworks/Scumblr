@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= content_for?(:title) ? yield(:title) : "Scumblr" %></title>
+    <%= stylesheet_link_tag    "application" %>
+    <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+    <%= javascript_include_tag "vendor/modernizr" %>
+    <%= csrf_meta_tags %>
+  </head>
+  <body>
+    <!-- Header and Nav -->
+    <nav class="top-bar" data-topbar data-options="is_hover: false">
+      <ul class="title-area">
+        <!-- Title Area -->
+        <li class="name">
+          <h1>
+            <%= link_to root_path do %>
+              <%= image_tag "scumblr_logo.png", :id=>"logo" %>
+            <% end %>
+          </h1>
+        </li>
+        <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+      </ul>
+      <section class="top-bar-section">
+        <!-- Left Nav Section -->
+        <% if user_signed_in? %>
+          <ul class="left">
+            <li><%= link_to "Dashboard", dashboard_results_path %></li>
+            <li><%= link_to "Results", root_path  %></li>
+            <li><%= link_to "Searches", searches_path  %></li>
+            <li class='has-dropdown not-click'><%= link_to "Saved Filters", "#"  %>
+              <ul class="dropdown">
+                <li><%= link_to "Manage", saved_filters_path %></li>
+                <li><label>My Filters</label></li>
+                <% if current_user.saved_filters.count == 0 %>
+                  <li><i><%= link_to "You have no saved filters.", "#", :class=> "italic" %></i></li>
+                <% else %>
+                  <% current_user.saved_filters.each do |filter| %>
+                    <li><%= link_to filter.name, search_results_path(:saved_filter_id=>filter.id) %></li>
+                  <% end %>
+                <% end %>
+                <li><label>Public Filters</label></li>
+                <% if current_user.added_saved_filters.count == 0 %>
+                  <li><%= link_to "No public filters added.", "#", :class=> "italic" %><li>
+                    <% else %>
+                      <% current_user.added_saved_filters.each do |filter| %>
+                        <li><%= link_to filter.name, search_results_path(:saved_filter_id=>filter.id) %></li>
+                      <% end %>
+                    <% end %>
+                  </ul>
+                </li>
+                <% if current_user.admin? %>
+                  <li class='has-dropdown not-click'><%= link_to "Admin", "#"  %>
+                    <ul class="dropdown">
+                      <li><%= link_to "Statuses", statuses_path %></li>
+                      <li><%= link_to "Flags", flags_path %></li>
+                      <li><%= link_to "Workflows", workflowable.workflows_path %></li>
+                    </ul>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
+            <!-- Right Nav Section -->
+            <ul class="right">
+              <li class="divider"></li>
+              <% if user_signed_in? %>
+                <li class="has-dropdown click">
+                  <a href="#" class="" >Tasks
+                    <span id="task_count"></span></a>
+                  <ul class="dropdown" id="status_notifications" data-url="<%= events_searches_path%>">
+                  </ul>
+                </li>
+                <li class="divider"></li>
+                <li><%= link_to current_user.email, edit_user_path(current_user) %></li>
+                <li class="divider"></li>
+                <li><%= link_to('Logout', destroy_user_session_path, :method => :delete) %></li>
+              <% else %>
+                <li><%= link_to "Sign in with Onelogin", user_omniauth_authorize_path(:saml) %></li>
+              <% end %>
+            </ul>
+          </section>
+        </nav>
+        <header>
+          <div class="row">
+            <div class="large-9 columns">
+              <h1><%= (defined? @header_title) ? @header_title : controller.controller_name.capitalize.pluralize %></h1>
+            </div>
+            <div class="large-3 columns menu-bar">
+              <%= yield :header_bar %>
+            </div>
+          </div>
+        </header>
+        <!-- Main Page Content and Sidebar -->
+        <%= content_for?(:content) ? yield(:content) : yield %>
+        <!-- End Main Content -->
+        <!-- End Main Content and Sidebar -->
+        <!-- Footer -->
+        <footer class="row">
+          <div class="large-12 columns">
+            <hr />
+            <div class="row">
+              <div class="large-6 columns">
+                <p>©
+                </p>
+              </div>
+              <div class="large-6 columns">
+                <ul class="inline-list right">
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </body>

@@ -1,0 +1,38 @@
+<%= form_for(@search) do |f| %>
+  <% if @search.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@search.errors.count, "error") %>
+        prohibited this search from being saved:</h2>
+      <ul>
+        <% @search.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="field">
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :query %><br />
+    <%= f.text_field :query %>
+  </div>
+  <div class="field">
+    <%= f.label :provider %><br />
+    <%= f.collection_select :provider, @providers, :first, :last, {prompt: "Search provider"}, {id: :provider_field, "data-source"=> @search.new_record? ? options_searches_path : options_search_path(@search) } %>
+  </div>
+  <div id="provider_options">
+    <%= render partial: 'providers/options_fields', locals: {search_options: @search.options, provider_options: @search.provider_options} %>
+  </div>
+  <div id="tags">
+    <%= f.label :tags %><br />
+    <%= f.hidden_field "tag_list", {value: @search.tag_list, class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
+  </div>
+  <div class="field">
+    <%= f.label :description %><br />
+    <%= f.text_area :description %>
+  </div>
+  <%= f.submit class: "button" %>
+  <%= link_to 'Back', searches_path, class: "button secondary" %>
+<% end %>

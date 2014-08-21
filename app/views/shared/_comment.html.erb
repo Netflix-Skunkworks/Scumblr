@@ -1,0 +1,24 @@
+<div class="comment clearfix">
+  <div class="comment_main">
+    <div class="comment_head">
+      [<%= link_to "-", "#", :class=>"toggle_comment" %>]
+      <%= comment.user %>
+      <small><%= time_ago_in_words(comment.created_at) %>
+        ago</small>
+    </div>
+    <div class="comment_contents">
+      <div class="comment_body">
+        <p><%= comment.body %></p>
+      </div>
+      <div class="comment_buttons">
+        <%= link_to "Reply", "#", :class=>"reply button tiny", "data-parent_id"=>comment.id %>
+      </div>
+      <div class="comment_reply" >&nbsp;</div>
+      <% comment.children.each do |child| %>
+        <div class="child">
+          <%= render "shared/comment", :comment=>child %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

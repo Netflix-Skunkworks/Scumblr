@@ -1,0 +1,7 @@
+<p id="notice"><%= notice %></p>
+<p>
+  <b>Name:</b>
+  <%= @status.name %>
+</p>
+<%= link_to 'Edit', edit_status_path(@status), class: "button" %>
+<%= link_to 'Back', statuses_path, class: "button secondary" %>

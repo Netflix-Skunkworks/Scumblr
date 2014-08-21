@@ -1,0 +1,8 @@
+<%= fields_for "search[options]", OpenStruct.new(search_options) do |builder| %>
+  <% provider_options.each do |key, value| %>
+    <div class="field">
+      <%= builder.label value[:name] %><br/>
+      <%= builder.text_field key %>
+    </div>
+  <% end %>
+<% end %>

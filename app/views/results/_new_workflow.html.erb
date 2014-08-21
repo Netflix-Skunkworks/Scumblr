@@ -1,0 +1,31 @@
+<div class="preloader shaded"></div>
+<header class="popup-header">
+  <div class="row">
+    <div class="large-12 columns">
+      <h4>New Workflow</h4>
+    </div>
+  </div>
+</header>
+<div class="row">
+  <div class="large-12 columns">
+    <% if @errors && params[:options].present? %>
+      <% @errors.each do |error| %>
+        <div data-alert="" class="alert-box">
+          <p>Errors For:
+            <%= error.keys.first.to_s.titleize %></p>
+          <ul>
+            <% error[error.keys.first].each do |e| %>
+              <li><%= e.to_s.titleize %></li>
+            <% end %>
+          </ul><a href="#" class="close">×</a>
+        </div>
+      <% end %>
+    <% end %>
+    <%= form_for @result, :url=>flag_result_path(@result), method: :post, remote: true do |f| %>
+      <%= hidden_field_tag "flag",params[:flag] %>
+      <%= render partial: "workflow_options" %>
+      <%= f.submit :class=>"button tiny preload" %>
+      <%= button_tag "Cancel", :type=>:button, :class=>"button secondary tiny close-modal" %>
+    <% end %>
+  </div>
+</div>

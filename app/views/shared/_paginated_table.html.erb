@@ -1,0 +1,14 @@
+<% if !defined? uuid %>
+  <% uuid= params[:uuid] || SecureRandom.uuid %>
+<% end %>
+<div id="div_<%= uuid -%>" >
+  <table class="table " id="table_<%= uuid -%>">
+    <%= yield %>
+  </table>
+  <% if defined? paginated_array %>
+    <% extra_params = {uuid: uuid} %>
+    <% extra_params[:action] = action if defined? action %>
+    <% extra_params[:action_name] = action_name if defined? action_name %>
+    <%= paginate paginated_array, :outer_window => 3, :window=>1, :remote=> (defined? remote)? remote : false, :params => extra_params %>
+  <% end %>
+</div>

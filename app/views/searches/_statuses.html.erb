@@ -1,0 +1,29 @@
+<ul>
+  <li class="row">
+    <label>
+      Search Job Status
+    </label>
+  </li>
+  <% if statuses.present? %>
+    <% statuses.each do |status| %>
+      <li>
+        <a href="#">
+          <% pct = (100*status["num"].to_f/status["total"].to_f).round(2) %>
+          <div class="title"><%= status["message"].gsub(/\A.:/ , "").to_s %></div>
+          <div class="subtitle"><%= pct%>%</div>
+          <div class="progress">
+            <span class="meter" style="width: <%= pct.to_i.to_s%>%"></span>
+          </div>
+        </a>
+      </li>
+    <% end %>
+  <% else %>
+    <li>
+      <a class="italic" href="#">
+        <div class="heading">
+          No jobs running.
+        </div>
+      </a>
+    </li>
+  <% end %>
+</ul>

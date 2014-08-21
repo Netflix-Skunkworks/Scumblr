@@ -1,0 +1,34 @@
+<%= form_for(@status) do |f| %>
+  <% if @status.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@status.errors.count, "error") %>
+        prohibited this status from being saved:</h2>
+      <ul>
+        <% @status.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="field">
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :closed do %>Closed
+      <span data-tooltip class="has-tip fi-info" title="Should the status indicate workflow is completed?"></span>
+    <% end %>
+    <%= f.check_box :closed %>
+  </div>
+  <div class="field">
+    <%= f.label :invalid do %>
+      Invalid
+      <span data-tooltip class="has-tip fi-info" title="Should the result be considered invalid (such as a false positive)" class="fi-info"></span>
+    <% end %>
+    <%= f.check_box :is_invalid %>
+  </div>
+  <div class="actions">
+    <%= f.submit class: "button" %>
+    <%= link_to 'Back', searches_path, class: "button secondary" %>
+  </div>
+<% end %>

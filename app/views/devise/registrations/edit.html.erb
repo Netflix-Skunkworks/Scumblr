@@ -1,0 +1,21 @@
+<h2>Edit
+  <%= resource_name.to_s.humanize %></h2>
+<%= simple_form_for(resource, :as => resource_name, :url => user_path(resource), :html => { :method => :put }) do |f| %>
+  <%= f.error_notification %>
+  <div class="form-inputs">
+    <div class="field">
+      <%= f.input :email, :required => true, :autofocus => true %>
+    </div>
+    <div class="field">
+      <%= f.input :current_password, :required => true %>
+    </div>
+    <div class="field">
+      <%= f.input :password, :autocomplete => "off", :required => false %>
+      <%= f.input :password_confirmation, :required => false %>
+    </div>
+  </div>
+  <div class="form-actions">
+    <%= f.button :submit, "Update" %>
+    <%= link_to "Back", :back , :class=>"button secondary" %>
+  </div>
+<% end %>

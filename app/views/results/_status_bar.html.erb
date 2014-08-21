@@ -1,0 +1,6 @@
+<dl class="sub-nav">
+  <dt>Status:</dt>
+  <% Status.all.each do |s| %>
+    <dd class="<%= "active" if s.id == result.status_id %>"><%= link_to s.name, update_status_result_path(result.id, s.id), remote: true, method: :post %></dd>
+  <% end %>
+</dl>

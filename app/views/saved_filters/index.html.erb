@@ -1,0 +1,52 @@
+<h3>Saved Filters</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Public</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @saved_filters.each do |filter| %>
+      <tr>
+        <td><%= filter.name %></td>
+        <td><%= filter.public %></td>
+        <td>
+          <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
+          <%= link_to "Edit", edit_saved_filter_path(filter), class: "button tiny" %>
+          <%= link_to 'Destroy', filter, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <h3>Public Filters<h3>
+        <% @added_public_saved_filters.each do |filter| %>
+          <tr>
+            <td><%= filter.name %></td>
+            <td>
+              <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
+              <%= link_to "Remove", remove_saved_filter_path(filter.id),:method=>:post, class: "button tiny" %>
+            </td>
+          </tr>
+        <% end %>
+        <% @public_saved_filters.each do |filter| %>
+          <tr>
+            <td><%= filter.name %></td>
+            <td>
+              <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
+              <%= link_to "Add", add_saved_filter_path(filter.id), :method=>:post, class: "button tiny" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>

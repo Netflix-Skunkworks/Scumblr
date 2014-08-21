@@ -1,0 +1,5 @@
+
+$('#assignee_value').html("<%= escape_javascript(render :partial=>"assignee", :locals => {:result=>@result}) %>").show();  
+$('#flash_messages').html("<%= escape_javascript(render :partial=>"shared/notification", :locals => {:message=>"Assignee updated!"}) %>");
+$('#assignee_select').hide();
+$(function(){ $(document).foundation(); });

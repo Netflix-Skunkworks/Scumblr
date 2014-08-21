@@ -1,0 +1,167 @@
+<div class="row">
+  <div class="large-9 columns">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Results over time</h1>
+      </section>
+    </nav>
+    <div id="large-ts-chart" class="panel">
+      <svg height="400px"></svg>
+    </div>
+  </div>
+  <div class="large-3 columns">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Results by Status</h1>
+      </section>
+    </nav>
+    <div id="status-bar-chart" class="panel">
+      <svg height="147px"></svg>
+    </div>
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Results by Flag</h1>
+      </section>
+    </nav>
+    <div id="flag-bar-chart" class="panel">
+      <svg height="147px"></svg>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="large-12 columns">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Searches</h1>
+      </section>
+    </nav>
+    <table class="table">
+      <thead>
+        <tr>
+          <th></th>
+          <th colspan="4">Results</th>
+          <th colspan="<%= @flags.count + 1 %>">Flags</th>
+          <tr>
+            <th>Name</th>
+            <th>Total</th>
+            <th>24 Hours</th>
+            <th>7 Days</th>
+            <th>30 Day Trend</th>
+            <% @flags.each do |f| %>
+              <th><%= f.name %></th>
+            <% end %>
+            <th>None</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @searches.each do |s| %>
+            <tr>
+              <td><%= s.name %></td>
+              <td><%= @search_results_total.try(:[],s.id) || "-" %></td>
+              <td><%= @search_results_24_hours.try(:[],s.id) || "-" %></td>
+              <td><%= @search_results_7_days.try(:[],s.id) || "-" %></td>
+              <td>
+                <span class="sparkline"><%= @search_results_30_day_trend.select{|k,v| k.try(:[],0) == s.id}.map{|k,v| v}.join(",") %></span>
+              </td>
+              <% @flags.each do |f| %>
+                <td><%= @search_results_with_flags.select{|k,v| k == [s.id, f.id]}.try(:first).try(:last) || "-" %></td>
+              <% end %>
+              <td><%= @search_results_without_flags.try(:[],s.id) || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+    nv.addGraph(function() {
+      var chart = nv.models.lineChart()
+                    .margin({left: 75})  //Adjust chart margins to give the x-axis some breathing room.
+                    .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+                    .transitionDuration(350)  //how fast do you want the lines to transition?
+                    .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
+                    .showYAxis(true)        //Show the y-axis
+                    .showXAxis(true)        //Show the x-axis
+      ;
+    
+      chart.xAxis     //Chart x-axis settings
+          .axisLabel('Date')
+          .tickFormat(function(d) {
+                return d3.time.format('%x')(new Date(d))
+              });
+    
+      chart.yAxis     //Chart y-axis settings
+          .axisLabel('Results identified')
+    
+    
+      /* Done setting the chart up? Time to render it!*/
+      var data = <%= [{color:"#074e68", key:"Results", values: @results_by_date.map{|k,v| {x:1000*k.to_time.to_i, y:v}}}].to_json.html_safe %>;   //You need data...
+    
+    
+    
+      d3.select('#large-ts-chart svg')    //Select the <svg> element you want to render the chart in.
+          .datum(data)         //Populate the <svg> element with chart data...
+          .call(chart);          //Finally, render the chart!
+    
+      //Update the chart when window resizes.
+      nv.utils.windowResize(function() { chart.update() });
+      return chart;
+    });
+    
+    
+    
+    
+    nv.addGraph(function() {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .margin({top: 0, right: 20, bottom: 15, left: 100})
+            .tooltips(true)             //Show tooltips on hover.
+            .transitionDuration(350)
+            .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
+            .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
+    
+        chart.yAxis
+            .tickFormat(d3.format(',r'));
+    
+    
+        var data = <%= [{color:"#074e68", key:"Results", values: @results.group_by{|r| r.status_id }.map{|k,v| {label:@statuses.select{|s| s.id == k}.try(:first).try(:name).to_s, value:v.count}}}].to_json.html_safe %>;
+    
+    
+        d3.select('#status-bar-chart svg')
+            .datum(data)
+            .call(chart);
+    
+        nv.utils.windowResize(chart.update);
+    
+        return chart;
+      });
+    
+    
+    nv.addGraph(function() {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(function(d) { return d.label })
+            .y(function(d) { return d.value })
+            .margin({top: 0, right: 20, bottom: 15, left: 100})
+            .tooltips(true)             //Show tooltips on hover.
+            .transitionDuration(350)
+            .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
+            .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
+    
+        chart.yAxis
+            .tickFormat(d3.format(',r'));
+    
+    
+        var data = <%= [{color:"#074e68", key:"Results", values: @flag_counts.map{|k,v| {label:k, value:v}}}].to_json.html_safe %>;
+    
+    
+        d3.select('#flag-bar-chart svg')
+            .datum(data)
+            .call(chart);
+    
+        nv.utils.windowResize(chart.update);
+    
+        return chart;
+      });
+  </script>

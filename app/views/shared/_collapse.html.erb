@@ -1,0 +1,15 @@
+<% uuid= params[:uuid] || SecureRandom.uuid %>
+<% if request.format != "application/javascript" %>
+  <dl class="accordion" data-accordion>
+    <dd>
+      <a href="#panel_<%= uuid -%>"><%= title -%></a>
+      <div id="panel_<%= uuid -%>" class="content">
+      <% end %>
+      <%= render layout: 'shared/paginated_table', locals:local_assigns.reverse_merge({uuid:uuid})  do %>
+        <%= yield %>
+      <% end %>
+      <% if request.format != "application/javascript" %>
+      </div>
+    </dd>
+  </dl>
+<% end %>

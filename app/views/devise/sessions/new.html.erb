@@ -1,0 +1,29 @@
+<section id="homepage-hero">
+  <div class="row">
+    <div class="medium-7 large-6 columns">
+      <h1>Scumblr</h1><br>
+      <h3>Trolling the garbage dump that is the Internet, so you don't have to.</h3>
+      <br>
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-4 medium-6 columns">
+      <%= render partial: 'shared/notification', locals: {message: flash[:notice] } if flash[:notice] %>
+      <%= render partial: 'shared/notification', locals: {message: flash[:alert] } if flash[:alert] %>
+      <%= simple_form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
+        <div class="form-inputs">
+          <%= f.input :email, :required => false, :autofocus => true %>
+          <%= f.input :password, :required => false %>
+          <%= f.input :remember_me, :as => :boolean if devise_mapping.rememberable? %>
+        </div>
+        <div class="form-actions">
+          <%= f.button :submit, "Sign in" %>
+        </div>
+      <% end %>
+      <%= render "devise/shared/links" %>
+    </div>
+  </div>
+  <div class="floatingyeti">
+    <%= image_tag "scumblr.svg" %>
+  </div>
+</section>

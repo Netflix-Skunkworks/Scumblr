@@ -1,0 +1,18 @@
+
+<% if @notice.present? %>
+  $('#flash_messages').html("<%= escape_javascript(render :partial=>"shared/notification", :locals => {:message=>@notice}) %>");
+<% end %>
+<% if @options.present? %>
+  $('#workflow_options_modal').html("<%= escape_javascript(render :partial=>"update_workflow", :locals => {}) %>");  
+  $("#workflow_options_modal").foundation('reveal', 'open');
+  
+<% else %>
+  $('#result_workflow').html("<%= escape_javascript(render :partial=>"result_workflow") %>");
+  $('#result_details').html("<%= escape_javascript(render :partial=>"show_details") %>");
+  $("#workflow_options_modal").foundation('reveal', 'close');
+<% end %>
+
+$(".workflow_form").hide();
+ready();
+hide_preloader();
+$("#preloader-modal").foundation('reveal','close');

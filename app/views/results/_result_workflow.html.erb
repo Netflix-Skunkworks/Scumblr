@@ -1,0 +1,16 @@
+<dl class="dl-horizontal">
+    <% if @result.result_flags.count == 0 %>
+      <h5>No workflows specified.</h5>
+    <% end %>
+    <% @result.result_flags.each do |result_flag| %>
+      <dt class="half"><%= result_flag.try(:flag).try(:name) %></dt>
+      <dd>
+      <a href="#" data-dropdown="drop<%= result_flag.id %>" class="button dropdown tiny secondary"><%= result_flag.stage.try(:name) %></a><br>
+      <ul id="drop<%= result_flag.id %>" data-dropdown-content class="f-dropdown">
+        <% result_flag.try(:stage).try(:next_steps).each do |next_step| %>
+          <li><%= link_to next_step.name, action_result_path(@result, result_flag.id, next_step.id), remote: true, method: :post %></a></li>
+        <% end %>
+      </ul>
+      </dd>
+    <% end %>
+</dl>

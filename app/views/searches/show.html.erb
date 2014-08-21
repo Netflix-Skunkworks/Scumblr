@@ -1,0 +1,28 @@
+<p id="notice"><%= notice %></p>
+<dl class="dl-horizontal">
+  <dt>Name:</dt>
+  <dd><%= @search.name %></dd>
+  <dt>Provider:</dt>
+  <dd><%= @search.provider_name %></dd>
+  <dt>Query:</dt>
+  <dd><%= @search.query %></dd>
+  <% @provider_options.each do |key, value| %>
+    <dt><%= value[:name] %>:</dt>
+    <dd><%= @search.options[key].to_s %></dd>
+  <% end %>
+  <dt>Description:</dt>
+  <dd><%= @search.description %></dd>
+  <dt>Tags:</dt>
+  <dd>
+    <% @search.tags.select{|t| t.value == nil}.each do |tag| %>
+      <span class="label" <%= "style=background-color:#{tag.color||'#CCC'}"%> >
+        <%= tag.name %>
+      </span>
+    <% end %>
+  </dd>
+  <dt>Subscribers:</dt>
+  <dd><%= @search.subscriber_list %></dd>
+</dl>
+<%= link_to 'Edit', edit_search_path(@search), class: "button" if can? :edit, @search %>
+<%= link_to 'Back', searches_path, class: "button secondary" if can? :index, Search %>
+<%= link_to 'Run Now', run_search_path(@search), class: "button alert" if can? :run, @search %>

@@ -1,0 +1,21 @@
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Provider</th>
+    <th>Query</th>
+    <th></th>
+  </tr>
+  <% @searches.each do |search| %>
+    <tr>
+      <td><%= link_to search.name, search %></td>
+      <td><%= search.provider_name %></td>
+      <td><%= search.query %></td>
+      <td>
+        <%= link_to 'Edit', edit_search_path(search), class: "button tiny" if can? :edit, search %>
+        <%= link_to 'Destroy', search, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" if can? :destroy, search %></td>
+    </tr>
+  <% end %>
+</table>
+<br />
+<%= link_to 'New Search', new_search_path, class: "button" if can? :create, Search %>
+<%= link_to 'Run All Searches', run_searches_path, class: "button alert" if can? :run, Search  %>

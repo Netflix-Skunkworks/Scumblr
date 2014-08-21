@@ -1,0 +1,26 @@
+<p id="notice"><%= notice %></p>
+<p>
+  <strong>Name:</strong>
+  <%= @flag.name %>
+</p>
+<p>
+  <strong>Color:</strong>
+  <%= @flag.color %>
+</p>
+<p>
+  <strong>Workflow:</strong>
+  <%= @flag.workflow.try(:name) %>
+</p>
+<p>
+  <strong>Description:</strong>
+  <%= @flag.description %>
+</p>
+<p>
+  <strong>Subscribers:</strong><br/>
+  <% @flag.subscribers.each do |sub| %>
+    <%= sub.subscriber_email %><br/>
+  <% end %>
+</p>
+<%= link_to 'Edit', edit_flag_path(@flag) %>
+|
+<%= link_to 'Back', flags_path %>

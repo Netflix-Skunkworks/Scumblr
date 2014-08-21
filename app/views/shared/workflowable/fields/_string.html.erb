@@ -1,0 +1,11 @@
+<dl class="dl-horizontal dl-form">
+  <dt class=>
+    <%= label_tag do %>
+      <%= label.to_s.titleize %>
+      <%= "*" if value_hash[:required] == true  %>
+    <% end %>
+  </dt>
+  <dd>
+    <%= f.text_field "#{key}][value", "value"=>value %>
+  </dd>
+</dl>

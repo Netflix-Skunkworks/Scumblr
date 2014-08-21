@@ -1,0 +1,29 @@
+<h1>Listing flags</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Color</th>
+      <th>Workflow</th>
+      <th>Description</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @flags.each do |flag| %>
+      <tr>
+        <td><%= flag.name %></td>
+        <td><%= flag.color %></td>
+        <td><%= flag.workflow_id %></td>
+        <td><%= flag.description %></td>
+        <td><%= link_to 'Show', flag %></td>
+        <td><%= link_to 'Edit', edit_flag_path(flag) %></td>
+        <td><%= link_to 'Destroy', flag, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<br>
+<%= link_to 'New Flag', new_flag_path %>
