@@ -5,7 +5,7 @@
 #   git config --global core.excludesfile ~/.gitignore_global
 
 # Ignore scumblr config
-/config/initializer/scumblr.rb
+/config/initializers/scumblr.rb
 
 # Ignore bundler config
 /.bundle
