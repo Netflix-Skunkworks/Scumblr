@@ -17,7 +17,7 @@ Scumblr::Application.configure do
   # Should Scumblr automatically generate screenshots for new results
   # config.sketchy_url = "http://localhost:80/api/v1.0/capture"
   # config.sketch_use_ssl = false  # Does sketchy use ssl?
-  # config.sketch_verify_ssl = true # Should scumblr verify sketchy's cert 
+  # config.sketch_verify_ssl = true # Should scumblr verify sketchy's cert
 
   # Provider configurations
 
@@ -30,8 +30,12 @@ Scumblr::Application.configure do
 
   #config.google_developer_key = ''
   #config.google_cx  = ''
+  #config.google_application_name = ''
+  #config.google_application_version = ''
 
   #config.youtube_developer_key = ''
+  #config.youtube_application_name = ''
+  #config.youtube_application_version = ''
 
   #config.twitter_consumer_key        = ''
   #config.twitter_consumer_secret     = ''

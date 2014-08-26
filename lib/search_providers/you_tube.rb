@@ -31,21 +31,22 @@ class SearchProvider::YouTube < SearchProvider::Provider
 
     def initialize(query , options={})
         super
-        @google_developer_key = Rails.configuration.try(:youtube_developer_key)
+        @youtube_developer_key = Rails.configuration.try(:youtube_developer_key)
         @youtube_api_service_name = "youtube"
         @youtube_api_version = "v3"
+        @application_name = Rails.configuration.try(:youtube_application_name)
+        @application_version = Rails.configuration.try(:youtube_application_version)
         @options[:results] = @options[:results].blank? ? 50 : @options[:results]
 
     end
 
     def run
-
-        if(@google_developer_key.blank?)
+        if(@youtube_developer_key.blank?)
             Rails.logger.error "Unable to search YouTube. No developer key. Please define an developer key as youtube_developer_key in the Scumblr initializer."
-            return
+            return []
         end
 
-        client = Google::APIClient.new(:key => @google_developer_key, :authorization => nil)
+        client = Google::APIClient.new(:key => @youtube_developer_key, :authorization => nil, :application_name=>@application_name, :application_version=>@application_version)
         youtube = client.discovered_api(@youtube_api_service_name, @youtube_api_version)
         parameters = {
             'q' => @query,
@@ -57,7 +58,8 @@ class SearchProvider::YouTube < SearchProvider::Provider
             :parameters => parameters
         )
         results = []
-        #@controller.redirect_to AppTrap::Engine.routes.url_helpers.redir_path @options[:parameter].to_sym=>Random.rand(1000000)
+
+
         search_response.data.items.each do |result|
             case result.id.kind
             when 'youtube#video'
@@ -70,8 +72,7 @@ class SearchProvider::YouTube < SearchProvider::Provider
                     screenshot: result.snippet.thumbnails.high['url'],
                     parsed_uri: (result.snippet['description'].nil? ? "" : URI.extract(result.snippet['description'], ['http', 'https']).join(' '))
                 }
-                #results << {title: result.snippet['title']#, url: result["link"], domain: result["displayLink"]}
-                #videos.push("#{search_result.snippet.title} (#{search_result.id.videoId})")
+
             end
         end
         return results
