@@ -21,8 +21,6 @@ Scumblr::Application.configure do
 
   # Provider configurations
 
-  #config.apple_app_store_key = ''
-
   #config.ebay_access_key = ''
 
   #config.facebook_app_id = ''

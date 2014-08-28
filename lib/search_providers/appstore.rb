@@ -36,15 +36,10 @@ class SearchProvider::Appstore < SearchProvider::Provider
         @options.reverse_merge!({:results=>100, :require_all_terms=>"false"})
         @options[:results] = Integer(@options[:results])
 
-        @access_token = Rails.configuration.try(:apple_app_store_key)
 
     end
 
     def run
-        if(@access_token.blank?)
-            Rails.logger.error "Unable to search App Store. No key defined. Please define an access key as apple_app_store_key in the Scumblr initializer."
-            return
-        end
 
         url = URI.escape('https://itunes.apple.com/search?media=software&term=' + @query + '&limit=' + @options[:results].to_s)
         response = Net::HTTP.get_response(URI(url))
