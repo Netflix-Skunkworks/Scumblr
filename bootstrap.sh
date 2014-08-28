@@ -15,8 +15,6 @@ gem install sidekiq --no-ri --no-rdoc
 
 
 cd /vagrant
-git clone https://github.com/Netflix/Scumblr.git
-cd Scumblr
 bundle install
 rake db:create
 rake db:schema:load
