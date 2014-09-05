@@ -2,7 +2,7 @@
   <% provider_options.each do |key, value| %>
     <div class="field">
       <%= builder.label value[:name] %><br/>
-      <%= builder.text_field key %>
+      <%= builder.text_field key, value: value[:default] %>
     </div>
   <% end %>
 <% end %>
