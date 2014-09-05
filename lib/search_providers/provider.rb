@@ -14,39 +14,35 @@
 
 
 module SearchProvider
-    class Provider            
-        def self.provider_name
-            nil
-        end
-
-        def self.options
-            return {}
-        end
-
-        def initialize(query , options={})
-            @query = query
-            @options = options
-            
-        end
-
-        def run
-
-        end
-
-
-        def stop
-
-        end
-
-        def start
-            
-        end
-
-        def update
-
-        end
-
-        
+  class Provider
+    def self.provider_name
+        nil
     end
-    
+
+    def self.options
+        return {}
+    end
+
+    def initialize(query , options={})
+      @query = query
+      @options = options
+    end
+
+    def run
+
+    end
+
+
+    def stop
+
+    end
+
+    def start
+
+    end
+
+    def update
+
+    end
+  end
 end
