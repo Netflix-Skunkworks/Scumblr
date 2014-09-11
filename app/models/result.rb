@@ -82,9 +82,9 @@ class Result < ActiveRecord::Base
     uri = URI.parse(sketchy_url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.read_timeout = 75
-    http.use_ssl = Rails.configuration.try(:sketch_use_ssl) || false
-    if(Rails.configuration.try(:sketch_use_ssl))
-      http.verify_mode = Rails.configuration.try(:sketch_verify_ssl) || true
+    http.use_ssl = Rails.configuration.try(:sketchy_use_ssl) || false
+    if(Rails.configuration.try(:sketchy_use_ssl) && Rails.configuration.try(:sketchy_verify_ssl) == false)
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     end
 
     request = Net::HTTP::Post.new(uri.request_uri)
