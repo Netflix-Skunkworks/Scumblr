@@ -14,7 +14,7 @@
 
 
 class StatusesController < ApplicationController
-  before_filter :load_status, only: [:show, :edit, :update, :destroy]
+  before_filter :load_status, only: [:show, :edit, :update, :destroy, :set_default]
   authorize_resource
   # GET /statuses
   # GET /statuses.json
@@ -85,6 +85,25 @@ class StatusesController < ApplicationController
     end
   end
 
+  def set_default
+    if(@status)
+      @status.default = true
+      @status.save
+      respond_to do |format|
+        format.html { redirect_to statuses_url, notice: "Status updated successfully" }
+        format.json { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to statuses_url, notice: "Could not update status" }
+        format.json { head :no_content }
+      end
+    end
+
+    
+
+  end
+
   # DELETE /statuses/1
   # DELETE /statuses/1.json
   def destroy
@@ -104,7 +123,7 @@ class StatusesController < ApplicationController
   end
 
   def status_params
-    params.require(:status).permit(:name, :closed, :is_invalid)
+    params.require(:status).permit(:name, :closed, :is_invalid, :default)
   end
 
 

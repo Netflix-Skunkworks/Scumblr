@@ -27,6 +27,14 @@
     <% end %>
     <%= f.check_box :is_invalid %>
   </div>
+  <div class="field">
+    <%= f.label :default do %>
+      Default
+      <span data-tooltip class="has-tip fi-info" title="Should new result automatically be put into this status?" class="fi-info"></span>
+    <% end %>
+    <%= f.check_box :default %>
+  </div>
+
   <div class="actions">
     <%= f.submit class: "button" %>
     <%= link_to 'Back', searches_path, class: "button secondary" %>

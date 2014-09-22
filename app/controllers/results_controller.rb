@@ -134,7 +134,7 @@ class ResultsController < ApplicationController
   # POST /results.json
   def create
     @result = Result.new(result_params)
-    @result.status = Status.find_by_name("New")
+    @result.status = Status.find_by_default(true)
 
     respond_to do |format|
       if @result.save
@@ -490,11 +490,6 @@ class ResultsController < ApplicationController
     session[:saved_search] = params[:q]
 
     @q = Result.perform_search(params[:q])
-
-
-
-    # @q = Result.includes(:status, :result_attachments).search(params[:q])
-    # @q.sorts = 'created_at desc' if @q.sorts.empty?
 
     if(params[:commit] == "Save")
       @saved_filter = SavedFilter.new

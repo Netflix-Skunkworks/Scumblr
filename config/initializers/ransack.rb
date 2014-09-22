@@ -19,10 +19,10 @@ Ransack.configure do |config|
     :arel_predicate => 'not_in',
     # Format incoming values as you see fit. (Default: Don't do formatting)
     #:formatter => proc {|v| ""},
-    :formatter => proc {|v| Status.find_all_by_closed(v!=true).map(&:id) },
+    :formatter => proc {|v| Status.find_all_by_closed(true).map(&:id) },
     # Validate a value. An "invalid" value won't be used in a search.
     # Below is default.
-    :validator => proc {|v| v != true},
+    :validator => proc {|v| v != true },
     # Should compounds be created? Will use the compound (any/all) version
     # of the arel_predicate to create a corresponding any/all version of
     # your predicate. (Default: true)

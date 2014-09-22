@@ -15,6 +15,20 @@
 
 class Status < ActiveRecord::Base
   #attr_accessible :name
+  has_many :results
+  after_save :reset_default
+
+  def reset_default
+
+    if(self.default == true)
+      default_status = Status.find_all_by_default(true)
+      default_status.each do |status|
+        status.update_attributes(:default=>false) if status != self
+      end
+ 
+      self.results << Result.find_all_by_status_id(nil)
+    end
+  end
 
   def to_s
     name

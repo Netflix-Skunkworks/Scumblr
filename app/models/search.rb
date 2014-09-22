@@ -100,7 +100,7 @@ class Search < ActiveRecord::Base
     provider = search.provider.constantize
     results = provider.new(search.query, search.options).run
     Rails.logger.warn "Results #{results}"
-    new_status = Status.find_by_name("New").try(:id)
+    new_status = Status.find_by_default(true).try(:id)
     results.each do |r|
 
       result = Result.where(:url=>r[:url]).first_or_initialize

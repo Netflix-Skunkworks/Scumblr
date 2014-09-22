@@ -93,7 +93,11 @@ Scumblr::Application.routes.draw do
   end
 
 
-  resources :statuses
+  resources :statuses do
+    member do
+      post 'set_default'
+    end
+  end
 
 
 
