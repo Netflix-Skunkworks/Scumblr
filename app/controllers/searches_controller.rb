@@ -50,9 +50,7 @@ class SearchesController < ApplicationController
   # GET /searches/new.json
   def new
     @search = Search.new
-    @providers = SearchProvider::Provider.subclasses.map{|p| [p.to_s,p.provider_name]}
-
-
+    @providers = search_provider_list
 
     respond_to do |format|
       format.html # new.html.erb
@@ -62,7 +60,7 @@ class SearchesController < ApplicationController
 
   # GET /searches/1/edit
   def edit
-    @providers = SearchProvider::Provider.subclasses.map{|p| [p.to_s,p.provider_name]}
+    @providers = search_provider_list
 
   end
 
@@ -70,7 +68,7 @@ class SearchesController < ApplicationController
   # POST /searches.json
   def create
     @search = Search.new(search_params)
-    @providers = SearchProvider::Provider.subclasses.map{|p| [p.to_s,p.provider_name]}
+    @providers = search_provider_list
 
     respond_to do |format|
       if @search.save
@@ -86,7 +84,7 @@ class SearchesController < ApplicationController
   # PUT /searches/1
   # PUT /searches/1.json
   def update
-    @providers = SearchProvider::Provider.subclasses.map{|p| [p.to_s,p.provider_name]}
+    @providers = search_provider_list
 
     respond_to do |format|
       if @search.update_attributes(search_params)
@@ -158,5 +156,7 @@ class SearchesController < ApplicationController
     params.require(:search).permit(:name, :description, :provider, :query, :tag_list, :subscriber_list).merge(:options =>all_options)
   end
 
-
+  def search_provider_list
+    SearchProvider::Provider.subclasses.map{|p| [p.to_s,p.provider_name]}.sort
+  end
 end
