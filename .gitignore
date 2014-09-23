@@ -7,6 +7,9 @@
 # Ignore scumblr config
 /config/initializers/scumblr.rb
 
+#Ignore dump.rdb
+dump.rdb
+
 # Ignore bundler config
 /.bundle
 
