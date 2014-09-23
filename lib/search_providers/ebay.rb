@@ -19,41 +19,41 @@ require 'json'
 
 
 class SearchProvider::Ebay < SearchProvider::Provider
-    def self.provider_name
-        "Ebay Search"
-    end
+  def self.provider_name
+    "Ebay Search"
+  end
 
-    def self.options
-        {}
-    end
+  def self.options
+    {}
+  end
 
-    def initialize(query, options={})
-        super
-        @access_token = Rails.configuration.try(:ebay_access_key)
-    end
+  def initialize(query, options={})
+    super
+    @access_token = Rails.configuration.try(:ebay_access_key)
+  end
 
-    def run
-        if(@access_token.blank?)
-            Rails.logger.error "Unable to search Ebay. No access token defined. Please define an access key as ebay_access_key in the Scumblr initializer."
-            return
-        end
-        url = URI.escape('http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords'\
-                         '&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=' + @access_token + '&'\
-                         'RESPONSE-DATA-FORMAT=JSON&REST-PAYLOAD&'\
-                         'keywords=' + @query)
-        response = Net::HTTP.get_response(URI(url))
-        results = []
-        if response.code == "200"
-            search_results = JSON.parse(response.body)
-            search_results['findItemsByKeywordsResponse'][0]['searchResult'][0]['item'].each do |result|
-                results <<
-                {
-                    :title => result['title'].try(:first),
-                    :url => result['viewItemURL'].try(:first),
-                    :domain => "ebay.com"
-                }
-            end
-        end
-        return results
+  def run
+    if(@access_token.blank?)
+      Rails.logger.error "Unable to search Ebay. No access token defined. Please define an access key as ebay_access_key in the Scumblr initializer."
+      return
     end
+    url = URI.escape('http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords'\
+             '&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=' + @access_token + '&'\
+             'RESPONSE-DATA-FORMAT=JSON&REST-PAYLOAD&'\
+             'keywords=' + @query)
+    response = Net::HTTP.get_response(URI(url))
+    results = []
+    if response.code == "200"
+      search_results = JSON.parse(response.body)
+      search_results['findItemsByKeywordsResponse'][0]['searchResult'][0]['item'].each do |result|
+        results <<
+        {
+          :title => result['title'].try(:first),
+          :url => result['viewItemURL'].try(:first),
+          :domain => "ebay.com"
+        }
+      end
+    end
+    return results
+  end
 end
