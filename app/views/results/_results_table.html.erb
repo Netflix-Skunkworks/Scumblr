@@ -1,0 +1,43 @@
+<table id="results_table">
+  <thead>
+    <tr>
+      <th><%= check_box_tag "select_all", 'yes', false, {:id=>"check_all_results"} %></th>
+      <th></th>
+      <th><%= sort_link @q, :title %></th>
+      <th><%= sort_link @q, :status_id %></th>
+      <th><%= sort_link @q, :url %></th>
+      <th>Link</th>
+      <th><%= sort_link @q, :created_at, "Identified" %></th>
+      <th><%= sort_link @q, :updated_at, "Last Seen" %></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @results.each do |result| %>
+      <tr>
+        <td><%= check_box_tag "result_ids[]", result.id, false, {:class=>"result_checkbox"} %></td>
+        <td>
+          <% if result.result_attachments.length > 0 %>
+            <span href="#" class="fi-monitor open_lightbox has-tip" data-tooltip title="<%= "<img src=\"" + image_url(result.result_attachments.last.attachment.expiring_url(6000, :medium)).html_safe + "\">" %>"></span>
+            <ul class="clearing-thumbs clearing-feature hide" data-clearing>
+              <% result.result_attachments.each_with_index do |attr,i| %>
+                <li <%= " class=clearing-featured-img" if i==0 %>>
+                  <%= link_to attr.attachment.expiring_url(6000) do %>
+                    <%= image_tag attr.attachment.expiring_url(6000, :thumb) %>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
+        </td>
+        <td><%= result.title.truncate(100, :separator=>' ') %></td>
+        <td><%= result.status %></td>
+        <td><%= begin URI.parse(result.url).host rescue "" end %></td>
+        <td><%= link_to "Link", result.url, data: {confirm: "Are you sure? This will take you to a potentially dangerous site!\n\nURL: " + result.url.to_s}, target:"_blank"  %></td>
+        <td><%= time_ago_in_words(result.created_at) + " ago" %></td>
+        <td><%= time_ago_in_words(result.updated_at) + " ago" %></td>
+        <td><%= link_to 'Show', result, class: "button tiny" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -42,6 +42,12 @@
   background-color: rgba(0,0,0,0.6); /*dim the background*/
 }
 
+.view-button
+{
+  padding-right: 5px;
+  color: white;
+  font-size: 20px;
+}
 
 span.tooltip
 {
@@ -148,7 +154,7 @@ body#homepage
 
 section.pagination
 {
-  margin: 7px 10px 0 0;  
+  margin: 10px 10px 0 0;  
   float: right;
 
   ul.pagination
@@ -156,6 +162,12 @@ section.pagination
     margin: 0;
     padding: 0
   }
+}
+
+section.buttons
+{
+  margin: 7px 10px 0 0;
+  float: right;
 }
 
 .clearing-assembled .clearing-container .visible-img
@@ -305,10 +317,19 @@ table button,table .button
   position: relative;
 }
 
-.thumbnail-image:hover
+
+.thumbnail-list-box
 {
-  border: 2px solid #0086b8;
-  opacity: 0.5;
+  margin-top: 10px;
+  position: relative;
+
+}
+
+.thumbnail-image
+{
+  display:block;
+  margin-left:auto;
+  margin-right:auto;
 }
 
 .thumbnail-image
@@ -320,14 +341,17 @@ table button,table .button
 {
   position: absolute;
   top: 15px;
-  width: 91%;
+  width:92%;
+  
+
   text-align: center;
+  background-color:rgba(255,255,255, 0.7)
 }
 
-.thumbnail-button
+.thumbnail-buttons .button.tiny.thumbnail-button
 {
-  
-  
+  margin-top:5px;
+  margin-bottom: 5px;
 }
 
 

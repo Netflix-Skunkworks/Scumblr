@@ -1,0 +1,40 @@
+<ul class="small-block-grid-4">
+  <% @results.each do |result| %>
+    <li class="thumbnail-list-box">
+      <div class="reveal-hidden">
+        
+        
+          <% if result.result_attachments.length > 0 %>
+            <%= image_tag result.result_attachments.last.attachment.expiring_url(6000, :medium), class: "thumbnail-image  thumbnail-list-image" %>
+            <div class="thumbnail-buttons thumbnail-buttons-bg">
+
+              <%= link_to "View Result", result_path(result), :class=>"hidden button tiny thumbnail-button" %>
+              <span href="#" class="open_lightbox button tiny hidden thumbnail-button">View Images</span>
+              <ul class="clearing-thumbs clearing-feature hide" data-clearing>
+                <% result.result_attachments.reverse.each_with_index do |attr,i| %>
+                  <li <%= " class=clearing-featured-img" if i==0 %>>
+                    <%= link_to attr.attachment.expiring_url(6000) do %>
+                      <%= image_tag attr.attachment.expiring_url(6000, :thumb) %>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+              <div class="centered hidden"><%= truncate(result.url) %></div>
+            </div>
+            
+          <% else %>
+            <%= link_to result_path(result) do %>
+              <%= image_tag "scumblr_blank.png", class: "thumbnail-image" %>
+              <div class="thumbnail-buttons thumbnail-buttons-bg">
+
+                <%= link_to "View Result", result_path(result), :class=>"hidden button tiny thumbnail-button" %>
+                <div class="centered hidden"><%= truncate(result.url) %></div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </li>
+  <% end %>
+</ul>
+
+

@@ -31,6 +31,7 @@ class ResultsController < ApplicationController
   # GET /results.json
   def index
 
+    
 
     perform_search
 
@@ -458,6 +459,15 @@ class ResultsController < ApplicationController
   def perform_search
     @total_result_count = Result.count
 
+    if(params[:view] == "tiles")
+      session[:results_view] = "tiles" 
+    elsif(params[:view] == "list")
+      session[:results_view] = "list" 
+    else
+      session[:results_view] = session[:results_view] || "list"
+    end
+    
+    @view = session[:results_view]
 
 
 
@@ -488,6 +498,7 @@ class ResultsController < ApplicationController
 
     params[:q].reject! {|k,v| v.blank? || v==[""]} if params[:q]
     session[:saved_search] = params[:q]
+    session[:view] = @view
 
     @q = Result.perform_search(params[:q])
 
