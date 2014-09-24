@@ -35,6 +35,7 @@ class Result < ActiveRecord::Base
 
   validates :url, uniqueness: true
   validates :url, presence: true
+  validates_format_of :url, with: /\A#{URI::regexp}\z/
 
   serialize :metadata, Hash
 
