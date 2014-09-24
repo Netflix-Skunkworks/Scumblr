@@ -297,7 +297,7 @@ class ResultsController < ApplicationController
       name, value = tag.split(":")
 
 
-      t = Tag.where({name: name.strip, value:value}).first_or_initialize
+      t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
       t.color = color if color
       t.save! if t.changed?
       @result.taggings.find_or_create_by_tag_id(t.id)
@@ -362,7 +362,7 @@ class ResultsController < ApplicationController
 
         tag, color = tag_info.split("::")
         name, value = tag.split(":")
-        t = Tag.where({name: name.strip, value:value}).first_or_initialize
+        t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
         t.color = color if color
         t.save! if t.changed?
 
@@ -438,6 +438,11 @@ class ResultsController < ApplicationController
       @result.update_attributes(:content=>content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: ''))
     end
 
+    if(Rails.configuration.try(:sketchy_tag_status_code) == true)
+      @result.tags.delete(Tag.where(name:"Status"))
+      @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+    end
+
     render text: "OK", layout: false
 
   end
@@ -508,14 +513,6 @@ class ResultsController < ApplicationController
 
     @results = @q.result(distinct:true)
 
-
-
-
   end
-
-
-
-
-
 
 end

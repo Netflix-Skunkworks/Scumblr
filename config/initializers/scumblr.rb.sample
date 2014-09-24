@@ -18,6 +18,7 @@ Scumblr::Application.configure do
   # config.sketchy_url = "http://localhost:80/api/v1.0/capture"
   # config.sketchy_use_ssl = false  # Does sketchy use ssl?
   # config.sketchy_verify_ssl = true # Should scumblr verify sketchy's cert
+  # config.sketchy_tag_status_code = true # Add a tag indicating last status code sketchy received
 
   # Provider configurations
 

@@ -22,4 +22,12 @@ class Tag < ActiveRecord::Base
     self.taggings.where(:taggable_type=>type)
   end
 
+  def name_value
+    if(self.value.present?)
+      "#{self.name}: #{self.value}"
+    else
+      self.name
+    end
+  end
+
 end

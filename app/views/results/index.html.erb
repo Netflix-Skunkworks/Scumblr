@@ -52,7 +52,7 @@
           <%= select_tag :status_id, options_from_collection_for_select(Status.all, "id", "name"), {:prompt => 'Please select', class: 'select2'} %>
         <% end %>
         <%= label_tag do %>Tags
-          <%= hidden_field_tag "tags", "", {class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
+          <%= hidden_field_tag "tags", "", {class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name_value" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name_value" , "data-path"=>tags_path} %>
         <% end %>
         <%= label_tag do %>Assignee
           <%= select_tag :assignee_id, options_from_collection_for_select(User.all, :id, :email), {:prompt => 'Please select', class: "select2"} %>

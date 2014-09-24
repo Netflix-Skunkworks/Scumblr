@@ -5,7 +5,7 @@
   <%= f.text_field :title_cont %>
 <% end %>
 <%= label_tag do %>Tags
-  <%= f.collection_select :tags_id_in, Tag.all, :id, :name, {}, {class: "select2",:multiple=>true} %>
+  <%= f.collection_select :tags_id_in, Tag.all, :id, :name_value, {}, {class: "select2",:multiple=>true} %>
 <% end %>
 <%= label_tag do %>Assignee
   <%= f.collection_select :user_id_in, User.all, :id, :email, {}, {class: "select2",:multiple=>true} %>
