@@ -59,7 +59,13 @@
         <% end %>
         <%= hidden_field_tag :q, params[:q].to_json %>
         <%= hidden_field_tag :update_all_from_query, false, {:id=>'update_all_from_query'} %>
-        <%= split_button ["Update", "Update and Generate Screenshot", "Update and Force Generate Screenshot"], :button_class=>'small', :link_class=>'update_multiple_button' %>
+        <% button_options = ["Update", "Update and Generate Screenshot", "Update and Force Generate Screenshot"] %>
+                
+        
+        <%= split_button  button_options, :button_class=>'small', :link_class=>'update_multiple_button' %>
+        <% if(can? :destroy, Result) %>
+          <%= submit_tag "Delete Results", class: "button alert small update_multiple_button", :confirm=>"Are you sure you want to delete the selected results?" %>
+        <% end %>
       <% end %>
     </section>
   </div>

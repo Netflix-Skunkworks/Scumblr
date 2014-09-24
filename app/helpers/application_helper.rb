@@ -36,7 +36,7 @@ module ApplicationHelper
     uuid= options[:uuid] || SecureRandom.uuid
 
     html = ""
-    html << "<a href='#' class='split_button_submit button split #{options[:button_class]} #{options[:link_class]}'>#{labels.shift} <span data-dropdown='drop_#{uuid}'></span></a><br>"
+    html << "<a href='#' class='split_button_submit button split #{options[:button_class]} #{options[:link_class]}'>#{labels.shift} <span data-dropdown='drop_#{uuid}'></span></a>"
     html << "<ul id='drop_#{uuid}' class='f-dropdown f-dropdown-wide' data-dropdown-content>"
     labels.each do |l|
       html << "<li><a href='#' class='split_button_submit #{options[:link_class]}'>#{l}</a></li>"

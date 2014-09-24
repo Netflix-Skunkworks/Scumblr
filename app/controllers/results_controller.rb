@@ -353,56 +353,57 @@ class ResultsController < ApplicationController
       ScreenshotSyncTaskRunner.perform_async(results_without_screenshots.map{|r| r.id})
     elsif(commit == "Update and Force Generate Screenshot")
       ScreenshotSyncTaskRunner.perform_async(result_ids)
+    elsif(commit == "Delete Results")
+      Result.delete(result_ids)
+      skip_updates = true
     end
 
+    if(!skip_updates)
 
+      if(params[:tags].present?)
+        params[:tags].to_s.split(",").each do |tag_info|
 
-    if(params[:tags].present?)
-      params[:tags].to_s.split(",").each do |tag_info|
+          tag, color = tag_info.split("::")
+          name, value = tag.split(":")
+          t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
+          t.color = color if color
+          t.save! if t.changed?
 
-        tag, color = tag_info.split("::")
-        name, value = tag.split(":")
-        t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
-        t.color = color if color
-        t.save! if t.changed?
+          columns = [:tag_id, :taggable_id, :taggable_type]
+          tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
+          tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
 
-
-
-        columns = [:tag_id, :taggable_id, :taggable_type]
-        tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
-        tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
-
-        taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
-        Tagging.import(columns, taggables)
-      end
-    end
-
-    if(params[:flags].present?)
-      result_flags = []
-      params[:flags].split(",").each do |flag|
-        f = Flag.includes(:results).find_by_id(flag)
-
-        #Specifying stage_id and workflow_id directly because the import method will not
-        columns = [:flag_id, :result_id, :stage_id, :workflow_id]
-        flagged = f.results.map{|result| result.id}
-        flag_result_ids = result_ids.reject {|r| flagged.include?(r)}
-
-        flaggable = flag_result_ids.map{|r| [f.id, r, f.workflow.initial_stage_id, f.workflow_id]}
-
-        ResultFlag.import(columns, flaggable)
+          taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
+          Tagging.import(columns, taggables)
+        end
       end
 
+      if(params[:flags].present?)
+        params[:flags].split(",").each do |flag|
+          f = Flag.includes(:results).find_by_id(flag)
 
-    end
+          #Specifying stage_id and workflow_id directly because the import method will not
+          columns = [:flag_id, :result_id, :stage_id, :workflow_id]
+          flagged = f.results.map{|result| result.id}
+          flag_result_ids = result_ids.reject {|r| flagged.include?(r)}
 
-    if(params[:status_id].present?)
-      status = Status.find_by_id(params[:status_id])
-      Result.update_all({:status_id => status.id}, {:id=>result_ids}) if status
-    end
+          flaggable = flag_result_ids.map{|r| [f.id, r, f.workflow.initial_stage_id, f.workflow_id]}
 
-    if(params[:assignee_id].present?)
-      user = User.find_by_id(params[:assignee_id])
-      Result.update_all({:user_id => user.id}, {:id=>result_ids}) if user
+          ResultFlag.import(columns, flaggable)
+        end
+
+
+      end
+
+      if(params[:status_id].present?)
+        status = Status.find_by_id(params[:status_id])
+        Result.update_all({:status_id => status.id}, {:id=>result_ids}) if status
+      end
+
+      if(params[:assignee_id].present?)
+        user = User.find_by_id(params[:assignee_id])
+        Result.update_all({:user_id => user.id}, {:id=>result_ids}) if user
+      end
     end
 
     respond_to do |format|
@@ -449,10 +450,11 @@ class ResultsController < ApplicationController
 
   def bulk_add
     if(params[:results])
+      default_status = Status.find_by_default(true)
       valid = 0
       invalid = 0
       params[:results].split(/\r?\n/).each do |result|
-        r = Result.new(title: result, url: result, domain: URI.parse(result).host)
+        r = Result.new(title: result, url: result, domain: URI.parse(result).host, status: default_status)
         if(r.save)
           valid += 1
         else

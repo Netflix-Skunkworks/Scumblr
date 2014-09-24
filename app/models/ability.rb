@@ -50,6 +50,7 @@ class Ability
     else
       can :status, :about
       can :manage, Result
+      cannot :destroy, Result
       can [:index, :show, :events], Search
       can :manage, SavedFilter
       can :manage, Tag
