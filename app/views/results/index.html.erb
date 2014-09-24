@@ -67,6 +67,28 @@
 <%= paginate @results, :method=>:post, :params=> nil, :outer_window => 3, :window=>1, :remote=> (defined? remote)? remote : false %>
 <br />
 <%= link_to 'New Result', new_result_path, class: "button" %>
+<%= link_to "Bulk Add Results", "#", :class=>"button", data:{"reveal-id"=>"bulk_add_form"} %>
+<div id="bulk_add_form" class="reveal-modal custom-modal" data-reveal>
+  <header class="popup-header">
+    <div class="row">
+      <div class="large-12 columns">
+        <h4>Bulk Add Results</h4>
+      </div>
+    </div>
+  </header>
+  <div class="row">
+    <div class="large-12 columns">
+      <%= form_tag bulk_add_results_path do |f| %>
+        <%= text_area_tag :results %> 
+        <%= submit_tag "Submit", :class=>"button tiny preload" %>
+        <%= button_tag "Cancel", :type=>:button, :class=>"button secondary tiny close-modal" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+
+
 <%= content_for :sidebar do %>
   <div class="sidebar">
     <nav class="tab-bar">

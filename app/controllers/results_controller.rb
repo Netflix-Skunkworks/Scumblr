@@ -447,6 +447,30 @@ class ResultsController < ApplicationController
 
   end
 
+  def bulk_add
+    if(params[:results])
+      valid = 0
+      invalid = 0
+      params[:results].split(/\r?\n/).each do |result|
+        r = Result.new(title: result, url: result, domain: URI.parse(result).host)
+        if(r.save)
+          valid += 1
+        else
+          invalid += 1
+        end
+      end
+      message = "Results added (#{valid} successful, #{invalid} failures)"
+      
+    end
+
+    respond_to do |format|
+      format.html { redirect_to results_url, notice: message || "No results to add" }
+      format.json { head :no_content }
+    end
+
+
+  end
+
   private
 
   def load_result

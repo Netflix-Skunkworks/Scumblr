@@ -36,11 +36,13 @@ Scumblr::Application.routes.draw do
   resources :results do
     collection do
       post 'update_multiple'
+      post 'bulk_add'
       post 'search' => 'results#index'
       get 'search' => 'results#index'
       get 'tags/:tag', to: 'results#index', as: :tag
       get 'dashboard'
       get 'workflow_autocomplete'
+
     end
 
     member do
