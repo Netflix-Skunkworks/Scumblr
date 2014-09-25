@@ -25,8 +25,8 @@ class Search < ActiveRecord::Base
   serialize :options, Hash
 
 
-  validate :name, presence: true
-  validate :name, uniqueness: true
+  validates :name, presence: true
+  validates :name, uniqueness: true
   validate :validate_provider
   validate :validate_options
 
