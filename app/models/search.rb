@@ -27,21 +27,25 @@ class Search < ActiveRecord::Base
 
   validates :name, presence: true
   validates :name, uniqueness: true
-  validate :validate_provider
-  validate :validate_options
+  validate :validate_search
 
 
 
   accepts_nested_attributes_for :taggings, :tags
 
 
+  def validate_search
+    begin
+      if(!SearchProvider::Provider.subclasses.include?(self.provider.try(:to_s).try(:constantize)))
+        errors.add :search_provider, " must be specified"
+        return
+      end
+    rescue
+      errors.add :search_provider, " must be specified"
+      return
+    end
 
 
-  def validate_provider
-    SearchProvider::Provider.subclasses.include?(self.provider.to_s.constantize)
-  end
-
-  def validate_options
     provider_options = self.provider.constantize.options
     if(self.options.blank?)
       self.options = {}
@@ -49,7 +53,7 @@ class Search < ActiveRecord::Base
     self.options.slice!(*provider_options.keys)
     provider_options.each do |key, value|
       if value[:required] && options[key].blank?
-        errors.add value[:name], " must not be blank"
+        errors.add value[:name], " can't be blank"
       end
     end
   end
