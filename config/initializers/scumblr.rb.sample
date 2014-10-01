@@ -19,6 +19,7 @@ Scumblr::Application.configure do
   # config.sketchy_use_ssl = false  # Does sketchy use ssl?
   # config.sketchy_verify_ssl = true # Should scumblr verify sketchy's cert
   # config.sketchy_tag_status_code = true # Add a tag indicating last status code sketchy received
+  # config.sketchy_access_token = "" # Access token for sketchy
 
   # Provider configurations
 

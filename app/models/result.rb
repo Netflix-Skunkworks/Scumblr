@@ -90,6 +90,10 @@ class Result < ActiveRecord::Base
 
     request = Net::HTTP::Post.new(uri.request_uri)
     request.add_field "Content-Type", "application/json"
+    if(Rails.configuration.try(:sketchy_access_token).present?)
+      request.add_field "Token", Rails.configuration.try(:sketchy_access_token).to_s
+    end
+
     request.body = {:url=>url, :callback=>Rails.application.routes.url_helpers.update_screenshot_result_url(self.id)}.to_json
 
     Rails.logger.debug "Sending request #{request.body.inspect}"
