@@ -84,9 +84,9 @@ class Result < ActiveRecord::Base
     http = Net::HTTP.new(uri.host, uri.port)
     http.read_timeout = 75
     http.use_ssl = Rails.configuration.try(:sketchy_use_ssl) || false
-    if(Rails.configuration.try(:sketchy_use_ssl) && Rails.configuration.try(:sketchy_verify_ssl) == false)
+    if(Rails.configuration.try(:sketchy_use_ssl) && (Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false"))
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    end
+    end 
 
     request = Net::HTTP::Post.new(uri.request_uri)
     request.add_field "Content-Type", "application/json"
