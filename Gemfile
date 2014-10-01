@@ -13,7 +13,7 @@ gem 'koala'
 
 #Database gems
 gem 'sqlite3'
-
+gem 'pg'
 
 #OneLogin Authenticatable
 #gem 'devise_saml_authenticatable'
