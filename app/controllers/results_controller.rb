@@ -462,7 +462,7 @@ class ResultsController < ApplicationController
       @result.update_attributes(:content=>content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: ''))
     end
 
-    if(Rails.configuration.try(:sketchy_tag_status_code) == true)
+    if(Rails.configuration.try(:sketchy_tag_status_code) == true || Rails.configuration.try(:sketchy_tag_status_code) == "true")
       @result.tags.delete(Tag.where(name:"Status"))
       @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
     end
