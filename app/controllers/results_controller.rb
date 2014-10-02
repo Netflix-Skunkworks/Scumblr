@@ -432,10 +432,33 @@ class ResultsController < ApplicationController
   def update_screenshot
 
     if(params[:sketch_url].present?)
-      @result.result_attachments.create(:attachment_remote_url=>params[:sketch_url])
+      sketch_url = params[:sketch_url]
+      if(params[:token].present?)
+        sketch_url += "?token=#{params[:token]}"
+      end
+      begin
+        if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
+          @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}))
+        else
+          @result.result_attachments.create(:attachment=>open(URI(sketch_url)))
+        end
+      rescue Exception=>e
+        Rails.logger.error "Error adding screenshot"
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
     end
     if(params[:scrape_url].present?)
-      content = open(params[:scrape_url]).read
+      scrape_url = params[:scrape_url]
+      if(params[:token].present?)
+        scrape_url += "?token=#{params[:token]}"
+      end
+      if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
+        content = open(scrape_url, {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
+      else
+        content = open(scrape_url).read
+      end
+      
       @result.update_attributes(:content=>content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: ''))
     end
 
