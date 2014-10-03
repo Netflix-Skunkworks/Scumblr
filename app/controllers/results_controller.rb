@@ -438,9 +438,9 @@ class ResultsController < ApplicationController
       end
       begin
         if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-          @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}))
+          @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
         else
-          @result.result_attachments.create(:attachment=>open(URI(sketch_url)))
+          @result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
         end
       rescue Exception=>e
         Rails.logger.error "Error adding screenshot"
