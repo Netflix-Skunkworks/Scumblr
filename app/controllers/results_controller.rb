@@ -297,7 +297,7 @@ class ResultsController < ApplicationController
       name, value = tag.split(":")
 
 
-      t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
+      t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
       t.color = color if color
       t.save! if t.changed?
       @result.taggings.find_or_create_by_tag_id(t.id)
@@ -365,7 +365,7 @@ class ResultsController < ApplicationController
 
           tag, color = tag_info.split("::")
           name, value = tag.split(":")
-          t = Tag.where({name: name.strip, value:value.strip}).first_or_initialize
+          t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
           t.color = color if color
           t.save! if t.changed?
 

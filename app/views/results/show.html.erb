@@ -88,7 +88,7 @@
         </dd>
         <dt>Tags</dt>
         <dd>
-          <% @result.tags.select{|t| t.value == nil}.each do |tag| %>
+          <% @result.tags.select{|t| t.value.blank? }.each do |tag| %>
             <span class="label" <%= "style=background-color:#{tag.color||'#CCC'}"%> >
                     <%= tag.name %>
                     <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %>
@@ -103,7 +103,7 @@
                 <%= submit_tag 'Submit', :class=>"button tiny"  %>
             <% end -%>
             </dd>
-            <% @result.tags.select{|t| t.value != nil}.each do |tag| %>
+            <% @result.tags.select{|t| t.value.present? }.each do |tag| %>
                 <dt><%= tag.name %></dt>
                 <dd><%= tag.value %> <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %></dd>
             <% end %>
