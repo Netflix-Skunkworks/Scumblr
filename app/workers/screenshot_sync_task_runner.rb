@@ -47,7 +47,6 @@ class ScreenshotSyncTaskRunner
       end
 
       at completed, "s:Syncing Screenshots (#{completed}/#{total_tasks})"
-      sleep(2)
 
     end
 
