@@ -22,5 +22,13 @@
       <td class="header">Identified</td>
       <td><%= time_ago_in_words(@result.created_at) + " ago" %></td>
     </tr>
+    <% @result.metadata.keys.each do |key| %>
+      <%= render partial: "results/metadata/#{key}_row" rescue nil %>
+    <% end %>
+
   </tbody>
 </table>
+
+<% @result.metadata.keys.each do |key| %>
+  <%= render partial: "results/metadata/#{key}_details" rescue nil %>
+<% end %>
