@@ -256,14 +256,13 @@ class ResultsController < ApplicationController
 
 
   def workflow_autocomplete
-
-
-    matches = Workflowable::Action.find_by_id(params[:action_id]).autocomplete(params[:field_type], params[:q])
+    @workflow = Workflowable::Workflow.find_by_id(params[:workflow_id])
+    @stage = Workflowable::Stage.find_by_id(params[:stage_id])
+    @action = @stage.before_actions.find_by_name(params[:action_id]) || @stage.after_actions.find_by_name(params[:action_id]) || @workflow.actions.find_by_name(params[:action_id])
+    matches = @action.autocomplete(params[:field_type], params[:q])
     respond_to do |format|
       format.json { render json: matches, meta: {total: matches.count} }
     end
-
-
   end
 
 
