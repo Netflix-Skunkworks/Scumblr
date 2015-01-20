@@ -92,6 +92,10 @@
     <div class="large-12 columns">
       <%= form_tag bulk_add_results_path do |f| %>
         <%= text_area_tag :results %> 
+        <%= label_tag do %>Tags
+          <%= hidden_field_tag "tags", "", {class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name_value" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name_value" , "data-path"=>tags_path} %>
+        
+        <% end %>  
         <%= submit_tag "Submit", :class=>"button tiny preload" %>
         <%= button_tag "Cancel", :type=>:button, :class=>"button secondary tiny close-modal" %>
       <% end %>

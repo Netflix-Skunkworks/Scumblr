@@ -489,15 +489,47 @@ class ResultsController < ApplicationController
       default_status = Status.find_by_default(true)
       valid = 0
       invalid = 0
+      existing = 0
+      result_ids = []
       params[:results].split(/\r?\n/).each do |result|
-        r = Result.new(title: result, url: result, domain: URI.parse(result).host, status: default_status)
-        if(r.save)
-          valid += 1
+        #r = Result.where(title: result, url: result, domain: URI.parse(result).host, status: default_status)
+        r = Result.where(url: result).first_or_initialize
+        if(r.new_record?)
+          r.title = result
+          r.domain = URI.parse(result).host
+          r.status = default_status
+          if(r.save)
+            valid += 1
+            result_ids << r.id
+          else
+            invalid += 1
+          end
         else
-          invalid += 1
+          result_ids << r.id
+          existing += 1
+        end
+
+        
+
+      end
+      if(result_ids.present? && params[:tags].present?)
+        params[:tags].to_s.split(",").each do |tag_info|
+        
+          tag, color = tag_info.split("::")
+          name, value = tag.split(":")
+          t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
+          t.color = color if color
+          t.save! if t.changed?
+
+          columns = [:tag_id, :taggable_id, :taggable_type]
+          tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
+          tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
+
+          taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
+          Tagging.import(columns, taggables)
         end
       end
-      message = "Results added (#{valid} successful, #{invalid} failures)"
+      message = "Results added (#{valid} added, #{existing} existing, #{invalid} failures)"
       
     end
 
