@@ -361,19 +361,33 @@ class ResultsController < ApplicationController
 
       if(params[:tags].present?)
         params[:tags].to_s.split(",").each do |tag_info|
+          if(params[:remove_tags] == "1")
+            debugger
+            tag, color = tag_info.split("::")
+            name, value = tag.split(":")
+            t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first
+            if(t)
+              Tagging.where(:taggable_id=>result_ids, :tag_id=>t.id, :taggable_type=>"Result").delete_all
+            end
+            
 
-          tag, color = tag_info.split("::")
-          name, value = tag.split(":")
-          t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
-          t.color = color if color
-          t.save! if t.changed?
+          else
+            tag, color = tag_info.split("::")
+            name, value = tag.split(":")
+            t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
+            t.color = color if color
+            t.save! if t.changed?
 
-          columns = [:tag_id, :taggable_id, :taggable_type]
-          tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
-          tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
+            columns = [:tag_id, :taggable_id, :taggable_type]
+            tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
+            tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
 
-          taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
-          Tagging.import(columns, taggables)
+            taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
+            Tagging.import(columns, taggables)
+
+          end
+
+          
         end
       end
 
