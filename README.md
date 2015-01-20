@@ -28,3 +28,4 @@ Up to you! You can create simple or complex workflows to be used along with your
 # Sounds great! How do I get started?
 
 Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed instructions on setup, configuration, and use!
+
