@@ -46,7 +46,7 @@ class SearchProvider::Google < SearchProvider::Provider
     @cx = options[:cx].present? ? options[:cx] : Rails.configuration.try(:google_cx)
     @application_name = Rails.configuration.try(:google_application_name)
     @application_version = Rails.configuration.try(:google_application_verion)
-    @site_search = options[:site_search].present? ? options[:site_search] : nil
+    @site_search = options[:site].present? ? options[:site] : nil
   end
 
 
