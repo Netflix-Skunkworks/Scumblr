@@ -113,15 +113,15 @@ class Search < ActiveRecord::Base
       result.metadata = r[:metadata] || {}
       result.status_id = new_status if !result.status_id && new_status
 
-      result.save if result.changed?
+      result.save! if result.changed?
       search.tags.each do |tag|
         tagging = result.taggings.where(:tag_id=>tag.id).first_or_initialize
-        tagging.save if tagging.changed?
+        tagging.save! if tagging.changed?
       end
       Rails.logger.warn "Result saved #{result}"
 
       search_result = SearchResult.where({:search_id=>search.id, :result_id=> result.id}).first_or_initialize
-      search_result.save
+      search_result.save!
       Rails.logger.warn "Search result saved #{search_result}"
     end
 
