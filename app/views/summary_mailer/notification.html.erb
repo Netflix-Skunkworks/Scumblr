@@ -370,7 +370,7 @@
                                       <% @results.each do |result| %>
                                         <tr>
                                           <td><%= link_to result.id, result_url(result) %></td>
-                                          <% if result.present? %>
+                                          <% if result.title.present? %>
                                             <td><%= link_to result.title.truncate(70, :separator=>' '), result.url %></td>
                                           <% else %>
                                             <td><%= link_to "No Title", result.url %></td>
