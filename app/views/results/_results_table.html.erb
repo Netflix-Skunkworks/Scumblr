@@ -30,7 +30,7 @@
             </ul>
           <% end %>
         </td>
-        <% if result.present? %>
+        <% if result.title.present? %>
           <td><%= result.title.truncate(100, :separator=>' ') %></td>
         <% else %>
           <td>No Title</td>
