@@ -24,7 +24,7 @@ class SearchProvider::Google < SearchProvider::Provider
   def self.options
     {
       :cx=> {name: "Custom Search ID (cx)",
-             description: "Custom search engine id (default seaches entire web)",
+             description: "Custom search engine id (default searches entire web)",
              required: false
              },
       :site => { name: "Limit to Site",
@@ -53,7 +53,7 @@ class SearchProvider::Google < SearchProvider::Provider
   def run
 
     if(@google_developer_key.blank?)
-      Rails.logger.error "Unable to search Google. No developer key. Please define an developer key as google_developer_key in the Scumblr initializer."
+      Rails.logger.error "Unable to search Google. No developer key. Please define a developer key as google_developer_key in the Scumblr initializer."
       return []
     end
     if(@cx.blank?)
