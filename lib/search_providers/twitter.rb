@@ -23,7 +23,7 @@ class SearchProvider::Twitter < SearchProvider::Provider
 
   def self.options
     {
-      :results=>{name: "Max results", description: "Specifiy the number of results to retrieve", required: false},
+      :results=>{name: "Max results", description: "Specify the number of results to retrieve", required: false},
       :from=>{name: "Search specific user", description: "Search a specific user for tweets", required: false}
     }
   end

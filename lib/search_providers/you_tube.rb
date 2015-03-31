@@ -42,7 +42,7 @@ class SearchProvider::YouTube < SearchProvider::Provider
 
   def run
     if(@youtube_developer_key.blank?)
-      Rails.logger.error "Unable to search YouTube. No developer key. Please define an developer key as youtube_developer_key in the Scumblr initializer."
+      Rails.logger.error "Unable to search YouTube. No developer key. Please define a developer key as youtube_developer_key in the Scumblr initializer."
       return []
     end
 

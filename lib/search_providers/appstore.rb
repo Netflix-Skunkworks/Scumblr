@@ -24,7 +24,7 @@ class SearchProvider::Appstore < SearchProvider::Provider
 
   def self.options
     {
-      :results=>{name: "Max results (200)", description: "Specifiy the number of results to retrieve", required: false},
+      :results=>{name: "Max results (200)", description: "Specify the number of results to retrieve", required: false},
       :require_all_terms=>{name: "Require all terms", description: "If set to \"true\" will ensure all search terms are contained in result", required: false},
     }
   end
