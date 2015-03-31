@@ -26,18 +26,11 @@ class SearchProvider::RSS < SearchProvider::Provider
   def self.options
     {
       :feed_url=>{name: "RSS Feed URL", description: "The location of the RSS feed", required: true},
-      :feed_url=>{name: "RSS Feed URL", description: "The location of the RSS feed", required: true},
-      :feed_url=>{name: "RSS Feed URL", description: "The location of the RSS feed", required: true},      
-
     }
   end
 
   def initialize(query, options={})
     super
-    #Delete blank options (since Rails will save blank string if the option is not specified)
-    
-
-
   end
 
   def run
