@@ -36,9 +36,9 @@ class SearchProvider::Reddit < SearchProvider::Provider
 
   def run
     if(@options[:subreddit].blank?)
-      url = URI.escape('https://www.reddit.com/search.json?q=' + @query)
+      url = URI.escape('https://www.reddit.com/search.json?q=' + @query  + '&limit=' + @options[:results].to_s)
     else
-      url = URI.escape('https://www.reddit.com/r/' + @options[:subreddit] + '/search.json?q=' + @query + '&limit=' + @options[:results])
+      url = URI.escape('https://www.reddit.com/r/' + @options[:subreddit] + '/search.json?q=' + @query + '&limit=' + @options[:results].to_s)
     end
 
     response = Net::HTTP.get_response(URI(url))
