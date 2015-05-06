@@ -25,12 +25,13 @@ class SearchProvider::RSS < SearchProvider::Provider
 
   def self.options
     {
-      :feed_url=>{name: "RSS Feed URL", description: "The location of the RSS feed", required: true},
+      :feed_url=>{name: "RSS Feed URL", description: "The location of the RSS feed", required: true}
     }
   end
 
   def initialize(query, options={})
     super
+    #Delete blank options (since Rails will save blank string if the option is not specified)
   end
 
   def run
@@ -43,14 +44,14 @@ class SearchProvider::RSS < SearchProvider::Provider
     regex = Regexp.union(@query.split(",").map(&:strip).map{|re| Regexp.new(re, Regexp::IGNORECASE)})
     open(url) do |rss|
       feed = RSS::Parser.parse(rss)
-      feed_title = "#{feed.channel.title}"
+      feed_title = "#{feed.try(:channel).try(:title) || feed.try(:title)}"
       feed.items.each do |result|
         
-        if(result.title.match(regex) || result.description.match(regex))
+        if(result.try(:title).to_s.match(regex) || result.try(:description).to_s.match(regex) || result.try(:content).to_s.match(regex))
           results <<
           {
-            :title =>  "#{feed_title}: #{result.title}",
-            :url => result.link,
+            :title =>  "#{ActionView::Base.full_sanitizer.sanitize(feed_title.to_s)}: #{ActionView::Base.full_sanitizer.sanitize(result.title.to_s)}",
+            :url => result.try(:link).try(:href) || result.try(:link).to_s,
             :domain => domain
           }
         end
