@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140922200438) do
+ActiveRecord::Schema.define(version: 20150526174610) do
 
   create_table "comments", force: true do |t|
     t.integer  "commentable_id",   default: 0
@@ -29,6 +29,25 @@ ActiveRecord::Schema.define(version: 20140922200438) do
 
   add_index "comments", ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
   add_index "comments", ["user_id"], name: "index_comments_on_user_id"
+
+  create_table "event_types", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "events", force: true do |t|
+    t.string   "title"
+    t.text     "details"
+    t.datetime "date"
+    t.integer  "user_id"
+    t.integer  "event_type_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "events", ["event_type_id"], name: "index_events_on_event_type_id"
+  add_index "events", ["user_id"], name: "index_events_on_user_id"
 
   create_table "flags", force: true do |t|
     t.string   "name"

@@ -32,3 +32,6 @@ dump.rdb
 
 #Ignore bundled gems
 /vendor/bundle/
+
+#Ignore spec directory
+/spec
