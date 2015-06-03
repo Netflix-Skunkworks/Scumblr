@@ -22,8 +22,6 @@ class SavedFilter < ActiveRecord::Base
   has_many :summaries, as: :summarizable
 
   validates :name, :presence => true
-  validates :saved_filter_type, inclusion: { in: %w(Result Event),
-    message: "%{value} is not a valid filter type" }
 
   def subscriber_list
     subscribers.where(:user_id=>nil).map(&:email).join(",")
@@ -36,7 +34,8 @@ class SavedFilter < ActiveRecord::Base
   end
 
   def perform_search(query_overrides={})
-    self.saved_filter_type.constantize.perform_search(self.query.merge(query_overrides))
+    Result.perform_search(self.query.merge(query_overrides))
+
   end
 
 

@@ -112,11 +112,20 @@ class Search < ActiveRecord::Base
       result.domain = r[:domain]
       result.metadata = r[:metadata] || {}
       result.status_id = new_status if !result.status_id && new_status
+      event_action = result.new_record? ? "Created" : "Updated"
 
-      result.save if result.changed?
+
+      if result.changed?
+        result.save 
+        result.events << Event.create(recipient: "Result", action: event_action,source: self.provider.to_s)
+      end
       search.tags.each do |tag|
         tagging = result.taggings.where(:tag_id=>tag.id).first_or_initialize
-        tagging.save if tagging.changed?
+        if tagging.changed?
+          result.events << Event.create(recipient: "Tag", action: "Created",source: self.name.to_s, new_value: tag.name_value)
+          
+          tagging.save 
+        end
       end
       Rails.logger.warn "Result saved #{result}"
 

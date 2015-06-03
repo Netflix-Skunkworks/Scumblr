@@ -49,6 +49,7 @@ class Ability
       can :manage, :all
     else
       can :status, :about
+      can [:show, :index], Event
       can :manage, Result
       cannot :destroy, Result
       can [:index, :show, :events], Search

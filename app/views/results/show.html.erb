@@ -9,9 +9,9 @@
   <%= render 'show_details' %>
 </div>
 <h3>Searches</h3>
-<% @associated_objects.each do |result_set| %>
-  <%= render :partial=>"shared/abstract_table", :locals => {:result_set=>result_set} %>
-<% end %>
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:search_results]} %>
+
+
 <div id="upload_form" class="reveal-modal custom-modal" data-reveal>
   <header class="popup-header">
     <div class="row">
@@ -53,6 +53,10 @@
     </li>
   <% end %>
 </ul>
+
+<h3>Events</h3>
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:events]} %>
+
 <h3>Comments</h3>
 <%= form_tag comment_result_path(@result), :class=>"comment_form" do %>
   <%= text_area_tag 'comment'%>

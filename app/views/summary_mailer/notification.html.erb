@@ -350,37 +350,78 @@
                         <table class="twelve columns" style="border-spacing: 0; border-collapse: collapse; vertical-align: top; text-align: left; width: 750px; margin: 0 auto; padding: 0;"><tr style="vertical-align: top; text-align: left; padding: 0;" align="left"><td style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; color: #222222; font-family: 'Helvetica', 'Arial', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0px 0px 10px;" align="left" valign="top">
                               <tr>
                                 <td class="expander" style="word-break: break-word; -webkit-hyphens: auto; -moz-hyphens: auto; hyphens: auto; border-collapse: collapse !important; vertical-align: top; text-align: left; visibility: hidden; width: 0px; color: #222222; font-family: 'Helvetica', 'Arial', sans-serif; font-weight: normal; line-height: 19px; font-size: 14px; margin: 0; padding: 0;" align="left" valign="top">
-                                  <% if @filter.public == true %>
-                                    <h2>New results were found for
-                                      <%= link_to @filter.name, results_url(:saved_filter_id=>@filter.id) %></h2>
-                                  <% else %>
-                                    <h2>New results were found for
-                                      <%= @filter.name %></h2>
-                                  <% end %>
-                                  <table>
-                                    <thead>
-                                      <tr>
-                                        <th style="width: 50px">Id</th>
-                                        <th>Title (Warning: Links to potentially dangerous site)</th>
-                                        <th style="width: 100px">Domain</th>
-                                        <th style="width: 100px">Search</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <% @results.each do |result| %>
+                                  <% if @filter.saved_filter_type == "Result" %>
+                                    <% if @filter.public == true %>
+                                      <h2>New results were found for
+                                      @filter.saved_filter_type.pluralize.downcase
+                                        <%= link_to @filter.name, results_url(:saved_filter_id=>@filter.id) %></h2>
+                                    <% else %>
+                                      <h2>New results were found for <%= @filter.name %></h2>
+                                    <% end %>
+                                    <table>
+                                      <thead>
                                         <tr>
-                                          <td><%= link_to result.id, result_url(result) %></td>
-                                          <% if result.title.present? %>
-                                            <td><%= link_to result.title.truncate(70, :separator=>' '), result.url %></td>
-                                          <% else %>
-                                            <td><%= link_to "No Title", result.url %></td>
-                                          <% end %>
-                                          <td><%= result.domain %></td>
-                                          <td><%= result.searches.try(:first).try(:name) %></td>
+                                          <th style="width: 50px">Id</th>
+                                          <th>Title (Warning: Links to potentially dangerous site)</th>
+                                          <th style="width: 100px">Domain</th>
+                                          <th style="width: 100px">Search</th>
                                         </tr>
-                                      <% end %>
-                                    </tbody>
-                                  </table>
+                                      </thead>
+                                      <tbody>
+                                        <% @results.each do |result| %>
+                                          <tr>
+                                            <td><%= link_to result.id, result_url(result) %></td>
+                                            <% if result.title.present? %>
+                                              <td><%= link_to result.title.truncate(70, :separator=>' '), result.url %></td>
+                                            <% else %>
+                                              <td><%= link_to "No Title", result.url %></td>
+                                            <% end %>
+                                            <td><%= result.domain %></td>
+                                            <td><%= result.searches.try(:first).try(:name) %></td>
+                                          </tr>
+                                        <% end %>
+                                      </tbody>
+                                    </table>
+                                  <% else %>
+                                    <% if @filter.public == true %>
+                                      <h2>New results were found for <%= link_to @filter.name, events_url(:saved_filter_id=>@filter.id) %></h2>
+                                    <% else %>
+                                      <h2>New results were found for <%= @filter.name %></h2>
+                                    <% end %>
+                                    <table>
+                                      <thead>
+                                        <tr>
+                                          <th style="width: 50px">Id</th>
+                                          <th style="width: 75px">Associated With</th>
+                                          <th style="width: 75px">Recipient</th>
+                                          <th style="width: 75px">Action</th>
+                                          <th style="width: 75px">Old Value</th>
+                                          <th style="width: 75px">New Value</th>
+                                          <th style="width: 75px">Source</th>
+                                          <th style="width: 150px">URL/Link</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <% @results.each do |result| %>
+                                          <tr>
+                                            <td><%= link_to result.id, event_url(result) %></td>
+                                            <% if result.eventable_type == "Result" %>
+                                              <td><%= link_to result.eventable.to_s, result_url(result.eventable) %></td>
+                                            <% else %>
+                                              <td><%= result.eventable.to_s %></td>
+                                            <% end %>
+                                            <td><%= result.recipient %></td>
+                                            <td><%= result.action %></td>
+                                            <td><%= result.old_value %></td>
+                                            <td><%= result.new_value %></td>
+                                            <td><%= result.user.try(:email) || result.source %></td>
+                                            <td><%= link_to result.try(:eventable).try(:url).to_s.truncate(70, :separator=>' '), result.try(:eventable).try(:url) if result.try(:eventable).url %></td>
+                                          </tr>
+                                        <% end %>
+                                      </tbody>
+                                    </table>
+                                  <% end %>
+                                  
                                 </td>
                               </tr></table></td>
                         </tr></table><!-- container end below --></td>

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150526174610) do
+ActiveRecord::Schema.define(version: 20150528201240) do
 
   create_table "comments", force: true do |t|
     t.integer  "commentable_id",   default: 0
@@ -30,23 +30,22 @@ ActiveRecord::Schema.define(version: 20150526174610) do
   add_index "comments", ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
   add_index "comments", ["user_id"], name: "index_comments_on_user_id"
 
-  create_table "event_types", force: true do |t|
-    t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "events", force: true do |t|
-    t.string   "title"
+    t.string   "recipient"
+    t.string   "action"
+    t.string   "old_value"
+    t.string   "new_value"
+    t.string   "source"
     t.text     "details"
     t.datetime "date"
     t.integer  "user_id"
-    t.integer  "event_type_id"
+    t.integer  "eventable_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "eventable_type"
   end
 
-  add_index "events", ["event_type_id"], name: "index_events_on_event_type_id"
+  add_index "events", ["eventable_id"], name: "index_events_on_eventable_id"
   add_index "events", ["user_id"], name: "index_events_on_user_id"
 
   create_table "flags", force: true do |t|
@@ -104,6 +103,7 @@ ActiveRecord::Schema.define(version: 20150526174610) do
     t.boolean  "public"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "saved_filter_type"
   end
 
   add_index "saved_filters", ["user_id"], name: "index_saved_filters_on_user_id"

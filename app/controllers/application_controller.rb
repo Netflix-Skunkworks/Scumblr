@@ -70,8 +70,10 @@ class ApplicationController < ActionController::Base
   private
 
 
-  def get_paginated_results(object, symbol, i)
-    results = object.send(symbol).includes(i)
+  def get_paginated_results(object, symbol, options)
+    results = object.send(symbol).includes(options[:includes])
+    results = results.order({options[:order].to_sym => options[:direction].blank? ? :asc : options[:direction].to_sym}) if(options[:order].present?)
+    
     instance_variable_set("@#{symbol}_count",results.length)
     instance_variable_set("@#{symbol}_paginated", results.page(params[:page]).per(params[:per_page]))
   end

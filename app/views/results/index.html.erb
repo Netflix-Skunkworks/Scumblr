@@ -56,7 +56,7 @@
         
         <% end %>  
         <%= label_tag "Remove" do %>
-        <%= check_box_tag :remove_tags, '1', false %> Remove
+        <%= check_box_tag :remove_tags, '1', false %> Remove Tag(s)
         <% end %>
 
   
@@ -95,7 +95,10 @@
         <%= label_tag do %>Tags
           <%= hidden_field_tag "tags", "", {class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name_value" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name_value" , "data-path"=>tags_path} %>
         
-        <% end %>  
+        <% end %> 
+        <%= label_tag "tag_new_only" do %>
+          <%= check_box_tag :tag_new_only, '1', false %> Only Tag New Results
+        <% end %> 
         <%= submit_tag "Submit", :class=>"button tiny preload" %>
         <%= button_tag "Cancel", :type=>:button, :class=>"button secondary tiny close-modal" %>
       <% end %>

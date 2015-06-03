@@ -27,6 +27,8 @@ class Result < ActiveRecord::Base
   has_many :stages, through: :result_flags
   has_many :subscribers, as: :subscribable
 
+  has_many :events, as: :eventable
+
   has_many :result_attachments
 
   belongs_to :user
@@ -42,7 +44,9 @@ class Result < ActiveRecord::Base
   acts_as_commentable
 
 
-
+  def to_s
+    "Result #{id}"
+  end
 
   def self.tagged_with(name)
     Tagging.where({:tag_id=>Tag.find_all_by_name(name).map(&:id), :taggable_type=> "Result"}).map{|tagging| tagging.taggable}

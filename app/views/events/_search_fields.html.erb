@@ -1,0 +1,17 @@
+<%= label_tag do %>Recipient
+  <%= f.collection_select :recipient_in, Event.select(:recipient).map(&:recipient).uniq, :to_s, :to_s , {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Action
+  <%= f.collection_select :action_in, Event.select(:action).map(&:action).uniq, :to_s, :to_s , {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Old Value
+  <%= f.text_field :old_value_cont %>
+<% end %>
+<%= label_tag do %>New Value
+  <%= f.text_field :new_value_cont %>
+<% end %>
+<%= label_tag do %>Result Filter
+  <%= f.collection_select :eventable_id_in_saved_result_filter, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true %>
+<% end %>
+
+<hr/>

@@ -345,15 +345,18 @@ var ready = function(){
         }   
 
     });
-    $(".remote_select2").on('change', function(e) {
+    $(".remote_select2").on("change", function(e) {
       if($(this).attr("data-autosubmit") == 'true') 
       {
-        $(this).parent().submit()
+
+        $(this).parent().submit();
+        preventDefault();
       }
 
     });
   });
 
+  
   //Remove the class so this is only classed once...
   $(".remote_select2").removeClass("remote_select2");
   $(".remote_select2").css("display", "")

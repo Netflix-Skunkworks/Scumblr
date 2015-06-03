@@ -1,4 +1,3 @@
-#     Copyright 2014 Netflix, Inc.
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
 #     you may not use this file except in compliance with the License.
@@ -17,6 +16,13 @@ require 'sidekiq/web'
 
 Scumblr::Application.routes.draw do
 
+  resources :events, only: [:index, :show] do
+    collection do
+      post 'search' => 'events#index'
+      get 'search' => 'events#index'
+    end
+
+  end
   resources :flags
 
   get "user_saved_filters/create"

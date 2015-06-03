@@ -20,11 +20,15 @@ class SavedFiltersController < ApplicationController
 
 
   def index
-    @saved_filters = current_user.saved_filters
-    @added_public_saved_filters = current_user.added_saved_filters
-    @public_saved_filters = SavedFilter.where(:public=>true).where.not(:user_id=>current_user.id).where.not(:id=>@added_public_saved_filters)
-
-
+    if(params[:saved_filter_type])
+      @saved_filters = current_user.saved_filters.where(saved_filter_type: params[:saved_filter_type])
+      @added_public_saved_filters = current_user.added_saved_filters.where(saved_filter_type: params[:saved_filter_type])
+      @public_saved_filters = SavedFilter.where(:public=>true).where.not(:user_id=>current_user.id).where(saved_filter_type: params[:saved_filter_type]).where.not(:id=>@added_public_saved_filters)
+    else
+      @saved_filters = current_user.saved_filters
+      @added_public_saved_filters = current_user.added_saved_filters
+      @public_saved_filters = SavedFilter.where(:public=>true).where.not(:user_id=>current_user.id).where.not(:id=>@added_public_saved_filters)
+    end
   end
 
   def create
@@ -34,10 +38,10 @@ class SavedFiltersController < ApplicationController
 
     respond_to do |format|
       if @saved_filter.save
-        format.html { redirect_to results_path, notice: 'Filter was successfully created.' }
+        format.html { redirect_to saved_filters_path(saved_filter_type: @saved_filter.saved_filter_type), notice: 'Filter was successfully created.' }
         #format.json { render json: @saved_filter, status: :created, location: @saved_filter }
       else
-        format.html { redirect_to results_path, notice: 'Could not save filter.' }
+        format.html { redirect_to saved_filters_path(saved_filter_type: @saved_filter.saved_filter_type), notice: 'Could not save filter.' }
         #format.json { render json: @saved_filter.errors, status: :unprocessable_entity }
       end
     end
@@ -45,9 +49,9 @@ class SavedFiltersController < ApplicationController
 
   def edit
     if(@saved_filter.user_id == current_user.id)
-      @q = Result.includes(:tags,:status, :search_results).search(@saved_filter.query)
+      @q = @saved_filter.saved_filter_type.constantize.perform_search(@saved_filter.query)
     else
-      redirect_to saved_filters_path, notice: 'Could not edit filter.'
+      redirect_to root_path, notice: 'Could not edit filter.'
       return
     end
   end
@@ -58,7 +62,7 @@ class SavedFiltersController < ApplicationController
       @saved_filter.query = params[:q]
       respond_to do |format|
         if @saved_filter.update_attributes(saved_filter_params)
-          format.html { redirect_to saved_filters_path, notice: 'Filter was successfully updated.' }
+          format.html { redirect_to saved_filters_path(saved_filter_type: @saved_filter.saved_filter_type), notice: 'Filter was successfully updated.' }
           #format.json { head :no_content }
         else
           format.html { render action: "edit" }
@@ -75,15 +79,15 @@ class SavedFiltersController < ApplicationController
   def add
     if(@saved_filter.user_id != current_user.id && @saved_filter.public == true && !(current_user.user_saved_filters.include?(@saved_filter)))
       current_user.added_saved_filters << @saved_filter
-      redirect_to saved_filters_path, notice: 'Filter added.'
+      redirect_to saved_filters_path(saved_filter_type: params[:saved_filter_type]), notice: 'Filter added.'
     else
-      redirect_to saved_filters_path, notice: 'Could not add filter.'
+      redirect_to root_path, notice: 'Could not add filter.'
     end
   end
 
   def remove
     current_user.added_saved_filters.delete(@saved_filter)
-    redirect_to saved_filters_path, notice: 'Filter removed.'
+    redirect_to saved_filters_path(saved_filter_type:params[:saved_filter_type]), notice: 'Filter removed.'
 
   end
 
@@ -91,15 +95,17 @@ class SavedFiltersController < ApplicationController
 
   def destroy
     if(@saved_filter.user_id == current_user.id)
+      saved_filter_type = @saved_filter.saved_filter_type
       @saved_filter.destroy
 
+
       respond_to do |format|
-        format.html { redirect_to saved_filters_url }
+        format.html { redirect_to saved_filters_path(saved_filter_type: saved_filter_type) }
         format.json { head :no_content }
       end
 
     else
-      redirect_to saved_filters_path, notice: 'Could not destroy filter.'
+      redirect_to root_path, notice: 'Could not destroy filter.'
     end
 
 
@@ -109,7 +115,7 @@ class SavedFiltersController < ApplicationController
   private
 
   def saved_filter_params
-    params.require(:saved_filter).permit(:public, :name, :subscriber_list)
+    params.require(:saved_filter).permit(:public, :name, :subscriber_list, :saved_filter_type)
   end
 
   def load_saved_filter

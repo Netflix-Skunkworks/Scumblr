@@ -30,9 +30,6 @@ class ResultsController < ApplicationController
   # GET /results
   # GET /results.json
   def index
-
-    
-
     perform_search
 
     #Save is here because if we render/return in perform_search we end up double rendering
@@ -56,8 +53,6 @@ class ResultsController < ApplicationController
 
 
   def dashboard
-
-
     #Add boxes at the top with Quick facts (New today (delta))......
     # Providers/Search with highest/lowest signal to noise ratio
     # Providers/Search with most/least raw actionable results
@@ -83,7 +78,6 @@ class ResultsController < ApplicationController
 
 
     render layout: "dashboard"
-
   end
 
 
@@ -93,20 +87,21 @@ class ResultsController < ApplicationController
 
     @comments = @result.root_comments.includes([:user,:children])
 
-    @associated_objects = [
-      {:method=>:search_results, :includes=>:search, :link=>{:method=>:search_id, :path=>:search_url, :params=>[:search_id]}, :attributes=>[:search_name, :provider, :query, :created_at], name:"Results"},
-    ]
+    @associated_objects = {
+      search_results: {:method=>:search_results, :includes=>:search, :link=>{:method=>:search_id, :path=>:search_url, :params=>[:search_id]}, :attributes=>[:search_name, :provider, :query, :created_at], name:"Searches"},
+      events: {:method=>:events, :includes=>[:user], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :attributes=>[:date, :recipient, :action, :old_value, :new_value, :user], :sort_keys=>[:date,:recipient, :action, :old_value, :new_value,:user_id], name:"Events"}
+    }
 
-    @associated_objects.each do |result_set|
-      get_paginated_results(@result, result_set[:method], result_set[:includes])
+    if(params[:action_name].present?)
+      @associated_objects = @associated_objects.select{|k,obj| obj[:method].to_s == params[:action_name].to_s}
+
     end
 
+    @associated_objects.each do |key, result_set|
+      sort = params[:sort].to_i == 0 ? result_set.try(:[], :link).try(:[],:sort_key) : result_set.try(:[],:sort_keys).try(:[],params[:sort].to_i - 1)
 
-    if(params[:action_name])
-      @associated_objects = @associated_objects.select{|obj| obj[:method].to_s == params[:action_name].to_s}
+      get_paginated_results(@result, result_set[:method], {includes: result_set[:includes], order: sort || :id , direction: params[:sort_dir] || :desc})
     end
-
-
 
     respond_to do |format|
       format.html # show.html.erb
@@ -128,7 +123,6 @@ class ResultsController < ApplicationController
 
   # GET /results/1/edit
   def edit
-
   end
 
   # POST /results
@@ -139,6 +133,7 @@ class ResultsController < ApplicationController
 
     respond_to do |format|
       if @result.save
+        @result.events << Event.create(recipient: "Result", action: "Created", user_id: current_user.id)
         format.html { redirect_to @result, notice: 'Result was successfully created.' }
         format.json { render json: @result, status: :created, location: @result }
       else
@@ -154,6 +149,7 @@ class ResultsController < ApplicationController
 
     respond_to do |format|
       if @result.update_attributes(result_params)
+        @result.events << Event.create(recipient: "Result", action: "Updated", user_id: current_user.id)
         format.html { redirect_to @result, notice: 'Result was successfully updated.' }
         format.json { head :no_content }
       else
@@ -165,22 +161,30 @@ class ResultsController < ApplicationController
 
   def update_status
     @status = Status.find(params[:status_id])
+    @old_status = Status.find(@result.status_id).try(:name)
 
     @result.status_id= @status.id
-    @result.save
-    @notice = "Status updated."
+
+    if(@result.save)
+      @result.events << Event.create(recipient: "Status", action: "Updated", user_id: current_user.id, old_value: @old_status, new_value: @status.name )
+      @notice = "Status updated."
+    else
+      @notice = "Could not update status"
+    end
+
 
     respond_to do |format|
 
       format.js
     end
-
   end
 
   # DELETE /results/1
   # DELETE /results/1.json
   def destroy
+    result_id = @result.id
     @result.destroy
+    Event.create(recipient: "Result", action: "Deleted", user_id: current_user.id, eventable_type: "Result", eventable_id: result_id )
 
     respond_to do |format|
       format.html { redirect_to results_url }
@@ -195,30 +199,35 @@ class ResultsController < ApplicationController
     if(params[:parent_id] && parent = Comment.find_comments_for_commentable(Result, @result).find(params[:parent_id]))
       @comment.parent_id = params[:parent_id]
     end
-    @comment.save
-
-
-    redirect_to :back, notice: "Comment Added"
+    if(@comment.save)
+      @result.events << Event.create(recipient: "Comment", action: "Created", user_id: current_user.id)
+      redirect_to :back, notice: "Comment Added"
+    else
+      redirect_to :back, notice: "Could not add comment."
+    end
   end
 
   def delete_tag
     @result.taggings.where(:tag_id=>params[:tag_id]).delete_all
+    @tag = Tag.find_by_id(params[:tag_id]).try(:name_value)
+    @result.events << Event.create(recipient: "Tag", action: "Deleted", user_id: current_user.id, old_value: @tag)
     redirect_to :back, notice: "Tag removed."
-
   end
 
   def assign
     @user = User.find(params[:user_id])
 
+    @old_user = User.find_by_id(@result.user_id).try(:email)
     @result.user_id = @user.id
-    @result.save
+
+    if(@result.save)
+      @result.events << Event.create(recipient: "Assignee", action: "Updated", user_id: current_user.id, old_value: @old_user, new_value: @user.email)
+    else
+    end
 
     respond_to do |format|
       format.js
     end
-
-
-
   end
 
   def flag
@@ -242,6 +251,8 @@ class ResultsController < ApplicationController
     if(@errors == nil)
       @result_flag.workflow_options = params[:options]
       @result_flag.current_user = current_user
+
+      @result.events << Event.create(recipient: "Workflow", action: "Created", user_id: current_user.id, new_value: @flag.name )
       @result_flag.save
       @notice = "Result flagged!"
 
@@ -251,7 +262,6 @@ class ResultsController < ApplicationController
     else
       @options = @result_flag.next_step_options(@flag.workflow.initial_stage_id, params[:options], current_user)
     end
-
   end
 
 
@@ -272,6 +282,7 @@ class ResultsController < ApplicationController
     @options=""
     @result = Result.find(params[:id])
     @result_flag = @result.result_flags.find_by_id(params[:result_flag_id])
+    old_stage = @result_flag.stage.name
     @next_stage = @result_flag.stage.next_steps.find_by_id(params[:stage_id])
 
 
@@ -280,6 +291,10 @@ class ResultsController < ApplicationController
     if(@errors == nil)
 
       @result_flag.set_stage(@next_stage.id, params[:options], current_user )
+
+
+      @result.events << Event.create(recipient: "Workflow", action: "Updated", user_id: current_user.id, old_value: old_stage, new_value: @next_stage.name)
+
       @result.reload
       @result.result_flags.reload
       @notice = "Stage changed!"
@@ -299,22 +314,30 @@ class ResultsController < ApplicationController
       t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first_or_initialize
       t.color = color if color
       t.save! if t.changed?
-      @result.taggings.find_or_create_by_tag_id(t.id)
+      tagging = @result.taggings.find_or_initialize_by_tag_id(t.id)
+      if(tagging.new_record?)
+        tagging.save
+        @result.events << Event.create(recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value)
+      else
+      end
+
+
+
     end
 
     redirect_to :back, notice: "Result tagged."
-
   end
 
   def add_attachment
     @result.result_attachments.create(params.require(:result_attachment).permit(:attachment))
+    @result.events << Event.create(recipient: "Attachment", action: "Created", user_id: current_user.id)
     redirect_to :back, notice: "Attachment created."
-
   end
 
   def delete_attachment
 
     @result.result_attachments.where(:id=>params[:attachment_id]).delete_all
+    @result.events << Event.create(recipient: "Attachment", action: "Deleted", user_id: current_user.id, old_value: params[:attachment_id])
     redirect_to :back, notice: "Attachment removed."
   end
 
@@ -324,8 +347,10 @@ class ResultsController < ApplicationController
       load_result
 
       #@search.perform_search
+      @result.events << Event.create(recipient: "Screenshot", action: "Requested", user_id: current_user.id )
       ScreenshotRunner.perform_async(@result.id)
       respond_to do |format|
+
         format.html {redirect_to result_url(@result), :notice=>"Attempting to generate a screenshot..."}
       end
     else
@@ -354,6 +379,11 @@ class ResultsController < ApplicationController
       ScreenshotSyncTaskRunner.perform_async(result_ids)
     elsif(commit == "Delete Results")
       Result.delete(result_ids)
+      events = []
+      result_ids.each do |r|
+        events << Event.new(date: Time.now, recipient: "Result", action: "Deleted", user_id: current_user.id, eventable_type:"Result", eventable_id: r)
+      end
+      Event.import events
       skip_updates = true
     end
 
@@ -362,12 +392,19 @@ class ResultsController < ApplicationController
       if(params[:tags].present?)
         params[:tags].to_s.split(",").each do |tag_info|
           if(params[:remove_tags] == "1")
-            debugger
             tag, color = tag_info.split("::")
             name, value = tag.split(":")
             t = Tag.where({name: name.to_s.strip, value:value.to_s.strip}).first
             if(t)
-              Tagging.where(:taggable_id=>result_ids, :tag_id=>t.id, :taggable_type=>"Result").delete_all
+
+              to_delete = Tagging.where(:taggable_id=>result_ids, :tag_id=>t.id, :taggable_type=>"Result")
+              affected_ids = to_delete.map(&:taggable_id)
+              to_delete.delete_all
+              events = []
+              affected_ids.each do |r|
+                events << Event.new(date: Time.now, recipient: "Tag", action: "Deleted", user_id: current_user.id, old_value: t.name_value, eventable_type:"Result", eventable_id: r)
+              end
+              Event.import events
             end
             
 
@@ -384,6 +421,13 @@ class ResultsController < ApplicationController
 
             taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
             Tagging.import(columns, taggables)
+
+
+            events = []
+            tag_result_ids.each do |r|
+              events << Event.new(date: Time.now, recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
+            end
+            Event.import events
 
           end
 
@@ -403,6 +447,11 @@ class ResultsController < ApplicationController
           flaggable = flag_result_ids.map{|r| [f.id, r, f.workflow.initial_stage_id, f.workflow_id]}
 
           ResultFlag.import(columns, flaggable)
+          events = []
+          flaggable.each do |r|
+            events << Event.new(date: Time.now, recipient: "Workflow", action: "Created", user_id: current_user.id, new_value: f.name, eventable_type:"Result", eventable_id: r)
+          end
+          Event.import events
         end
 
 
@@ -410,20 +459,38 @@ class ResultsController < ApplicationController
 
       if(params[:status_id].present?)
         status = Status.find_by_id(params[:status_id])
-        Result.update_all({:status_id => status.id}, {:id=>result_ids}) if status
+        if status
+          affected_results = Result.includes(:status).where.not(status_id: status.id).where(id: result_ids).map{|r| [r.id, r.status.try(:name)]}
+          affected_results += Result.includes(:status).where(status_id: nil, id: result_ids).map{|r| [r.id, nil]}
+          events = []
+          Result.update_all({:status_id => status.id}, {:id=>result_ids}) 
+          affected_results.each do |r|
+            events << Event.new(date: Time.now, recipient: "Status", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: status.name, eventable_type:"Result", eventable_id: r[0])
+          end
+          Event.import events
+
+        end
       end
 
       if(params[:assignee_id].present?)
         user = User.find_by_id(params[:assignee_id])
-        Result.update_all({:user_id => user.id}, {:id=>result_ids}) if user
+        if user
+          affected_results = Result.includes(:user).where.not(user_id: user.id).where(id: result_ids).map{|r| [r.id, r.user.try(:email)]}
+          affected_results += Result.includes(:user).where(user_id: nil, id: result_ids).map{|r| [r.id, r.user.try(:email)]}
+          Result.update_all({:user_id => user.id}, {:id=>result_ids}) 
+
+          events = [] 
+          affected_results.each do |r|
+            events << Event.new(date: Time.now, recipient: "Assignee", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: user.email, eventable_type:"Result", eventable_id: r[0])
+          end
+          Event.import events
+        end
       end
     end
 
     respond_to do |format|
       format.html {redirect_to results_url, :notice=>"Results updated."}
     end
-
-
   end
 
   def subscribe
@@ -432,12 +499,15 @@ class ResultsController < ApplicationController
       @notice = "User already subscribed."
     else
       user.subscriptions.create(:subscribable=>@result)
+      @result.events << Event.create(recipient: "Subscription", action: "Created", user_id: current_user.id, new_value: user.email )
       @notice = "Subscription added."
+
     end
   end
 
   def unsubscribe
     user = params[:user_id].present? ? User.find_by_id(params[:user_id]) : current_user
+    @result.events << Event.create(recipient: "Subscription", action: "Deleted", user_id: current_user.id, old_value: user.email )
     user.subscriptions.where(:subscribable=>@result).delete_all
     @notice = "Subscription removed."
   end
@@ -455,6 +525,7 @@ class ResultsController < ApplicationController
         else
           @result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
         end
+        @result.events << Event.create(recipient: "Screenshot", action: "Created", source: "Sketchy")
       rescue Exception=>e
         Rails.logger.error "Error adding screenshot"
         Rails.logger.error e.message
@@ -467,25 +538,39 @@ class ResultsController < ApplicationController
         scrape_url += "?token=#{params[:token]}"
       end
       if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-        content = open(scrape_url, {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
+        content = open(URI(scrape_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
       else
-        content = open(scrape_url).read
+        content = open(URI(scrape_url)).read
       end
-      
-      @result.update_attributes(:content=>content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: ''))
+      content = content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+      if(content != @result.content)
+        @result.update_attributes(:content=>content)
+        @result.events << Event.create(recipient: "Contents", action: "Updated", source: "Sketchy")
+      end
     end
 
     if(Rails.configuration.try(:sketchy_tag_status_code) == true || Rails.configuration.try(:sketchy_tag_status_code) == "true")
-      @result.tags.delete(Tag.where(name:"Status"))
-      @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+      if(@result.tags.where(name:"Status").empty?)
+        @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+        @result.events << Event.create(recipient: "Status Code", action: "Updated", new_value: params[:url_response_code].to_s,source: "Sketchy")
+      elsif(@result.tags.where(name:"Status", value:params[:url_response_code].to_s).empty?)
+        t = @result.tags.where(name:"Status").first
+        @result.taggings.where(tag: t).delete_all
+        old_status = t.value
+        @result.tags.where(name:"Status")
+        @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+        @result.events << Event.create(recipient: "Status Code", action: "Updated", old_value: old_status, new_value: params[:url_response_code].to_s,source: "Sketchy")
+      end
+
+      
     end
 
     render text: "OK", layout: false
-
   end
 
   def bulk_add
     if(params[:results])
+      events = []
       default_status = Status.find_by_default(true)
       valid = 0
       invalid = 0
@@ -498,20 +583,22 @@ class ResultsController < ApplicationController
           r.title = result
           r.domain = URI.parse(result).host
           r.status = default_status
+
           if(r.save)
+            events << Event.new(date: Time.now, recipient: "Result", action: "Created", user_id: current_user.id, eventable_type:"Result", eventable_id: r.id)
             valid += 1
             result_ids << r.id
           else
             invalid += 1
           end
         else
-          result_ids << r.id
+          if(params[:tag_new_only] != "1")
+            result_ids << r.id
+          end
           existing += 1
         end
-
-        
-
       end
+
       if(result_ids.present? && params[:tags].present?)
         params[:tags].to_s.split(",").each do |tag_info|
         
@@ -525,10 +612,19 @@ class ResultsController < ApplicationController
           tagging_ids = t.taggings.where(:taggable_type=>"Result").map{|tagging| tagging.taggable_id}
           tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
 
+          tag_result_ids.each do |r|
+            events << Event.new(date: Time.now, recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
+          end
+
           taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
           Tagging.import(columns, taggables)
         end
       end
+
+      puts "***IMPORTING EVENTS #{events}"
+
+      Event.import events
+      
       message = "Results added (#{valid} added, #{existing} existing, #{invalid} failures)"
       
     end
@@ -537,22 +633,17 @@ class ResultsController < ApplicationController
       format.html { redirect_to results_url, notice: message || "No results to add" }
       format.json { head :no_content }
     end
-
-
   end
 
   private
 
   def load_result
     @result = Result.includes(:result_flags=>[:flag, :stage=>[:next_steps]]).find(params[:id])
-
   end
 
   def result_params
     params.require(:result).permit(:title, :url, :status_id)
   end
-
-
 
 
   def perform_search
@@ -602,11 +693,10 @@ class ResultsController < ApplicationController
     @q = Result.perform_search(params[:q])
 
     if(params[:commit] == "Save")
-      @saved_filter = SavedFilter.new
+      @saved_filter = SavedFilter.new(saved_filter_type: "Result")
     end
 
     @results = @q.result(distinct:true)
-
   end
 
 end

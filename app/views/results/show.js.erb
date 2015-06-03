@@ -1,2 +1,3 @@
-$('#div_<%= params[:uuid] %>').html("<%= escape_javascript(render :partial=>"shared/abstract_table", :locals => {:result_set=>@associated_objects[0]}) %>");  
+
+$('#div_<%= params[:uuid] %>').html("<%= escape_javascript(render :partial=>"shared/abstract_table", :locals => {:result_set=>@associated_objects.first.last}) %>");  
 $(function(){ $(document).foundation(); });

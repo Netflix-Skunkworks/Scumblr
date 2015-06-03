@@ -1,0 +1,25 @@
+<div id="flash_messages">
+</div>
+
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @objects[:events]} %>
+
+
+<%= content_for :sidebar do %>
+  <div class="sidebar">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Filter
+        </h1>
+      </section>
+    </nav>
+    <section class="panel sidepanel">
+      <%= search_form_for @q, :url=>search_events_path, :method=>:post, :authenticity_token => false, id:"search_form"  do |f| %>
+        <%= render partial: 'search_fields', locals: {f: f}%>
+        <%= f.submit class: "button small" %>
+        <%= f.submit "Clear Search", class: "button secondary small" %>
+        <%= f.submit "Save", class: "button secondary small" %>
+        <%#= f.button "Reset", type: :reset, class:"secondary" %>
+      <% end %>
+    </section>
+  </div>
+<% end %>

@@ -20,9 +20,11 @@
   </div>
   <%= f.check_box :public %>
   <%= label_tag "Share publicly?" %><br/>
+  <%= f.hidden_field :saved_filter_type %>
   <h4>Filter Criteria</h4>
   <%= fields_for @q do |f2| %>
-    <%= render partial: 'results/search_fields', locals: {f: f2}%>
+
+    <%= render partial: "#{f.object.saved_filter_type.downcase.pluralize}/search_fields", locals: {f: f2}%>
   <% end %>
   <%= f.submit class: "button small" %>
   <%#= f.button "Reset", type: :reset, class:"secondary" %>

@@ -51,7 +51,6 @@ class SearchProvider::Google < SearchProvider::Provider
 
 
   def run
-
     if(@google_developer_key.blank?)
       Rails.logger.error "Unable to search Google. No developer key. Please define a developer key as google_developer_key in the Scumblr initializer."
       return []

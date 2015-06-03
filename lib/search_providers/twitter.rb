@@ -43,7 +43,6 @@ class SearchProvider::Twitter < SearchProvider::Provider
   end
 
   def run
-
     if(@consumer_key.blank? || @consumer_secret.blank? || @access_token.blank? || @access_token_secret.blank?)
       Rails.logger.error "Unable to search Twitter. No OAuth parameters. Please define OAuth parameters (twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_token_secret) in the Scumblr initializer."
       return

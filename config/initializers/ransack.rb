@@ -30,4 +30,21 @@ Ransack.configure do |config|
     # Force a specific column type for type-casting of supplied values.
     # (Default: use type from DB column)
     :type => :boolean
+
+  config.add_predicate 'in_saved_result_filter', # Name your predicate
+    # What non-compound ARel predicate will it use? (eq, matches, etc)
+    :arel_predicate => 'in',
+    # Format incoming values as you see fit. (Default: Don't do formatting)
+    #:formatter => proc {|v| ""},
+    :formatter => proc {|v| puts "v1: #{v}"; z = SavedFilter.where(id: v, saved_filter_type: "Result").try(:first).try(:perform_search).try(:result).try(:map, &:id).uniq; puts "Z: #{z}"; z },
+    # Validate a value. An "invalid" value won't be used in a search.
+    # Below is default.
+    :validator => proc {|v| true },
+    # Should compounds be created? Will use the compound (any/all) version
+    # of the arel_predicate to create a corresponding any/all version of
+    # your predicate. (Default: true)
+    :compounds => true,
+    # Force a specific column type for type-casting of supplied values.
+    # (Default: use type from DB column)
+    :type => :integer
 end

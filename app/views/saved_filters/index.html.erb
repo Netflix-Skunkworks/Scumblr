@@ -3,6 +3,7 @@
   <thead>
     <tr>
       <th>Name</th>
+      <th>Type</th>
       <th>Public</th>
       <th></th>
     </tr>
@@ -11,9 +12,10 @@
     <% @saved_filters.each do |filter| %>
       <tr>
         <td><%= filter.name %></td>
+        <td><%= filter.saved_filter_type %></td>
         <td><%= filter.public %></td>
         <td>
-          <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
+          <%= link_to "Show Results", send("search_#{filter.saved_filter_type.pluralize.downcase}_path", :saved_filter_id=>filter.id), class: "button tiny" %>
           <%= link_to "Edit", edit_saved_filter_path(filter), class: "button tiny" %>
           <%= link_to 'Destroy', filter, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
         </td>
@@ -25,6 +27,7 @@
   <thead>
     <tr>
       <th>Name</th>
+      <th>Type</th>
       <th></th>
     </tr>
   </thead>
@@ -33,18 +36,20 @@
         <% @added_public_saved_filters.each do |filter| %>
           <tr>
             <td><%= filter.name %></td>
+            <td><%= filter.saved_filter_type %></td>
             <td>
-              <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
-              <%= link_to "Remove", remove_saved_filter_path(filter.id),:method=>:post, class: "button tiny" %>
+              <%= link_to "Show Results", send("search_#{filter.saved_filter_type.pluralize.downcase}_path", :saved_filter_id=>filter.id), class: "button tiny" %>
+              <%= link_to "Remove", remove_saved_filter_path(id: filter.id, :saved_filter_type=>params[:saved_filter_type]),:method=>:post, class: "button tiny" %>
             </td>
           </tr>
         <% end %>
         <% @public_saved_filters.each do |filter| %>
           <tr>
             <td><%= filter.name %></td>
+            <td><%= filter.saved_filter_type %></td>
             <td>
-              <%= link_to "Show Results", search_results_path(:saved_filter_id=>filter.id), class: "button tiny" %>
-              <%= link_to "Add", add_saved_filter_path(filter.id), :method=>:post, class: "button tiny" %>
+              <%= link_to "Show Results", send("search_#{filter.saved_filter_type.pluralize.downcase}_path",:saved_filter_id=>filter.id), class: "button tiny" %>
+              <%= link_to "Add", add_saved_filter_path(id: filter.id, :saved_filter_type=>params[:saved_filter_type]), :method=>:post, class: "button tiny" %>
             </td>
           </tr>
         <% end %>

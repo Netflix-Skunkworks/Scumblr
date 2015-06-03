@@ -34,6 +34,7 @@ class ScreenshotRunner
         @result = Result.find(id)
         at count, "t:Generating: #{@result.title}"
         @result.create_attachment_from_sketchy(@result.url)
+        
       rescue StandardError=>e
         Sidekiq.logger.error "#{e.message}"
       end

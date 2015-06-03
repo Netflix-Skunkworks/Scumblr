@@ -1,11 +1,54 @@
-<%= render :layout=>"shared/paginated_table", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>instance_variable_get("@#{result_set[:method]}_paginated"), :remote=>true, :action_name=>"#{result_set[:method]}"} do %>
+<% uuid = params[:uuid] || SecureRandom.hex %>
+<% result_set[:sort_keys] ||= [] %>
+<%= render :layout=>"shared/paginated_table", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>instance_variable_get("@#{result_set[:method]}_paginated"), :remote=>true, :action_name=>"#{result_set[:method]}", :uuid=> uuid} do %>
   <thead>
     <tr>
       <% if result_set[:link] %>
-        <th><%= result_set[:link][:method].to_s.titlecase %></th>
+        <th>
+          <% if result_set[:link][:sort_key] %>
+            <% dir = (params[:sort].to_i == 0 && params[:sort_dir] == 'asc') ? :desc : :asc %>
+            <% title = result_set[:link][:method].to_s.titlecase %>
+            <% if params[:sort].to_i ==  0 && params[:sort_dir] == 'asc' %>
+              <% dir = :desc %>
+              <% title += " &#x25b2" %>
+            <% elsif params[:sort].to_i == 0 && params[:sort_dir] == 'desc' %>
+              <% title += " &#x25bc" %>
+            <% end %>
+            <%= link_to title.html_safe, params.merge({:action_name => result_set[:method], sort: 0, :remote=> true, :sort_dir => dir, uuid: uuid}) %>
+          <% else %>
+            <%= result_set[:link][:method].to_s.titlecase %>
+          <% end %>
+        
+          
+
+        </th>
+
       <% end %>
-      <% result_set[:attributes].each do |a| %>
-        <th><%= a.to_s.titlecase %></th>
+      <% result_set[:attributes].each_with_index do |a,i| %>
+        
+        
+        <th>
+          
+          <% if(result_set[:sort_keys] && result_set[:sort_keys][i]) %>
+            <% if result_set[:labels].try(:[],i) %>
+              <% title = result_set[:labels].try(:[],i).to_s.titlecase %>
+            <% else %>
+              <% title = a.to_s.titlecase %>
+            <% end %>            
+            <% dir = :asc %>
+            <% if params[:sort].to_i ==  i+1 && params[:sort_dir] == 'asc' %>
+              <% dir = :desc %>
+              <% title += " &#x25b2" %>
+            <% elsif params[:sort].to_i ==  i+1 && params[:sort_dir] == 'desc' %>
+              <% title += " &#x25bc" %>
+            <% end %>
+            <%= link_to title.html_safe, params.merge({:action_name => result_set[:method], sort: i+1, :remote=> true, :sort_dir => dir, uuid: uuid}) %>
+
+          <% else %>
+            <%= a.to_s.titlecase %>
+          <% end %>
+          
+        </th>
       <% end %>
     </tr>
   </thead>
@@ -15,8 +58,20 @@
         <% if result_set[:link] %>
           <td><%= link_to i.send(result_set[:link][:method]), send(result_set[:link][:path], *result_set[:link][:params].map{|f| i.send(f)}) %></td>
         <% end %>
-        <% result_set[:attributes].each do |a| %>
-          <td><%= i.send(a) %></td>
+        <% result_set[:attributes].each_with_index do |a, index| %>
+          <td>
+          <% data = i.send(a) %>
+          <% if result_set[:include_link].try(:[],index) && data.class.methods.include?(:model_name) %>
+            <% begin %>
+              <%= link_to data, url_for(data) %>
+            <% rescue %>
+              <%= data %>  
+            <% end %>
+          <% else %>
+            <%= data %>
+          <% end %> 
+           
+          </td>
         <% end %>
       </tr>
     <% end %>
