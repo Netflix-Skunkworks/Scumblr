@@ -57,6 +57,8 @@ GEM
     bullet (4.13.1)
       activesupport (>= 3.0.0)
       uniform_notifier (>= 1.6.0)
+    byebug (4.0.5)
+      columnize (= 0.9.0)
     callsite (0.0.11)
     cancan (1.6.10)
     canonix (0.1.1)
@@ -80,6 +82,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.1)
+    columnize (0.9.0)
     commonjs (0.2.7)
     connection_pool (2.0.0)
     crack (0.1.8)
@@ -130,6 +133,7 @@ GEM
     guard-rspec (4.2.10)
       guard (~> 2.1)
       rspec (>= 2.14, < 4.0)
+    hashdiff (0.2.2)
     hashie (2.1.2)
     hike (1.2.3)
     http (0.6.2)
@@ -406,6 +410,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bullet
+  byebug
   cancan
   capybara
   coffee-rails (~> 4.0.0)
@@ -415,6 +420,7 @@ DEPENDENCIES
   foundation-rails
   google-api-client
   guard-rspec (~> 4.2.8)
+  hashdiff
   ip
   jiralicious
   jquery-rails

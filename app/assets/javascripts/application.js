@@ -114,6 +114,11 @@ var hide_preloader = function()
 
 var preloader = null
 
+function camelToSnake(str) {
+  return str.replace(/\W+/g, '_')
+            .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+            .toLowerCase();
+}
 
 
 var show_preloader = function()
@@ -463,9 +468,29 @@ var ready = function(){
   $('.update_multiple_button').click(function(e) { 
     if(!e.isDefaultPrevented())
     {
-      $('#update_results_form').append($("#results_table").find("input").clone(true,true).hide())
+      $('#update_multiple_form').append($("#selection_table").find("input").clone(true,true).hide())
     }    
   })
+
+  $('.update_multiple_link').click(function(e) { 
+
+    $('#update_multiple_form').append($("#selection_table").find("input").clone(true,true).hide())
+    
+    $.each($(this).data(), function(index, value) {
+
+      $('<input>').attr({
+        type: 'hidden',
+        name: camelToSnake(index),
+        value: value
+      }).appendTo('#update_multiple_form');
+
+    });
+    $(this).closest("form").submit();
+    return false;
+        
+  })
+
+
 
 
   //Lightboxes
@@ -496,6 +521,7 @@ var ready = function(){
   
   
 };
+
 
 
 $(document).ready(ready);

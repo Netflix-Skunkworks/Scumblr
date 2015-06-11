@@ -1,3 +1,6 @@
 <h3>Details</h3>
 
 <%= render :partial=>"shared/key_value_table", :locals => {result_set: @object[:event]} %>
+<% if @event.event_changes.present? %>
+  <%= render :partial=>"shared/abstract_table", :locals => {result_set: @object[:event_changes]} %>
+<% end %>

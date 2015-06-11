@@ -1,21 +1,90 @@
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Provider</th>
-    <th>Query</th>
-    <th></th>
-  </tr>
-  <% @searches.each do |search| %>
+<div id="selection_table">
+  <% i = 1 %>
+  <% @searches.sort.each do |group, searches| %>
+  <nav class="tab-bar">
+    <section class="tab-bar-section">
+      <h1>Group <%= i %></h1>
+    </section>
+  </nav>
+
+  <% i += 1 %>
+  <table>
     <tr>
-      <td><%= link_to search.name, search %></td>
-      <td><%= search.provider_name %></td>
-      <td><%= search.query %></td>
-      <td>
-        <%= link_to 'Edit', edit_search_path(search), class: "button tiny" if can? :edit, search %>
-        <%= link_to 'Destroy', search, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" if can? :destroy, search %></td>
+      <th></th>
+      <th>Name</th>
+      <th>Provider</th>
+      <th>Query</th>
+      <th></th>
     </tr>
+
+    <% searches.partition{|v| v.enabled == true}.flatten.each do |search| %>
+      <tr class="<%= "disabled" if search.enabled != true %>">
+        <td><%= check_box_tag "search_ids[]", search.id, false, {:class=>"result_checkbox"} %></td>
+        <td><%= link_to search.name, search %></td>
+        <td><%= search.provider_name %></td>
+        <td><%= search.query %></td>
+        <td>
+          <% if search.enabled %>
+            <%= link_to 'Disable', disable_search_path(search), method: :post, class: "button tiny" if can? :disable, search %>
+          <% else %>
+            <%= link_to 'Enable', enable_search_path(search), method: :post, class: "button tiny" if can? :enable, search %>
+          <% end %>
+          
+          <%= link_to 'Edit', edit_search_path(search), class: "button tiny" if can? :edit, search %>
+          <%= link_to 'Destroy', search, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" if can? :destroy, search %></td>
+      </tr>
+    <% end %>
+  </table>
+  <br />
+
   <% end %>
-</table>
-<br />
+</div>
+
 <%= link_to 'New Search', new_search_path, class: "button" if can? :create, Search %>
-<%= link_to 'Run All Searches', run_searches_path, class: "button alert" if can? :run, Search  %>
+<%= link_to 'Run All Enabled Searches', run_searches_path, class: "button alert" if can? :run, Search  %>
+
+<%= content_for :sidebar do %>
+  <div class="sidebar">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Actions</h1>
+      </section>
+    </nav>
+    <section class="panel sidepanel">
+      <%= form_tag bulk_update_searches_path, method: :post, :id=>"update_multiple_form" do %>
+        <dl class="dl-horizontal">
+          <dt class="half">Move to:</dt>
+          <dd>
+          <a href="#" data-dropdown="drop_move" class="button dropdown tiny secondary">Choose group</a><br>
+          <ul id="drop_move" data-dropdown-content class="f-dropdown">
+          <% groups = Search.select(&:group).map(&:group).uniq.sort.each_with_index.map{|g,i| [g,"Group #{i+1}"]}
+            groups << [groups.last.first+1, "New Group"]
+           %>
+            <% groups.each do |group| %>
+
+              <li><%= link_to group.last, "#", method: :post, class: "update_multiple_link", data: {commit: "Change Group", group_id: group.first} %></li>
+            <% end %>
+          </ul>
+          </dd>
+        
+        </dl>
+
+
+      
+        <% if can? :enable, Search %>
+          <%= submit_tag "Enable", :method=>:post, :class=>"button small update_multiple_button" %>
+        <% end %>
+        <% if can? :disable, Search %>
+          <%= submit_tag "Disable", :method=>:post, :class=>"button small update_multiple_button" %>
+        <% end %>
+        <% if can? :run, Search %>
+          <%= submit_tag "Run", :method=>:post, :class=>"button small update_multiple_button" %>
+        <% end %>
+        <% if can? :destroy, Search %>
+        <%= submit_tag "Delete", :method=>:delete, :class=>"button small alert update_multiple_button", :confirm=>"Are you sure you want to delete these searches?" %>
+        <% end %>
+      <% end %>
+    </section>
+</div>
+
+<% end %>

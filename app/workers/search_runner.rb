@@ -18,24 +18,41 @@ class SearchRunner
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
 
-  def perform(search_id)
+  def perform(search_ids=nil)
 
-    Rails.logger.warn "**Search id: #{search_id.inspect}"
-    total 100
-    at 0, "Preparing to sync"
-    search_ids = Array(search_id.blank? ? Search.all.map{|s| s.id} : search_id)
+    Rails.logger.warn "**Search ids: #{search_ids.inspect}"
+    
+    at 0, "A:Preparing to sync"
+    search_groups = Array(search_ids.blank? ? Search.where(enabled:true).group_by(&:group).sort : Search.where(id: search_ids).group_by(&:group).sort)
     count = 0
-    total search_ids.count
-    search_ids.each do |id|
-      count += 1
-      begin
-        @search = Search.find(id)
-        at count, "Running: #{@search.name}"
-        @search.perform_search
-      rescue StandardError=>e
-        Rails.logger.error "#{e.message}"
+    total_count = search_groups.map{|k,v| v.count}.sum
+    total total_count
+
+    search_groups.each do |group, searches|
+      Rails.logger.warn "Running group #{group}"
+      at count, "A:Running group #{group}"
+
+      tasks = []
+      searches.each do |s|
+        Rails.logger.warn "Running #{s.name}"
+        at count, "A:Running: #{s.name}"
+        tasks << SearchTask.perform_async(s.id)
+      end
+
+      while(!tasks.empty?)
+        at count, "A:#{tasks.count}/#{total_count} tasks complete"
+        Rails.logger.warn "#{tasks.count} tasks remaining"
+        tasks.delete_if do |task_id|
+          status = Sidekiq::Status::status(task_id)
+          Rails.logger.warn "Task #{task_id} #{status}"
+          status == :complete && count += 1
+        end
+      
+        sleep(0.2)
       end
     end
+ 
   end
 
 end
+

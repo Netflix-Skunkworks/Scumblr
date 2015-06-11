@@ -88,11 +88,14 @@ Scumblr::Application.routes.draw do
     collection do
       get 'options', to: 'providers#options'
       get 'run', to: 'searches#run'
+      post 'bulk_update'
       get :events
     end
 
     member do
       get 'run', to: 'searches#run'
+      post 'enable', to: 'searches#enable'
+      post 'disable', to: 'searches#disable'
     end
 
     member do

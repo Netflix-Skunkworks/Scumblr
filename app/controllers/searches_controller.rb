@@ -14,7 +14,7 @@
 
 
 class SearchesController < ApplicationController
-  before_filter :load_search, only: [:show, :edit, :update, :destroy]
+  before_filter :load_search, only: [:show, :edit, :update, :destroy, :enable, :disable]
   authorize_resource
 
 
@@ -22,7 +22,7 @@ class SearchesController < ApplicationController
   # GET /searches
   # GET /searches.json
   def index
-    @searches = Search.all
+    @searches = Search.all.group_by(&:group)
 
     respond_to do |format|
       format.html # index.html.erb
@@ -74,6 +74,7 @@ class SearchesController < ApplicationController
 
     respond_to do |format|
       if @search.save
+        @search.events << Event.create(recipient: "Search", action: "Created", user_id: current_user.id)
         format.html { redirect_to @search, notice: 'Search was successfully created.' }
         format.json { render json: @search, status: :created, location: @search }
       else
@@ -90,6 +91,7 @@ class SearchesController < ApplicationController
 
     respond_to do |format|
       if @search.update_attributes(search_params)
+        @search.events << Event.create(recipient: "Search", action: "Updated", user_id: current_user.id)
         format.html { redirect_to @search, notice: 'Search was successfully updated.' }
         format.json { head :no_content }
       else
@@ -102,7 +104,9 @@ class SearchesController < ApplicationController
   # DELETE /searches/1
   # DELETE /searches/1.json
   def destroy
+    search_id = @search.id
     @search.destroy
+    @search.events << Event.create(recipient: "Search", action: "Deleted", user_id: current_user.id, eventable_type:"Search", eventable_id: search_id)
 
     respond_to do |format|
       format.html { redirect_to searches_url }
@@ -116,12 +120,19 @@ class SearchesController < ApplicationController
 
       #@search.perform_search
       SearchRunner.perform_async(@search.id)
+      @search.events << Event.create(recipient: "Search", action: "Run", user_id: current_user.id)
       respond_to do |format|
         format.html {redirect_to search_url(@search), :notice=>"Running search..."}
       end
     else
 
       SearchRunner.perform_async(nil)
+      search_ids = Search.where(enabled:true).map{|s| s.id}
+      events = []
+      search_ids.each do |s|
+        events << Event.new(date: Time.now, recipient: "Search", action: "Run", user_id: current_user.id, eventable_type: "Search", eventable_id: s)
+      end
+      Event.import events
 
       respond_to do |format|
         format.html {redirect_to searches_url, :notice=>"Running all searches..."}
@@ -136,9 +147,101 @@ class SearchesController < ApplicationController
       Sidekiq::Workers.new.each do |k,k2,v|
         @statuses << Sidekiq::Status.get_all(v["payload"]["jid"])
       end
-      @statuses.sort!{|x,y| x["message"].to_s[0] <=> y["message"].to_s[0]}
+      @statuses.sort!{|x,y| x["message"].to_s[0].to_s <=> y["message"].to_s[0].to_s}
     rescue Redis::CannotConnectError
     end
+  end
+
+  def enable
+    if(@search && @search.enabled != true)
+      @search.enabled = true
+      @search.save
+      @search.events << Event.create(recipient: "Search", action: "Enabled", user_id: current_user.id)
+      message = "Search enabled"
+    end
+
+    respond_to do |format|
+      format.html { redirect_to searches_url, notice: message || "Could not enable search" }
+      format.json { head :no_content }
+    end
+
+  end
+
+  def disable
+    if(@search && @search.enabled == true)
+      @search.enabled = false
+      @search.save
+      @search.events << Event.create(recipient: "Search", action: "Disabled", user_id: current_user.id)
+      message = "Search disabled"
+    end
+
+    respond_to do |format|
+      format.html { redirect_to searches_url, notice: message || "Could not disable search" }
+      format.json { head :no_content }
+    end
+  end
+
+  def bulk_update
+    search_ids = params[:search_ids] || []
+    search_ids.uniq!
+    if(search_ids.present?)
+      events = []
+      if(params[:commit] == "Change Group")
+
+        Search.update_all({:group => params[:group_id]}, {:id=>search_ids}) 
+        search_ids.each do |s|
+          events << Event.new(date: Time.now, recipient: "Search", action: "Updated", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+        end
+        
+        message = "Search group updated."
+
+      elsif(params[:commit] == "Enable")
+        Search.update_all({:enabled => true}, {:id=>search_ids}) 
+        search_ids.each do |s|
+          events << Event.new(date: Time.now, recipient: "Search", action: "Enabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+        end
+      
+        message = "Searches enabled."
+
+      elsif(params[:commit] == "Disable")
+        Search.update_all({:enabled => false}, {:id=>search_ids}) 
+        search_ids.each do |s|
+          events << Event.new(date: Time.now, recipient: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+        end
+
+        message = "Searches disabled."
+      elsif(params[:commit] == "Delete")
+        Search.where({:id=>search_ids}).delete_all
+        search_ids.each do |s|
+          events << Event.new(date: Time.now, recipient: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+        end
+
+        message = "Searches deleted."
+      elsif(params[:commit] == "Run")
+        valid_searches = []
+        search_ids.each do |s|
+          search = Search.find_by_id(s)
+          if(search)
+            valid_searches << s
+            events << Event.new(date: Time.now, recipient: "Search", action: "Run", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+          end
+        end
+        SearchRunner.perform_async(valid_searches)
+
+        message = "Running searches."
+
+      end
+
+      Event.import events
+    else
+      message = "No searches selected to update."
+    end
+
+    respond_to do |format|
+      format.html { redirect_to searches_url, notice: message || "Could not update results" }
+      format.json { head :no_content }
+    end
+
   end
 
 
@@ -152,7 +255,7 @@ class SearchesController < ApplicationController
   #accepts_nested_attributes_for :taggings, :tags
   def search_params
     all_options = params.require(:search).fetch(:options, nil).try(:permit!)
-    params.require(:search).permit(:name, :description, :provider, :query, :tag_list, :subscriber_list).merge(:options =>all_options)
+    params.require(:search).permit(:name, :description, :provider, :query, :tag_list, :subscriber_list, :group, :enabled).merge(:options =>all_options)
   end
 
   def search_providers

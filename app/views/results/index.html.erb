@@ -47,7 +47,7 @@
       </section>
     </nav>
     <section class="panel sidepanel">
-      <%= form_tag update_multiple_results_path, method: :post, :id=>"update_results_form" do %>
+      <%= form_tag update_multiple_results_path, method: :post, :id=>"update_multiple_form" do %>
         <%= label_tag do %>Status
           <%= select_tag :status_id, options_from_collection_for_select(Status.all, "id", "name"), {:prompt => 'Please select', class: 'select2'} %>
         <% end %>

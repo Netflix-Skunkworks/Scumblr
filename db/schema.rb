@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150528201240) do
+ActiveRecord::Schema.define(version: 20150610174010) do
 
   create_table "comments", force: true do |t|
     t.integer  "commentable_id",   default: 0
@@ -30,11 +30,22 @@ ActiveRecord::Schema.define(version: 20150528201240) do
   add_index "comments", ["commentable_id", "commentable_type"], name: "index_comments_on_commentable_id_and_commentable_type"
   add_index "comments", ["user_id"], name: "index_comments_on_user_id"
 
+  create_table "event_changes", force: true do |t|
+    t.integer  "event_id"
+    t.string   "field"
+    t.text     "new_value"
+    t.text     "old_value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "old_value_key"
+    t.integer  "new_value_key"
+    t.string   "value_class"
+  end
+
+  add_index "event_changes", ["event_id"], name: "index_event_changes_on_event_id"
+
   create_table "events", force: true do |t|
-    t.string   "recipient"
     t.string   "action"
-    t.string   "old_value"
-    t.string   "new_value"
     t.string   "source"
     t.text     "details"
     t.datetime "date"
@@ -127,6 +138,8 @@ ActiveRecord::Schema.define(version: 20150528201240) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.text     "query"
+    t.boolean  "enabled",     default: true
+    t.integer  "group",       default: 1
   end
 
   create_table "statuses", force: true do |t|

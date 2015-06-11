@@ -89,7 +89,7 @@ class ResultsController < ApplicationController
 
     @associated_objects = {
       search_results: {:method=>:search_results, :includes=>:search, :link=>{:method=>:search_id, :path=>:search_url, :params=>[:search_id]}, :attributes=>[:search_name, :provider, :query, :created_at], name:"Searches"},
-      events: {:method=>:events, :includes=>[:user], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :attributes=>[:date, :recipient, :action, :old_value, :new_value, :user], :sort_keys=>[:date,:recipient, :action, :old_value, :new_value,:user_id], name:"Events"}
+      events: {:method=>:events, :includes=>[:user, :event_changes], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :attributes=>[:date, :field_name, :action, :old_value, :new_value, :user], :sort_keys=>[:date,nil, :action, :old_value, :new_value,:user_id], name:"Events"}
     }
 
     if(params[:action_name].present?)
@@ -129,11 +129,13 @@ class ResultsController < ApplicationController
   # POST /results.json
   def create
     @result = Result.new(result_params)
-    @result.status = Status.find_by_default(true)
+    @result.current_user = current_user
+    
 
+    
     respond_to do |format|
       if @result.save
-        @result.events << Event.create(recipient: "Result", action: "Created", user_id: current_user.id)
+
         format.html { redirect_to @result, notice: 'Result was successfully created.' }
         format.json { render json: @result, status: :created, location: @result }
       else
@@ -146,10 +148,12 @@ class ResultsController < ApplicationController
   # PUT /results/1
   # PUT /results/1.json
   def update
-
+    
+    @result.assign_attributes(result_params)
+    
     respond_to do |format|
-      if @result.update_attributes(result_params)
-        @result.events << Event.create(recipient: "Result", action: "Updated", user_id: current_user.id)
+
+      if(@result.save)
         format.html { redirect_to @result, notice: 'Result was successfully updated.' }
         format.json { head :no_content }
       else
@@ -166,7 +170,6 @@ class ResultsController < ApplicationController
     @result.status_id= @status.id
 
     if(@result.save)
-      @result.events << Event.create(recipient: "Status", action: "Updated", user_id: current_user.id, old_value: @old_status, new_value: @status.name )
       @notice = "Status updated."
     else
       @notice = "Could not update status"
@@ -184,7 +187,7 @@ class ResultsController < ApplicationController
   def destroy
     result_id = @result.id
     @result.destroy
-    Event.create(recipient: "Result", action: "Deleted", user_id: current_user.id, eventable_type: "Result", eventable_id: result_id )
+    Event.create(action: "Deleted", user_id: current_user.id, eventable_type: "Result", eventable_id: result_id )
 
     respond_to do |format|
       format.html { redirect_to results_url }
@@ -200,7 +203,7 @@ class ResultsController < ApplicationController
       @comment.parent_id = params[:parent_id]
     end
     if(@comment.save)
-      @result.events << Event.create(recipient: "Comment", action: "Created", user_id: current_user.id)
+      @result.events << Event.create(field: "Comment", action: "Created", user_id: current_user.id, new_value:params[:comment])
       redirect_to :back, notice: "Comment Added"
     else
       redirect_to :back, notice: "Could not add comment."
@@ -210,7 +213,7 @@ class ResultsController < ApplicationController
   def delete_tag
     @result.taggings.where(:tag_id=>params[:tag_id]).delete_all
     @tag = Tag.find_by_id(params[:tag_id]).try(:name_value)
-    @result.events << Event.create(recipient: "Tag", action: "Deleted", user_id: current_user.id, old_value: @tag)
+    @result.events << Event.create(field: "Tag", action: "Deleted", user_id: current_user.id, old_value: @tag)
     redirect_to :back, notice: "Tag removed."
   end
 
@@ -219,11 +222,9 @@ class ResultsController < ApplicationController
 
     @old_user = User.find_by_id(@result.user_id).try(:email)
     @result.user_id = @user.id
-
-    if(@result.save)
-      @result.events << Event.create(recipient: "Assignee", action: "Updated", user_id: current_user.id, old_value: @old_user, new_value: @user.email)
-    else
-    end
+    
+    @result.save
+      
 
     respond_to do |format|
       format.js
@@ -252,7 +253,7 @@ class ResultsController < ApplicationController
       @result_flag.workflow_options = params[:options]
       @result_flag.current_user = current_user
 
-      @result.events << Event.create(recipient: "Workflow", action: "Created", user_id: current_user.id, new_value: @flag.name )
+      @result.events << Event.create(field: "Workflow", action: "Created", user_id: current_user.id, new_value: @flag.name )
       @result_flag.save
       @notice = "Result flagged!"
 
@@ -293,7 +294,7 @@ class ResultsController < ApplicationController
       @result_flag.set_stage(@next_stage.id, params[:options], current_user )
 
 
-      @result.events << Event.create(recipient: "Workflow", action: "Updated", user_id: current_user.id, old_value: old_stage, new_value: @next_stage.name)
+      @result.events << Event.create(field: "Workflow", action: "Updated", user_id: current_user.id, old_value: old_stage, new_value: @next_stage.name)
 
       @result.reload
       @result.result_flags.reload
@@ -317,7 +318,7 @@ class ResultsController < ApplicationController
       tagging = @result.taggings.find_or_initialize_by_tag_id(t.id)
       if(tagging.new_record?)
         tagging.save
-        @result.events << Event.create(recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value)
+        @result.events << Event.create(field: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value)
       else
       end
 
@@ -329,15 +330,15 @@ class ResultsController < ApplicationController
   end
 
   def add_attachment
-    @result.result_attachments.create(params.require(:result_attachment).permit(:attachment))
-    @result.events << Event.create(recipient: "Attachment", action: "Created", user_id: current_user.id)
+    attachment = @result.result_attachments.create(params.require(:result_attachment).permit(:attachment))
+    @result.events << Event.create(field: "Attachment", action: "Created", user_id: current_user.id, new_value: attachment.try(:id))
     redirect_to :back, notice: "Attachment created."
   end
 
   def delete_attachment
 
     @result.result_attachments.where(:id=>params[:attachment_id]).delete_all
-    @result.events << Event.create(recipient: "Attachment", action: "Deleted", user_id: current_user.id, old_value: params[:attachment_id])
+    @result.events << Event.create(field: "Attachment", action: "Deleted", user_id: current_user.id, old_value: params[:attachment_id])
     redirect_to :back, notice: "Attachment removed."
   end
 
@@ -347,7 +348,7 @@ class ResultsController < ApplicationController
       load_result
 
       #@search.perform_search
-      @result.events << Event.create(recipient: "Screenshot", action: "Requested", user_id: current_user.id )
+      @result.events << Event.create(field: "Screenshot", action: "Requested", user_id: current_user.id )
       ScreenshotRunner.perform_async(@result.id)
       respond_to do |format|
 
@@ -381,7 +382,7 @@ class ResultsController < ApplicationController
       Result.delete(result_ids)
       events = []
       result_ids.each do |r|
-        events << Event.new(date: Time.now, recipient: "Result", action: "Deleted", user_id: current_user.id, eventable_type:"Result", eventable_id: r)
+        events << Event.new(date: Time.now, field: "Result", action: "Deleted", user_id: current_user.id, eventable_type:"Result", eventable_id: r)
       end
       Event.import events
       skip_updates = true
@@ -402,7 +403,7 @@ class ResultsController < ApplicationController
               to_delete.delete_all
               events = []
               affected_ids.each do |r|
-                events << Event.new(date: Time.now, recipient: "Tag", action: "Deleted", user_id: current_user.id, old_value: t.name_value, eventable_type:"Result", eventable_id: r)
+                events << Event.new(date: Time.now, field: "Tag", action: "Deleted", user_id: current_user.id, old_value: t.name_value, eventable_type:"Result", eventable_id: r)
               end
               Event.import events
             end
@@ -425,7 +426,7 @@ class ResultsController < ApplicationController
 
             events = []
             tag_result_ids.each do |r|
-              events << Event.new(date: Time.now, recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
+              events << Event.new(date: Time.now, field: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
             end
             Event.import events
 
@@ -449,7 +450,7 @@ class ResultsController < ApplicationController
           ResultFlag.import(columns, flaggable)
           events = []
           flaggable.each do |r|
-            events << Event.new(date: Time.now, recipient: "Workflow", action: "Created", user_id: current_user.id, new_value: f.name, eventable_type:"Result", eventable_id: r)
+            events << Event.new(date: Time.now, field: "Workflow", action: "Created", user_id: current_user.id, new_value: f.name, eventable_type:"Result", eventable_id: r)
           end
           Event.import events
         end
@@ -462,10 +463,11 @@ class ResultsController < ApplicationController
         if status
           affected_results = Result.includes(:status).where.not(status_id: status.id).where(id: result_ids).map{|r| [r.id, r.status.try(:name)]}
           affected_results += Result.includes(:status).where(status_id: nil, id: result_ids).map{|r| [r.id, nil]}
+          #TODO: Add changes to Event
           events = []
           Result.update_all({:status_id => status.id}, {:id=>result_ids}) 
           affected_results.each do |r|
-            events << Event.new(date: Time.now, recipient: "Status", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: status.name, eventable_type:"Result", eventable_id: r[0])
+            events << Event.new(date: Time.now, field: "Status", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: status.name, eventable_type:"Result", eventable_id: r[0])
           end
           Event.import events
 
@@ -478,10 +480,10 @@ class ResultsController < ApplicationController
           affected_results = Result.includes(:user).where.not(user_id: user.id).where(id: result_ids).map{|r| [r.id, r.user.try(:email)]}
           affected_results += Result.includes(:user).where(user_id: nil, id: result_ids).map{|r| [r.id, r.user.try(:email)]}
           Result.update_all({:user_id => user.id}, {:id=>result_ids}) 
-
+          #TODO: Add changes to Event
           events = [] 
           affected_results.each do |r|
-            events << Event.new(date: Time.now, recipient: "Assignee", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: user.email, eventable_type:"Result", eventable_id: r[0])
+            events << Event.new(date: Time.now, field: "Assignee", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: user.email, eventable_type:"Result", eventable_id: r[0])
           end
           Event.import events
         end
@@ -499,7 +501,7 @@ class ResultsController < ApplicationController
       @notice = "User already subscribed."
     else
       user.subscriptions.create(:subscribable=>@result)
-      @result.events << Event.create(recipient: "Subscription", action: "Created", user_id: current_user.id, new_value: user.email )
+      @result.events << Event.create(field: "Subscription", action: "Created", user_id: current_user.id, new_value: user.email )
       @notice = "Subscription added."
 
     end
@@ -507,7 +509,7 @@ class ResultsController < ApplicationController
 
   def unsubscribe
     user = params[:user_id].present? ? User.find_by_id(params[:user_id]) : current_user
-    @result.events << Event.create(recipient: "Subscription", action: "Deleted", user_id: current_user.id, old_value: user.email )
+    @result.events << Event.create(field: "Subscription", action: "Deleted", user_id: current_user.id, old_value: user.email )
     user.subscriptions.where(:subscribable=>@result).delete_all
     @notice = "Subscription removed."
   end
@@ -520,12 +522,13 @@ class ResultsController < ApplicationController
         sketch_url += "?token=#{params[:token]}"
       end
       begin
+        attachment=nil
         if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-          @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
+          attachment = @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
         else
-          @result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
+          attachment =@result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
         end
-        @result.events << Event.create(recipient: "Screenshot", action: "Created", source: "Sketchy")
+        @result.events << Event.create(field: "Screenshot", action: "Created", new_value: attachment.try(:id)) if attachment
       rescue Exception=>e
         Rails.logger.error "Error adding screenshot"
         Rails.logger.error e.message
@@ -543,23 +546,23 @@ class ResultsController < ApplicationController
         content = open(URI(scrape_url)).read
       end
       content = content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-      if(content != @result.content)
+      if(content != @result.content)  
         @result.update_attributes(:content=>content)
-        @result.events << Event.create(recipient: "Contents", action: "Updated", source: "Sketchy")
+        
       end
     end
 
     if(Rails.configuration.try(:sketchy_tag_status_code) == true || Rails.configuration.try(:sketchy_tag_status_code) == "true")
       if(@result.tags.where(name:"Status").empty?)
         @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
-        @result.events << Event.create(recipient: "Status Code", action: "Updated", new_value: params[:url_response_code].to_s,source: "Sketchy")
+        @result.events << Event.create(field: "Status Code", action: "Updated", new_value: params[:url_response_code].to_s,source: "Sketchy")
       elsif(@result.tags.where(name:"Status", value:params[:url_response_code].to_s).empty?)
         t = @result.tags.where(name:"Status").first
         @result.taggings.where(tag: t).delete_all
         old_status = t.value
         @result.tags.where(name:"Status")
         @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
-        @result.events << Event.create(recipient: "Status Code", action: "Updated", old_value: old_status, new_value: params[:url_response_code].to_s,source: "Sketchy")
+        @result.events << Event.create(field: "Status Code", action: "Updated", old_value: old_status, new_value: params[:url_response_code].to_s,source: "Sketchy")
       end
 
       
@@ -585,7 +588,7 @@ class ResultsController < ApplicationController
           r.status = default_status
 
           if(r.save)
-            events << Event.new(date: Time.now, recipient: "Result", action: "Created", user_id: current_user.id, eventable_type:"Result", eventable_id: r.id)
+            events << Event.new(date: Time.now, field: "Result", action: "Created", user_id: current_user.id, eventable_type:"Result", eventable_id: r.id)
             valid += 1
             result_ids << r.id
           else
@@ -613,7 +616,7 @@ class ResultsController < ApplicationController
           tag_result_ids = result_ids.reject {|r| tagging_ids.include?(r)}
 
           tag_result_ids.each do |r|
-            events << Event.new(date: Time.now, recipient: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
+            events << Event.new(date: Time.now, field: "Tag", action: "Created", user_id: current_user.id, new_value: t.name_value, eventable_type:"Result", eventable_id: r)
           end
 
           taggables = tag_result_ids.map{|r| [t.id, r,"Result"]}
@@ -639,6 +642,8 @@ class ResultsController < ApplicationController
 
   def load_result
     @result = Result.includes(:result_flags=>[:flag, :stage=>[:next_steps]]).find(params[:id])
+    @result.current_user = current_user
+    @result
   end
 
   def result_params

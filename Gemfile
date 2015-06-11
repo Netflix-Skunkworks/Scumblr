@@ -79,6 +79,9 @@ gem 'acts_as_commentable_with_threading'
 #JSON API Calls
 gem "active_model_serializers"
 
+# Used for finding changes to serialized attributes
+gem "hashdiff"
+
 
 #gem 'active_scaffold'
 gem "therubyracer"
@@ -91,6 +94,7 @@ gem 'unicorn-rails'
 gem 'ip'
 
 group :development do
+  gem 'byebug'
   gem 'quiet_assets'
   gem "ruby-prof"
   gem "better_errors"

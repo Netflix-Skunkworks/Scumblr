@@ -21,17 +21,23 @@ class Search < ActiveRecord::Base
   has_many :subscribers, as: :subscribable
   has_many :search_results
   has_many :results, through: :search_results
+  has_many :events, as: :eventable
 
   serialize :options, Hash
 
 
   validates :name, presence: true
   validates :name, uniqueness: true
+  validates :group, presence: true
   validate :validate_search
 
 
 
   accepts_nested_attributes_for :taggings, :tags
+
+  def to_s
+    "Search #{id}"
+  end
 
 
   def validate_search
@@ -110,14 +116,13 @@ class Search < ActiveRecord::Base
       result = Result.where(:url=>r[:url]).first_or_initialize
       result.title = r[:title]
       result.domain = r[:domain]
-      result.metadata = r[:metadata] || {}
+      result.metadata = (result.metadata || {}).merge(r[:metadata] || {})
       result.status_id = new_status if !result.status_id && new_status
       event_action = result.new_record? ? "Created" : "Updated"
 
 
       if result.changed?
         result.save 
-        result.events << Event.create(recipient: "Result", action: event_action,source: self.provider.to_s)
       end
       search.tags.each do |tag|
         tagging = result.taggings.where(:tag_id=>tag.id).first_or_initialize

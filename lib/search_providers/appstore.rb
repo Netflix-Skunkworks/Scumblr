@@ -40,7 +40,6 @@ class SearchProvider::Appstore < SearchProvider::Provider
   end
 
   def run
-
     url = URI.escape('https://itunes.apple.com/search?media=software&term=' + @query + '&limit=' + @options[:results].to_s)
     response = Net::HTTP.get_response(URI(url))
     results = []

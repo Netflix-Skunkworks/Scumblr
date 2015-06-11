@@ -4,10 +4,10 @@ class EventsController < ApplicationController
 
   def index
     # @events = Event.all
-
+    
 
     @objects = {
-      events: {:method=>:event, :includes=>[:user, :eventable], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :include_link=>[false, true], :attributes=>[:date, :eventable, :recipient, :action, :old_value, :new_value, :user], :labels=>[nil, "Associated with"], :sort_keys=>[:date,:eventable_id, :recipient, :action, :old_value, :new_value,:user_id], name:"Events"}
+      events: {:method=>:event, :includes=>[:user, :eventable, :event_changes], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :include_link=>[false, true], :attributes=>[:date, :eventable, :action, :user], :labels=>[nil, "Associated with"], :sort_keys=>[:date,:eventable_id, :action,:user_id], name:"Events"}
     }
 
     perform_search
@@ -44,8 +44,11 @@ class EventsController < ApplicationController
 
     @object =
     {
-      event: {keys: [:id, :recipient, :eventable, :action, :old_value, :new_value, :user, :source, :details], object: @event, :include_link=>[false, false, true]}
+      event: {:includes=>[:user, :eventable, :event_changes], keys: [:id, :eventable, :action, :user, :source, :details], object: @event, :include_link=>[false, false, true]},
+      event_changes: {:method=>:event_changes, :attributes=>[:field, :old_value, :new_value] }
     }
+
+    @event_changes_paginated = @event.event_changes 
 
   end
 

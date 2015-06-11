@@ -68,9 +68,9 @@ class SearchProvider::YouTube < SearchProvider::Provider
           title: result.snippet['title'],
           url: "http://youtube.com/watch?v=" + result.id.videoId,
           domain: "youtube.com",
-          metadata: {:youtube_id=>result.id.videoId},
-          screenshot: result.snippet.thumbnails.high['url'],
-          parsed_uri: (result.snippet['description'].nil? ? "" : URI.extract(result.snippet['description'], ['http', 'https']).join(' '))
+          metadata: {:youtube_id=>result.id.videoId, screenshot: result.snippet.thumbnails.high['url']}
+          
+          
         }
 
       end

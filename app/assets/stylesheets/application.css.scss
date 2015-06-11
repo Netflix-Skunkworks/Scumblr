@@ -26,6 +26,14 @@
 
 
 
+tr.disabled
+{
+  background-color: #CCC !important;
+  td {
+    color: #666!important;
+  }
+}
+
 .preloader
 {
   position: absolute;
