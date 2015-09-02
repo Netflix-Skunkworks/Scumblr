@@ -24,17 +24,21 @@ class SearchProvider::Google < SearchProvider::Provider
   def self.options
     {
       :cx=> {name: "Custom Search ID (cx)",
-             description: "Custom search engine id (default searches entire web)",
-             required: false
-             },
+         description: "Custom search engine id (default searches entire web)",
+         required: false
+         },
       :site => { name: "Limit to Site",
-                 description: "Allows limiting to a specific domain",
-                 required: false
-                 },
+         description: "Allows limiting to a specific domain",
+         required: false
+         },
       :days_to_search => { name: "Max result age (days)",
-                           description: "Limit the age of the searched results (days)",
-                           required: false
-                           }
+         description: "Limit the age of the searched results (days)",
+         required: false
+         },
+      :max_results => { name: "Max results",
+         description: "The maximum number of results to return (Maximum: 100)",
+         required: false
+         }
     }
 
   end
@@ -47,11 +51,12 @@ class SearchProvider::Google < SearchProvider::Provider
     @application_name = Rails.configuration.try(:google_application_name)
     @application_version = Rails.configuration.try(:google_application_verion)
     @site_search = options[:site].present? ? options[:site] : nil
+    @max_results = options[:max_results].to_i > 0 ? options[:max_results].to_i : 10
+    @max_results = @max_results > 100 ? 100 : @max_results
   end
 
 
   def run
-
     if(@google_developer_key.blank?)
       Rails.logger.error "Unable to search Google. No developer key. Please define a developer key as google_developer_key in the Scumblr initializer."
       return []
@@ -67,7 +72,7 @@ class SearchProvider::Google < SearchProvider::Provider
 
     search = client.discovered_api('customsearch')
 
-    (1..100).step(100) do |offset|
+    (1..@max_results).step(10) do |offset|
 
 
       # Make an API call using a reference to a discovered method.
@@ -93,7 +98,7 @@ class SearchProvider::Google < SearchProvider::Provider
 
     end
 
-    return results
+    return results[0..@max_results-1]
   end
 
 
