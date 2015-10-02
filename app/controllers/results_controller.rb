@@ -272,6 +272,7 @@ class ResultsController < ApplicationController
     @options=""
     @result = Result.find(params[:id])
     @result_flag = @result.result_flags.find_by_id(params[:result_flag_id])
+    @flag = @result_flag.flag
     @next_stage = @result_flag.stage.next_steps.find_by_id(params[:stage_id])
 
 
