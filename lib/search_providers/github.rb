@@ -34,7 +34,13 @@ class SearchProvider::Github < SearchProvider::Provider
   end
 
   def run
-    url = URI.escape('https://api.github.com/search/' + @options[:type].to_s + '?q=' + @query)
+    case @options[:type].to_s
+      when "repositories", "code", "issues", "users"
+        url = URI.escape('https://api.github.com/search/' + @options[:type].to_s + '?q=' + @query)
+      else
+        Rails.logger.error "Did not recognize this type of search. Please choose 'repositories', 'code', 'issues' or 'users'. Leave blank for the default (repositories)"
+        return []
+    end
     response = Net::HTTP.get_response(URI(url))
     results = []
     if response.code == "200"
