@@ -23,15 +23,18 @@ class SearchProvider::Github < SearchProvider::Provider
   end
 
   def self.options
-    {}
+    {
+      :type=>{name: "Search type ('repositories' (default), 'code', 'issues', 'users')", description: "Specifies which type of search to perform", required: false}
+    }
   end
 
   def initialize(query, options={})
     super
+    @options[:type] = @options[:type].blank? ? "repositories" : @options[:type]
   end
 
   def run
-    url = URI.escape('https://api.github.com/search/repositories?q=' + @query)
+    url = URI.escape('https://api.github.com/search/' + @options[:type].to_s + '?q=' + @query)
     response = Net::HTTP.get_response(URI(url))
     results = []
     if response.code == "200"
