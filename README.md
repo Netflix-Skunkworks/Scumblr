@@ -1,6 +1,8 @@
 ![Scumblr](http://i.imgur.com/iFgqbrB.png)
 # Scumblr
 
+[![Join the chat at https://gitter.im/Netflix/Scumblr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Netflix/Scumblr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## What is Scumblr?
 
 Scumblr is a web application that allows performing periodic searches and storing / taking actions on the identified results. Scumblr uses the [Workflowable gem](https://github.com/Netflix/Workflowable) to allow setting up flexible workflows for different types of results.
