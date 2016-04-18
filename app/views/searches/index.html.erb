@@ -58,7 +58,7 @@
           <a href="#" data-dropdown="drop_move" class="button dropdown tiny secondary">Choose group</a><br>
           <ul id="drop_move" data-dropdown-content class="f-dropdown">
           <% groups = Search.select(&:group).map(&:group).uniq.sort.each_with_index.map{|g,i| [g,"Group #{i+1}"]}
-            groups << [groups.last.first+1, "New Group"]
+            groups << [groups.last.first+1, "New Group"] if groups.last
            %>
             <% groups.each do |group| %>
 
