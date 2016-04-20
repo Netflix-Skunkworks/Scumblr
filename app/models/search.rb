@@ -127,7 +127,7 @@ class Search < ActiveRecord::Base
       search.tags.each do |tag|
         tagging = result.taggings.where(:tag_id=>tag.id).first_or_initialize
         if tagging.changed?
-          result.events << Event.create(recipient: "Tag", action: "Created",source: self.name.to_s, new_value: tag.name_value)
+          result.events << Event.create(field: "Tag", action: "Created",source: self.name.to_s, new_value: tag.name_value)
           
           tagging.save 
         end

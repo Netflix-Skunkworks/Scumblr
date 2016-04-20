@@ -33,7 +33,7 @@ class ScreenshotSyncTaskRunner
     while(completed < total_tasks)
       while(job_ids.count < queue_size && result_ids.count > 0)
         result_id = result_ids.pop
-        Event.create(recipient: "Screenshot", action: "Requested", source: "System Task", eventable_type: "Result", eventable_id: result_id.to_s )
+        Event.create(field: "Screenshot", action: "Requested", source: "System Task", eventable_type: "Result", eventable_id: result_id.to_s )
         job_ids << ScreenshotRunner.perform_async(result_id)
 
       end

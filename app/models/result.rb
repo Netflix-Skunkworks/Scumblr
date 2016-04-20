@@ -81,7 +81,7 @@ class Result < ActiveRecord::Base
           end
         end
       else
-        event.event_changes.build(field: k.to_s.titlecaser, old_value: v[0].to_s, new_value: v[1].to_s)
+        event.event_changes.build(field: k.to_s.titlecase, old_value: v[0].to_s, new_value: v[1].to_s)
       end  
     end
   end

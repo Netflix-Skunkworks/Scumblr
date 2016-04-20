@@ -74,7 +74,7 @@ class SearchesController < ApplicationController
 
     respond_to do |format|
       if @search.save
-        @search.events << Event.create(recipient: "Search", action: "Created", user_id: current_user.id)
+        @search.events << Event.create(field: "Search", action: "Created", user_id: current_user.id)
         format.html { redirect_to @search, notice: 'Search was successfully created.' }
         format.json { render json: @search, status: :created, location: @search }
       else
@@ -90,8 +90,8 @@ class SearchesController < ApplicationController
     @providers = search_providers
 
     respond_to do |format|
-      if @search.update_attributes(search_params)
-        @search.events << Event.create(recipient: "Search", action: "Updated", user_id: current_user.id)
+      if @search.update_attributes(search_params)        
+        @search.events << Event.create(field: "Search", action: "Updated", user_id: current_user.id)
         format.html { redirect_to @search, notice: 'Search was successfully updated.' }
         format.json { head :no_content }
       else
@@ -106,7 +106,7 @@ class SearchesController < ApplicationController
   def destroy
     search_id = @search.id
     @search.destroy
-    @search.events << Event.create(recipient: "Search", action: "Deleted", user_id: current_user.id, eventable_type:"Search", eventable_id: search_id)
+    @search.events << Event.create(field: "Search", action: "Deleted", user_id: current_user.id, eventable_type:"Search", eventable_id: search_id)
 
     respond_to do |format|
       format.html { redirect_to searches_url }
@@ -120,7 +120,7 @@ class SearchesController < ApplicationController
 
       #@search.perform_search
       SearchRunner.perform_async(@search.id)
-      @search.events << Event.create(recipient: "Search", action: "Run", user_id: current_user.id)
+      @search.events << Event.create(field: "Search", action: "Run", user_id: current_user.id)
       respond_to do |format|
         format.html {redirect_to search_url(@search), :notice=>"Running search..."}
       end
@@ -130,7 +130,7 @@ class SearchesController < ApplicationController
       search_ids = Search.where(enabled:true).map{|s| s.id}
       events = []
       search_ids.each do |s|
-        events << Event.new(date: Time.now, recipient: "Search", action: "Run", user_id: current_user.id, eventable_type: "Search", eventable_id: s)
+        events << Event.new(date: Time.now, field: "Search", action: "Run", user_id: current_user.id, eventable_type: "Search", eventable_id: s)
       end
       Event.import events
 
@@ -156,7 +156,7 @@ class SearchesController < ApplicationController
     if(@search && @search.enabled != true)
       @search.enabled = true
       @search.save
-      @search.events << Event.create(recipient: "Search", action: "Enabled", user_id: current_user.id)
+      @search.events << Event.create(field: "Search", action: "Enabled", user_id: current_user.id)
       message = "Search enabled"
     end
 
@@ -171,7 +171,7 @@ class SearchesController < ApplicationController
     if(@search && @search.enabled == true)
       @search.enabled = false
       @search.save
-      @search.events << Event.create(recipient: "Search", action: "Disabled", user_id: current_user.id)
+      @search.events << Event.create(field: "Search", action: "Disabled", user_id: current_user.id)
       message = "Search disabled"
     end
 
@@ -190,7 +190,7 @@ class SearchesController < ApplicationController
 
         Search.update_all({:group => params[:group_id]}, {:id=>search_ids}) 
         search_ids.each do |s|
-          events << Event.new(date: Time.now, recipient: "Search", action: "Updated", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+          events << Event.new(date: Time.now, field: "Search", action: "Updated", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
         end
         
         message = "Search group updated."
@@ -198,7 +198,7 @@ class SearchesController < ApplicationController
       elsif(params[:commit] == "Enable")
         Search.update_all({:enabled => true}, {:id=>search_ids}) 
         search_ids.each do |s|
-          events << Event.new(date: Time.now, recipient: "Search", action: "Enabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+          events << Event.new(date: Time.now, field: "Search", action: "Enabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
         end
       
         message = "Searches enabled."
@@ -206,14 +206,14 @@ class SearchesController < ApplicationController
       elsif(params[:commit] == "Disable")
         Search.update_all({:enabled => false}, {:id=>search_ids}) 
         search_ids.each do |s|
-          events << Event.new(date: Time.now, recipient: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+          events << Event.new(date: Time.now, field: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
         end
 
         message = "Searches disabled."
       elsif(params[:commit] == "Delete")
         Search.where({:id=>search_ids}).delete_all
         search_ids.each do |s|
-          events << Event.new(date: Time.now, recipient: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+          events << Event.new(date: Time.now, field: "Search", action: "Disabled", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
         end
 
         message = "Searches deleted."
@@ -223,7 +223,7 @@ class SearchesController < ApplicationController
           search = Search.find_by_id(s)
           if(search)
             valid_searches << s
-            events << Event.new(date: Time.now, recipient: "Search", action: "Run", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
+            events << Event.new(date: Time.now, field: "Search", action: "Run", user_id: current_user.id, eventable_type:"Search", eventable_id: s)
           end
         end
         SearchRunner.perform_async(valid_searches)
