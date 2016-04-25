@@ -96,11 +96,15 @@
               </ul>
             </li>
             <li class="divider"></li>
-            <li><%= link_to current_user.email, edit_user_path(current_user) %></li>
-            <li class="divider"></li>
-            <li><%= link_to('Logout', destroy_user_session_path, :method => :delete) %></li>
+            <li class='has-dropdown not-click'><%= link_to current_user.email.truncate(20), "#"  %>
+              <ul class="dropdown">
+                <li><%= link_to "Profile", edit_user_path(current_user) %></li>
+                <li><%= link_to('Logout', destroy_user_session_path, :method => :delete) %></li>
+              </ul>
+            </li>
+            
           <% else %>
-            <li><%= link_to "Sign in with Onelogin", user_omniauth_authorize_path(:saml) %></li>
+            <li><%= link_to "Sign in", new_user_session_path %></li>
           <% end %>
         </ul>
       </section>
