@@ -1,8 +1,11 @@
 development:
- adapter: sqlite3
- database: db/development.sqlite3
+ adapter: mysql2
+ encoding: utf8
+ database: scumblr
  pool: 5
- timeout: 5000
+ username: scumblr
+ password:
+ socket: /var/lib/mysql/mysql.sock
 
 staging:
  adapter: sqlite3
