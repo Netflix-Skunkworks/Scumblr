@@ -87,6 +87,5 @@ Scumblr::Application.configure do
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 end
-
-Rails.application.routes.default_url_options[:host] = "<PROD HOST>"
-Rails.application.routes.default_url_options[:protocol] = "https"
+Rails.application.routes.default_url_options[:host] = "localhost:3000"
+Rails.application.routes.default_url_options[:protocol] = "http"
