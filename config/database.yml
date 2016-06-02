@@ -15,9 +15,9 @@ production:
  encoding: utf8
  database: scumblr
  pool: 5
- username: scumbler
+ username: scumblr
  password:
- socket: /tmp/mysql.sock
+ socket: /var/lib/mysql/mysql.sock
 
 
 
