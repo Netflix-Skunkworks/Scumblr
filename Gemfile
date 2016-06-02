@@ -7,7 +7,7 @@ gem 'rails', '4.0.9'
 #gem 'protected_attributes'
 
 #For Search Providers
-gem 'google-api-client' < '0.9'
+gem 'google-api-client',  '<0.9'
 gem 'twitter'
 gem 'koala'
 
