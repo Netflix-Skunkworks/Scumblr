@@ -88,4 +88,4 @@ Scumblr::Application.configure do
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 end
 Rails.application.routes.default_url_options[:host] = "localhost:3000"
-Rails.application.routes.default_url_options[:protocol] = "http"
+#Rails.application.routes.default_url_options[:protocol] = "http"
