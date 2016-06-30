@@ -26,14 +26,14 @@ class SearchProvider::Reddit < SearchProvider::Provider
     {
       :subreddit=>{name: "Search specific subreddit", description: "Search a specific subreddit for this query (or else global)", required: false},
       :results=>{name: "Max results", description: "Max Results", required: false},
-      :useragent=>{name: "User-Agent", description: "User-Agent string to present to Reddit", required: false}
+      :useragent=>{name: "User-Agent", description: "User-Agent string to present to Reddit. Reddit severely rate limits generic APi user agent strings. The format for this User-Agent as defined by Reddit is: platform:application id:version string by /u/reddit username . For more info please go here <a href='https://github.com/reddit/reddit/wiki/API'>https://github.com/reddit/reddit/wiki/API</a>", required: true}
     }
   end
 
   def initialize(query, options={})
     super
         @options[:results] = @options[:results].blank? ? 25 : @options[:results]
-	@options[:useragent] = @options[:useragent].blank? ? 'scumblr:search_provider:v0.2.3 by /u/geekspeed' : @options[:useragent]
+	@options[:useragent] = @options[:useragent]
   end
 
   def run
