@@ -25,7 +25,7 @@ class SearchProvider::Github < SearchProvider::Provider
   def self.options
     {
       :type=>{name: "Search type ('repositories' (default), 'code', 'issues', 'users')", description: "Specifies which type of search to perform", required: false},
-      :useragent=>{name: "User-Agent", description: "User-Agent string to supply to GitHub. See <a href='https://developer.github.com/v3/#user-agent-required'>https://developer.github.com/v3/#user-agent-required</a> ", required: false},
+      :useragent=>{name: "User-Agent", description: "User-Agent string to supply to GitHub. See <a href='https://developer.github.com/v3/#user-agent-required'>https://developer.github.com/v3/#user-agent-required</a> ", required: true},
       :codesearch=>{name: "Code Search Validation", description: "GitHub requires additional options for Code Search. If your search is a code search you need to include at least one of: user, repo, or organization in your search string. More info at <a href='https://developer.github.com/changes/2013-10-18-new-code-search-requirements/'>https://developer.github.com/changes/2013-10-18-new-code-search-requirements/</a>", required: false}
     }
   end
