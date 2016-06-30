@@ -25,28 +25,35 @@ class SearchProvider::Reddit < SearchProvider::Provider
   def self.options
     {
       :subreddit=>{name: "Search specific subreddit", description: "Search a specific subreddit for this query (or else global)", required: false},
-      :results=>{name: "Max results", description: "Max Results", required: false}
+      :results=>{name: "Max results", description: "Max Results", required: false},
+      :useragent=>{name: "User-Agent", description: "User-Agent string to present to Reddit", required: false}
     }
   end
 
   def initialize(query, options={})
     super
         @options[:results] = @options[:results].blank? ? 25 : @options[:results]
+	@options[:useragent] = @options[:useragent].blank? ? 'scumblr:search_provider:v0.2.3 by /u/geekspeed' : @options[:useragent]
   end
 
   def run
+    useragent = @options[:useragent]
     if(@options[:subreddit].blank?)
       url = URI.escape('https://www.reddit.com/search.json?q=' + @query  + '&limit=' + @options[:results].to_s)
     else
       url = URI.escape('https://www.reddit.com/r/' + @options[:subreddit] + '/search.json?q=' + @query + '&limit=' + @options[:results].to_s)
     end
-
-    response = Net::HTTP.get_response(URI(url))
+    uri = URI.parse(url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    req = Net::HTTP::Get.new(uri.request_uri,{'User-Agent' => useragent })
+    response = http.request(req)
     results = []
     if response.code == "200"
       search_results = JSON.parse(response.body)
       search_results['data']['children'].each do |result|
-        results <<
+	results <<
         {
           :title => result['data']['title'],
           :url => 'https://www.reddit.com' + result['data']['permalink'],
