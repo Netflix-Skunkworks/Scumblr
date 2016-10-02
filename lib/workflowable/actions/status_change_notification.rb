@@ -13,7 +13,7 @@
 #     limitations under the License.
 
 
-class Workflowable::Actions::StatusChangeNotifcationAction < Workflowable::Actions::Action
+class Workflowable::Actions::StatusChangeNotificationAction < Workflowable::Actions::Action
   include ERB::Util
   include Rails.application.routes.url_helpers
 
