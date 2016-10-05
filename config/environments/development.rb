@@ -72,4 +72,5 @@ silence_warnings do
   IRB = Pry
 end
 
-Rails.application.routes.default_url_options[:host] = "localhost:3000"
+Rails.application.routes.default_url_options[:host] = ENV['SCUMBLR_HTTP_HOST'] || 'localhost:3000'
+Rails.application.routes.default_url_options[:protocol] = ENV['SCUMBLR_HTTP_PROTO'] || 'http'
