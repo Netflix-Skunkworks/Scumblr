@@ -1,0 +1,5 @@
+<% if params[:target].present? %>
+  $("<%= params[:target] %>").text("<%= @data %>")
+  ready();
+<% end %>
+

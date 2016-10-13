@@ -1,0 +1,24 @@
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Closed</th>
+    <th>Invalid</th>
+    <th>Default</th>
+    <th></th>
+  </tr>
+  <% @statuses.each do |status| %>
+    <tr>
+      <td><%= link_to status.name, status_path(status) %></td>
+      <td><%= status.closed == true %></td>
+      <td><%= status.is_invalid == true %></td>
+      <td><%= status.default == true %></td>
+      <td>
+        <%= link_to 'Edit', edit_status_path(status) , class: "button tiny" %>
+        <%= link_to 'Destroy', status, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
+        <%= link_to 'Make Default', set_default_status_path(status), method: :post, class: "button tiny" if !status.default %>
+      </td>
+    </tr>
+  <% end %>
+</table>
+<br />
+<%= link_to 'New Status', new_status_path, class: "button" %>

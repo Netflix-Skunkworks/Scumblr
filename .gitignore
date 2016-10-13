@@ -6,9 +6,14 @@
 
 # Ignore scumblr config
 /config/initializers/scumblr.rb
-
+.DS_Store
+/vendor/cache/*
+/log/*
 #Ignore dump.rdb
 dump.rdb
+
+# Ignore scumblr.rb
+/config/initializers/scumblr.rb
 
 # Ignore bundler config
 /.bundle
@@ -35,3 +40,11 @@ dump.rdb
 
 #Ignore spec directory
 /spec
+
+
+/root/var/chef/tmp/
+
+Dockerfile.*
+build/*
+*.swp
+.gradle

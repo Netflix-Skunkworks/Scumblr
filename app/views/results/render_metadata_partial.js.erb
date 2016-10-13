@@ -1,0 +1,24 @@
+
+
+
+<% begin %>
+
+  <% if @duration %>
+    console.log(<%= @duration %>);
+  <% end %>
+  
+
+  $("<%= @target %>").attr("href","<%= @target %>_container");
+  $("<%= @target %>").removeAttr("data-remote");
+  $("<%= @target %>").find("input.refresh").removeClass("hidden").show();
+  
+
+  <% content = escape_javascript(render partial:  "results/metadata/#{@partial.to_s}_details_show", locals: {result: @result})  %>
+  $("<%= @target %>").siblings(".content").addClass("active");
+  $("<%= @target %>").siblings(".content").addClass("wasactive");
+  $("<%= @target %>_content").html('<%= content %>');
+  
+  ready();
+<% rescue ActionView::MissingTemplate => exception %>
+  console.log("Missing partial")
+<% end %>

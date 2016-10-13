@@ -1,0 +1,44 @@
+
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: scumblr_dev
+  host: localhost
+  username: scumblr
+  password: scumblr
+  port: 5432
+  pool: 75
+  socket: /tmp/mysql.sock
+
+# staging:
+#   adapter: postgresql
+#   encoding: unicode
+#   database: scumblr_staging
+#   host: localhost
+#   username: scumblr
+#   password: scumblr
+#   port: 5432
+#   pool: 75
+#   socket: /tmp/mysql.sock
+
+# production:
+#   adapter: postgresql
+#   encoding: unicode
+#   database: scumblr_prod
+#   username: scumblr
+#   password: scumblr
+#   host: localhost
+#   port: 5432
+#   pool: 75
+#   socket: /tmp/mysql.sock
+
+# test:
+#   adapter: postgresql
+#   encoding: unicode
+#   database: scumblr_test
+#   username: scumblr
+#   password: scumblr
+#   host: localhost
+#   port: 5432
+#   pool: 75
+#   socket: /tmp/mysql.sock

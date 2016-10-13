@@ -1,0 +1,10 @@
+if ($("#summary_<%= @task.id%>").is(":visible"))
+{
+  $("a#summary_icon_<%= @task.id%>").html("&#9658;");
+}
+else
+{
+  $("a#summary_icon_<%= @task.id%>").html("&#9660;");
+  $("#summary_<%= @task.id%>").html("<%= escape_javascript(render partial: 'summary_data', locals: { task: @task } ) %>");
+}
+$("#summary_<%= @task.id%>").toggle();

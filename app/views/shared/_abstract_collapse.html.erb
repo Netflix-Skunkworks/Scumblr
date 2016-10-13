@@ -1,0 +1,24 @@
+<%= render :layout=>"shared/collapse", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>instance_variable_get("@#{result_set[:method]}_paginated"), :remote=>true, :action_name=>"#{result_set[:method]}"} do %>
+  <thead>
+    <tr>
+      <% if result_set[:link] %>
+        <th><%= result_set[:link][:method].to_s.titlecase %></th>
+      <% end %>
+      <% result_set[:attributes].each do |a| %>
+        <th><%= a.to_s.titlecase %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% instance_variable_get("@#{result_set[:method]}_paginated").each do |i| %>
+      <tr>
+        <% if result_set[:link] %>
+          <td><%= link_to i.send(result_set[:link][:method]), send(result_set[:link][:path], *result_set[:link][:params].map{|f| i.send(f)}) %></td>
+        <% end %>
+        <% result_set[:attributes].each do |a| %>
+          <td><%= i.send(a) %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+<% end %>

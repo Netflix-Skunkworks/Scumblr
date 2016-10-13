@@ -1,0 +1,43 @@
+<%= label_tag do %>URL
+  <%= f.text_field :url_cont %>
+<% end %>
+<%= label_tag do %>URL Does Not Contain
+  <%= f.text_field :url_not_cont %>
+<% end %>
+<%= label_tag do %>Title
+  <%= f.text_field :title_cont %>
+<% end %>
+<%= label_tag do %>Title Does Not Contain
+  <%= f.text_field :title_not_cont %>
+<% end %>
+<%= label_tag do %>Tags
+  <%= f.collection_select :tags_id_in, Tag.all, :id, :name_value, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Assignee
+  <%= f.collection_select :user_id_in, User.all, :id, :email, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Status
+  <%= f.collection_select :status_id_in, Status.all, :id, :name, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Task (Search)
+  <%= f.collection_select :tasks_id_in, Task.all, :id, :name, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+
+<%= label_tag do %>Event Filter
+  <%= select_tag "q[id_in_saved_event_filter]" ,options_from_collection_for_select((SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, params.try(:[],:q).try(:[],:id_in_saved_event_filter)), {include_blank: true} %>
+<% end %>
+
+<%= label_tag do %>Metadata <span data-tooltip aria-haspopup="true" class="has-tip tip-left" title="Searches metadata fields. Examples:<br/>status_code==200 # Matches: {status_code: 200}<br/>result:version > 1 # Matches {result: {version: 2}}<br/>content:length # Matches {content: {length: 10}}<br/>March 1st 10:05pm<br/>10/15/2010<br/>!vulnerabilities # Matches {vulnerabilities: null} or missing vulnerabilities key<br/>"><i class="fi-info"></i></span>
+  <%= hidden_field_tag "q[metadata_search]", params.try(:[],:q).try(:[],:metadata_search) , {class: "select2-tags", multiple: true} %>
+<% end %>
+
+<hr/>
+<h5>Workflow</h5>
+<%= label_tag do %>Workflow Flag
+  <%= f.collection_select :flags_id_in, Flag.all, :id, :name, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Workflow Stage
+  <%= f.grouped_collection_select :stages_id_in, Workflowable::Workflow.all.includes(:stages), :stages, :name, :id, :name, {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= f.check_box :status_id_includes_closed, {class: "checkbox", "checked"=> params.try(:[],:q).try(:[],:status_id_includes_closed) == "1" ? "checked" : "" }, "1" %>
+<%= label_tag "Include closed?" %><br/>

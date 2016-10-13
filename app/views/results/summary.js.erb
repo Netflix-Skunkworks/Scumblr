@@ -1,0 +1,11 @@
+if ($("#summary_<%= @result.id%>").is(":visible"))
+{
+  $("a#summary_icon_<%= @result.id%>").html("&#9658;");
+}
+else
+{
+  $("a#summary_icon_<%= @result.id%>").html("&#9660;");
+  $("#summary_<%= @result.id%>").html("<%= escape_javascript(render partial: 'show_details', locals: { result: @result } ) %>");
+}
+$("#summary_<%= @result.id%>").toggle();
+$(function(){ $(document).foundation(); });

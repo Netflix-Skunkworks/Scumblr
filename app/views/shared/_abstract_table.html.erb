@@ -1,0 +1,131 @@
+<% 
+  if(result_set[:object].class == Array && result_set[:object].first.class == Hash)
+    sort = nil
+    begin 
+      sort = Integer(params[:sort])
+      sort -= 1
+    rescue
+
+    end
+    object = result_set[:object]
+
+
+    if(sort && result_set[:sort_keys][sort])
+      sort_key = result_set[:sort_keys][sort]
+      object =  object.sort{|a,b| a.try(:[], sort_key) <=> b.try(:[], sort_key)}
+
+      if(params[:sort_dir] == "desc")
+        object.reverse!
+      end
+    end
+    object = Kaminari.paginate_array(object).page(params[:page] || 1).per(params[:per_page] || 25) 
+    instance_variable_set("@#{result_set[:method]}_paginated", object)
+  end
+  
+   
+%>
+
+<% uuid = params[:uuid] || SecureRandom.hex %>
+<% result_set[:sort_keys] ||= [] %>
+<%= render :layout=>"shared/paginated_table", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>instance_variable_get("@#{result_set[:method]}_paginated"), :remote=>true, :action_name=>"#{result_set[:method]}", :uuid=> uuid} do %>
+  <thead>
+    <tr>
+      <% if result_set[:link] %>
+        <th>
+          <% if result_set[:link][:sort_key] %>
+            <% dir = (params[:sort].to_i == 0 && params[:sort_dir] == 'asc') ? :desc : :asc %>
+            <% title = CGI::escapeHTML((result_set[:link][:label] || result_set[:link][:method]).to_s.titlecase) %>
+            <% if params[:sort].to_i ==  0 && params[:sort_dir] == 'asc' %>
+              <% dir = :desc %>
+              <% title += " &#x25b2" %>
+            <% elsif params[:sort].to_i == 0 && params[:sort_dir] == 'desc' %>
+              <% title += " &#x25bc" %>
+            <% end %>
+            <%= link_to title.html_safe, params.merge({:action_name => result_set[:method], sort: 0, :remote=> true, :sort_dir => dir, uuid: uuid}) %>
+          <% else %>
+            <%= result_set[:link][:method].to_s.titlecase %>
+          <% end %>
+        
+          
+
+        </th>
+
+      <% end %>
+      <% result_set[:attributes].each_with_index do |a,i| %>
+        
+        
+        <th>
+          <% if result_set[:labels].try(:[],i) %>
+            <% title = CGI::escapeHTML(result_set[:labels].try(:[],i).to_s.titlecase) %>
+          <% else %>
+            <% title = CGI::escapeHTML(a.to_s.titlecase) %>
+          <% end %> 
+          
+          <% if(result_set[:sort_keys] && result_set[:sort_keys][i]) %>
+            
+            <% dir = :asc %>
+            <% if params[:sort].to_i ==  i+1 && params[:sort_dir] == 'asc' %>
+              <% dir = :desc %>
+              <% title += " &#x25b2" %>
+            <% elsif params[:sort].to_i ==  i+1 && params[:sort_dir] == 'desc' %>
+              <% title += " &#x25bc" %>
+            <% end %>
+            <%= link_to title.html_safe, params.merge({:action_name => result_set[:method], sort: i+1, :remote=> true, :sort_dir => dir, uuid: uuid}) %>
+
+          <% else %>
+            <%= title %>
+          <% end %>
+          
+        </th>
+      <% end %>
+      <% if result_set[:actions] %>
+        <% result_set[:actions].each_with_index do |a,i| %>
+          <th></th>
+        <% end %>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% instance_variable_get("@#{result_set[:method]}_paginated").each do |i| %>
+      <tr>
+        <% if result_set[:link] %>
+        
+        
+          <td><%= link_to i.send(result_set[:link][:method]), send(result_set[:link][:path], *result_set[:link][:params].map{|f| i.send(f)}) %></td>
+        
+        <% end %>
+        <% result_set[:attributes].each_with_index do |a, index| %>
+          <td>
+          <% if i.class == Hash %>
+            <% data = i.send(:[], a) %>
+          <% else %>
+            <% data = i.send(a) %>
+          <% end %>
+          <% if(result_set.try(:[],:formatters).try(:[],index)) %>
+
+            <% data = send(result_set.try(:[],:formatters).try(:[],index), data) %>
+
+          <% end %>
+          <% if result_set[:include_link].try(:[],index) && data.class.methods.include?(:model_name) %>
+            <% begin %>
+              <%= link_to data, url_for(data) %>
+            <% rescue %>
+              <%= data %>  
+            <% end %>
+          <% else %>
+            <%= data %>
+          <% end %> 
+           
+          </td>
+        <% end %>
+        <% if result_set[:actions] %>
+          <% result_set[:actions].each_with_index do |a, index| %>
+            <td><%= link_to a[:label].to_s,  send(a[:path], *a[:params].map{|f| i.send(f)}), confirm:a[:confirm]||false, method: a[:method]||:get %>
+
+            </td>
+          <% end %>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+<% end %>

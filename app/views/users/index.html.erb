@@ -1,0 +1,32 @@
+<h1>Listing users</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Email</th>
+      <% if current_user.admin %>
+        <th>Admin</th>
+        <th>Disabled</th>
+        <th></th>
+        <th></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% @users.each do |user| %>
+      <tr>
+        <td><%= user.email %></td>
+        <% if current_user.admin %>
+          <td><%= user.admin %></td>
+          <td><%= user.disabled %></td>
+          <td><%= link_to 'Edit', edit_user_path(user), class: "button tiny" %>
+            <%= link_to user.disabled ? "Enable" : 'Disable', user, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
+            <%= link_to user.admin ? "Remove Admin" : 'Make Admin', toggle_admin_user_path(user), method: :post, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<br>
+<% if current_user.admin %>
+  <%= link_to 'New User', new_user_path, class: "button" %>
+<% end %>

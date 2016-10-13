@@ -1,0 +1,10 @@
+<% if @result.subscribers.where(:user_id=>current_user).present? %>
+  <%= link_to "Unsubscribe", unsubscribe_result_path, remote: true, method: :post %>
+  (<%= link_to @result.subscribers.count, "#", :data => { "reveal-id" => 'subscribers-modal'} %>)
+<% else %>
+  <%= link_to "Subscribe", subscribe_result_path, remote: true, method: :post %>
+  (<%= link_to @result.subscribers.count, "#", :data => { "reveal-id" => 'subscribers-modal'} %>)
+<% end %>
+<div id="subscribers-modal" class="reveal-modal" data-reveal>
+  <%= render 'subscriber_list' %>
+</div>

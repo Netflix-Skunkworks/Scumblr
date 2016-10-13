@@ -1,0 +1,133 @@
+<%= content_for :main_content_top do %>
+  <div id="status-bar">
+    <%= render partial: "status_bar", locals: {:result=>@result} %>
+  </div>
+<% end %>
+<div id="flash_messages">
+</div>
+<div id="result_details">
+  <%= render 'show_details' %>
+</div>
+<h3 class="section_header">Identified By</h3>
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:task_results]} %>
+<div id="upload_form" class="reveal-modal custom-modal" data-reveal>
+  <header class="popup-header">
+    <div class="row">
+      <div class="large-12 columns">
+        <h4>New Attachment</h4>
+      </div>
+    </div>
+  </header>
+  <div class="row">
+    <div class="large-12 columns">
+      <%= form_for ResultAttachment.new, :url => add_attachment_result_path, :html => { :class=>"attachment_form", :multipart => true } do |form| %>
+        <%= form.file_field :attachment %>
+        <%= form.submit "Add", :class=>"button tiny"  %>
+        <%= button_tag "Cancel", :type=>:button, :class=>"button secondary tiny close-modal" %>
+      <% end %>
+    </div>
+  </div>
+</div>
+<h3 class="section_header">Attachments <%= link_to "Upload", "#", :class=>"pull-right button tiny thumbnail-button", data:{"reveal-id"=>"upload_form"} %><%= link_to "Generate", generate_screenshot_result_path, :method=>:post ,:class=>"pull-right button tiny thumbnail-button" %></h3>
+<% image_results = @result.result_attachments.select{|x| x.attachment_content_type.match /\Aimage\/.+/ } %>
+<% if image_results.present? %>
+  <h4 class="section_header">Images</h4>
+  <ul class="small-block-grid-6 image_attachments">
+    <% image_results.each do |attr| %>
+      <% if attr.attachment_content_type.match /\Aimage\/.+/ %>
+        <li class="thumbnail-box">
+          <div class="reveal-hidden">
+            <%= image_tag attr.attachment.expiring_url(6000, :medium), class: "thumbnail-image" %>
+            <div class="thumbnail-buttons">
+              <%= link_to "View", attr.attachment.expiring_url(6000), :class=>"hidden button tiny thumbnail-button" %>
+              <%= link_to "Delete", delete_attachment_result_path(@result, attr), :method=>:delete, data: {:confirm=>"Are you sure you want to delete this image?"}, :class=>"hidden button tiny thumbnail-button" %>
+            </div>
+          </div>
+        </li>
+      <% end %>
+    <% end %>
+  </ul>
+<% end %>
+<% file_results = @result.result_attachments.select{|x| !x.attachment_content_type.match /\Aimage\/.+/ } %>
+<% if file_results.present? %>
+  <h4 class="section_header">File Attachments</h4>
+  <%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:result_attachments]} %>
+<% end %>
+<h3 class="section_header">Events</h3>
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:events]} %>
+<h3 class="section_header">Comments</h3>
+<%= form_tag comment_result_path(@result), :class=>"comment_form" do %>
+  <%= text_area_tag 'comment'%>
+  <%= submit_tag 'Add Comment', :class=>"button tiny"  %>
+<% end -%>
+<% @comments.each do |thread| %>
+  <%= render "shared/comment", :comment=> thread %>
+<% end %>
+<%= content_for :sidebar do %>
+  <div class="sidebar result-sidebar">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Info</h1>
+      </section>
+    </nav>
+    <section class="panel sidepanel">
+      <dl class="dl-horizontal">
+        <dt>Assignee</dt>
+        <dd id="assignee_field">
+          <div id="assignee_value">
+            <%= render partial: "assignee", locals: {:result=>@result} %>
+          </div>
+          <div id="assignee_select">
+            <%#= collection_select @result,:user_id, [], :id, :email, {},class: "users_select2" %>
+            <%= form_tag assign_result_path(@result), remote: true do %>
+              <input type="hidden" class="remote_select2" data-autosubmit="true" data-attribute="email" data-object="users" data-path="<%= users_path %>" name="user_id" />
+            <% end %>
+          </div>
+        </dd>
+        <dt>Subscriptions</dt>
+        <dd id="subscibers">
+          <%= render 'subscription' %>
+        </dd>
+        <dt>Tags</dt>
+        <dd>
+          <% @result.tags.select{|t| t.value.blank? }.each do |tag| %>
+            <span class="label" <%= "style=background-color:#{tag.color||'#CCC'}"%> >
+              <%= tag.name %>
+              <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %>
+            </span>
+          <% end %>
+          <%= link_to "", "#", :class=>"add_tag fi-plus" %>
+          <%= form_tag tag_result_path(@result), :class=>"tag_form", :style=>"display:none" do %>
+            <%= hidden_field_tag "tags", "", { class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name_value" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name_value" , "data-path"=>tags_path} %>
+            <%= submit_tag 'Submit', :class=>"button tiny"  %>
+          <% end -%>
+        </dd>
+        <% @result.tags.select{|t| t.value.present? }.each do |tag| %>
+          <dt><%= tag.name %></dt>
+          <dd><%= tag.value %> <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %></dd>
+        <% end %>
+      </dd>
+    </dl>
+    <% if can? :destroy, @result %>
+      <%= link_to "Delete Result", result_path(@result), :method=>:delete, data: {:confirm=>"Are you sure you want to delete this result?"}, :class=>"button small alert" %>
+    <% end %>
+  </section>
+</div>
+<div class="sidebar">
+  <nav class="tab-bar">
+    <section class="tab-bar-section">
+      <h1>Workflow Flags <%= link_to "", "#", :class=>"add_workflow fi-plus" %></h1>
+    </section>
+  </nav>
+  <section class="panel sidepanel" >
+    <div id="result_workflow">
+      <%= render 'result_workflow' %>
+    </div>
+    <%= form_tag flag_result_path(@result), remote:true, :class=>"workflow_form", :style=>"display:none" do %>
+      <input type="hidden" class="remote_select2" data-autosubmit="false" data-id-attribute="id" data-attribute="name" data-object="flags" data-path="<%= flags_path %>" name="flag" />
+      <%= submit_tag 'Submit', :class=>"button tiny preload-form"  %>
+    <% end -%>
+    <div id="workflow_options_modal" class="reveal-modal" data-reveal></div>
+  </section>
+</div>
+<% end %>

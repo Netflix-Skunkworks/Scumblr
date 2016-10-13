@@ -1,0 +1,38 @@
+<% accordion_id = SecureRandom.hex
+
+def vulnerability_sort(a,b)
+  risks={"critical"=>1, "high"=>2, "medium"=>3, "low"=>4, "informational"=>6, "observation"=>5}
+  comp = (risks[a["severity"].to_s.downcase].to_i <=> risks[b["severity"].to_s.downcase].to_i)
+  comp.zero? ? (a["type"] <=> b["type"]) : comp
+end
+
+def vulnerability_with_index_sort(a,b)
+  risks={"critical"=>1, "high"=>2, "medium"=>3, "low"=>4, "informational"=>6, "observation"=>5}
+  comp = (risks[a[0]["severity"].to_s.downcase].to_i <=> risks[b[0]["severity"].to_s.downcase].to_i)
+  comp.zero? ? (a[0]["type"] <=> b[0]["type"]) : comp
+end
+
+findings = result.metadata["vulnerabilities"].sort{|a,b| vulnerability_sort(a,b)}#.select{|v| v["status"].match(/open/i) }
+
+finding_indicies = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| vulnerability_with_index_sort(a,b)}.map(&:last)
+
+
+
+
+%>
+
+<% 
+findings = Kaminari.paginate_array(findings).page(params[:page] || 1).per(params[:per_page] || 25) 
+%>
+
+
+<% findings.each_with_index do |finding, i| %>
+
+  <%= render partial:"results/metadata/vulnerability", locals: {finding: finding, finding_indicies: finding_indicies, accordion_id: accordion_id, i: i} %>
+
+<% end %>
+
+<% if defined? findings %>
+  
+  <%= paginate findings, :outer_window => 3, :window=>1, :remote=> true %>
+<% end %>

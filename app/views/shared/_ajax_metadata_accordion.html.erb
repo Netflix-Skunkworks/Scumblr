@@ -1,0 +1,33 @@
+<% options ||= {} %>
+<% accordion_id = options[:accordion_id] || SecureRandom.hex %>
+<% extra_params = options[:extra_params] || {} %>
+<dl class="accordion" data-accordion>
+  <dd class="accordion-top-navigation">
+    <%= link_to render_metadata_partial_result_path({id: result.id, partial: partial_name, target: "#partial_#{accordion_id}"}.merge(extra_params)), :id =>"partial_#{accordion_id}", :remote=>true do %>
+      <%= title %>
+      <% if options[:include_refresh] == true %>
+        <%= button_to "Refresh", render_metadata_partial_result_path(id: @result.id, partial: partial_name, target: "#partial_#{accordion_id}"), :form_class=> "inline", :method=>"get", :class=>"refresh hidden button tiny right", :remote=>true %>
+      <% end %>
+      <%= yield :title_content %>
+      <% content_for :title_content, flush: true do "" end %>
+    <% end %>
+
+    <%= yield :before_accordion_content %>
+    <% content_for :before_accordion_content, flush: true do "" end %>
+
+    
+
+    <div class="panel content" id="<%= "partial_#{accordion_id}_container"%>">
+      <%= yield :pre_content %>
+      <% content_for :pre_content, flush: true do "" end %>
+
+      <div id="<%= "partial_#{accordion_id}_content"%>">
+      </div>
+
+      <%= yield :post_content %>
+      <% content_for :post_content, flush: true do "" end %>
+    </div>
+    
+    
+  </dd>
+</dl>

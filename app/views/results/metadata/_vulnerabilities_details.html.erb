@@ -1,0 +1,120 @@
+<%
+accordion_id = SecureRandom.hex 
+@result.metadata["vulnerabilities"] ||= []
+open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"].match(/open/i)}.length
+
+
+%>
+
+<% content_for :title_content do %>
+  <button href="#" id="add_finding_<%= @result.id %>" aria-controls="add_finding_<%= @result.id %>" aria-expanded="false" class="add_finding_button right tiny button">Add Finding</button>
+
+<% end %>
+
+<% content_for :pre_content do %>
+    <dl class="accordion" data-accordion>
+      <dd class="accordion-top-navigation">
+        <a href="#panel_filters">Filters</a>
+        <div id="panel_filters" class="panel content">
+            <%= form_tag render_metadata_partial_result_path(id: @result.id, partial: "vulnerabilities", target: "#partial_#{accordion_id}"), :data=>{target: "#partial_#{accordion_id}"}, :class=>"facets", :remote=>true do |f| %>
+
+
+                <% facets = ["status", "severity", "key_suffix", "source", "type", "match_location"] 
+                    selected_facets = {"status" => ["Open", "Reopened"]}
+                %>
+                <% facets.each do |f| %>
+                    <%= label_tag do %><%= f.titleize %>
+                      <%= collection_select "filter",f, @result.metadata["vulnerabilities"].map{|v| v[f].class == Array ? v[f].flatten : v[f].to_s}.flatten.reject{|x| x.blank? || x.class == Hash}.uniq , :to_s, :titleize , {:selected => selected_facets[f]}, {class: "select2",:multiple=>true} %>
+                      <%= hidden_field_tag "filter_on[#{f}]", "vulnerabilities" %>
+                    <% end %>
+
+                <% end %>
+
+                
+
+            <% end %>
+            <button href="#" id="drop_<%= accordion_id %>1_button" data-dropdown="drop_<%= accordion_id %>1" aria-controls="drop_<%= accordion_id %>1" aria-expanded="false" class="tiny button dropdown">Update Status</button>
+
+            <ul id="drop_<%= accordion_id %>1" data-dropdown-content class="f-dropdown" aria-hidden="true">
+
+                <% ["Reopened", "Remediated", "False Positive", "Ignored"].each do |status| %>
+
+                  <li>
+                    <a href="#" data-updateable-parameters="key[0]=vulnerabilities.[id:##ids##].status&amp;value[0]=<%=status %>&amp;target[0]=.updateable:visible%20button.status" data-updateable-url="<%=update_metadata_result_path(@result)%>" class="updateable-update" %><%= status %></a>
+                  </li>
+                <% end %>
+            </ul>
+            <button href="#" id="drop_<%= accordion_id %>_button" data-dropdown="drop_<%= accordion_id %>" aria-controls="drop_<%= accordion_id %>" aria-expanded="false" class="tiny button dropdown">Update Severity</button><br>
+            <ul id="drop_<%= accordion_id %>" data-dropdown-content class="f-dropdown" aria-hidden="true">
+
+                <% ["Critical", "High", "Medium", "Low", "Observation", "Informational"].each do |status| %>
+
+                  <li>
+                    <a href="#" data-updateable-parameters="key[0]=vulnerabilities.[id:##ids##].severity&amp;value[0]=<%=status %>&amp;target[0]=.updateable:visible%20button.severity" data-updateable-url="<%=update_metadata_result_path(@result)%>" class="updateable-update" %><%= status %></a>
+                  </li>
+                <% end %>
+            </ul>
+          
+         
+        </div>
+      </dd>
+    </dl>
+    
+
+
+    
+
+
+<% end %>
+
+<% content_for :before_accordion_content do %>
+ <div id="div_add_finding_<%= @result.id %>" class="panel content" style="display: none">  
+    <%= form_tag(update_metadata_result_path(@result, "key[0]"=> "vulnerabilities.[]"), method: "post", remote: true) do %>
+      <%= hidden_field_tag("result_id", @result.id) %>
+      <table>
+         <tr>
+            <td width="10%"><%= label_tag(:severity, raw("<b>Severity:</b>")) %></td>
+            <td><%= select_tag('value[0][severity]', options_for_select(["observation", "Low", "Medium", "High", "Critical"], "Low")) %></td>
+         </tr>
+         <tr>
+            <td><%= label_tag(:type, raw("<b>Type:</b>")) %></td>
+            <td><%= text_field_tag("value[0][type]") %></td>
+         </tr>
+         <tr>
+            <td><%= label_tag(:path, raw("<b>Path:</b>")) %></td>
+            <td><%= text_field_tag("value[0][path]") %></td>
+         </tr>
+         <tr>
+            <td><%= label_tag(:url, raw("<b>URL:</b>")) %></td>
+            <td><%= text_field_tag("value[0][url]") %></td>
+         </tr>
+         <tr>
+            <td><%= label_tag(:jira_ids, raw("<b>Jira IDs:</b>")) %></td>
+            <td><%= text_field_tag("value[0][jira_ids]") %></td>
+         </tr>
+         <tr>
+            <td><%= label_tag(:details, raw("<b>Details:</b>")) %></td>
+            <td><%= text_area_tag("value[0][details]") %></td>
+         </tr>
+         <%= hidden_field_tag("value[0][status]", "Open") %>
+         <%= hidden_field_tag("value[0][source][]", "Manual") %>
+         <%= hidden_field_tag("value[0][identified]", "#{Time.now}") %>
+         <%= hidden_field_tag("value[0][id]", "#{SecureRandom.hex}") %>
+         <%= hidden_field_tag("success_target", "#panel_new_vuln_#{@result.id}") %>
+         <%= hidden_field_tag("success_message", "Vulnerability added.") %>
+
+         <tr>
+            <td><%= submit_tag("Add") %></td>
+            <td>
+               <div id="panel_new_vuln_<%=@result.id%>" class="alert-box success" style="display: none"></div>
+            </td>
+         </tr>
+         </div>
+      </table>
+    <% end %>
+  </div>
+<% end %>
+
+<%= render partial: "shared/ajax_metadata_accordion", locals: {result: @result, title: "Vulnerabilities (#{open_findings_count} Open Findings)", partial_name: "vulnerabilities", options: {accordion_id: accordion_id, include_refresh: true, extra_params:{filter:{status:["Open","Reopened"]},filter_on: {status:"vulnerabilities"}}}} %>
+
+

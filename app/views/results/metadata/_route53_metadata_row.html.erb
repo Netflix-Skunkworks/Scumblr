@@ -1,0 +1,37 @@
+<tr><td><b>
+Route53 Record Type
+</b></td>
+<td>
+<%= @result.metadata.try(:[],"route53_metadata").try(:[],"record_type") %>
+</td>
+</tr>
+<tr><td><b>
+Route53 Zone ID
+</b></td>
+<td>
+<%= @result.metadata.try(:[],"route53_metadata").try(:[],"zone_id") %>
+</td>
+</tr>
+<tr><td><b>
+Route53 Zone Name
+</b></td>
+<td>
+<%= @result.metadata.try(:[],"route53_metadata").try(:[],"zone_name") %>
+</td>
+</tr>
+<tr><td><b>
+Route53 Private Zone?
+</b></td>
+<td>
+<%= @result.metadata.try(:[],"route53_metadata").try(:[],"zone_private") %>
+</td>
+</tr>
+<tr><td><b>
+Route53 Value(s)
+</b></td>
+<td>
+<%= Array(@result.metadata.try(:[],"route53_metadata").try(:[],"values")).join(", ") %>
+</td>
+</tr>
+
+

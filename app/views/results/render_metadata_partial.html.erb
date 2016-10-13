@@ -1,0 +1,10 @@
+<%= @result.id %>
+<% begin %>
+  <%= render partial: "results/metadata/#{@partial.to_s}_details_show", locals: {result: @result}  %>
+  
+<% rescue ActionView::MissingTemplate => exception %>
+  Partial missing.
+<% #rescue => exception %>
+  <% #Event.create(action: "Error", source: "results/metadata/#{key}_details" , eventable_type: "Result", eventable_id: @result.id, details: "Error while rendering details partial for key: #{key}" + "\n" + "#{exception.message}: #{exception.backtrace}}") %>
+<% end %>
+

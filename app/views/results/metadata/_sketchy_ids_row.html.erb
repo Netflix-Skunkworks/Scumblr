@@ -1,0 +1,14 @@
+<tr>
+  <td><b>Sketchy Ids</b></td>
+  <td>
+    <% if(Rails.configuration.try(:sketchy_url)) %>
+      <%= @result.metadata["sketchy_ids"].map { |id| 
+         link_to id.to_s, Rails.configuration.sketchy_url + "/" + id.to_s.html_safe
+         }.join(", ").html_safe  %>
+
+    <% else %>
+      <%= "#{@result.metadata["sketchy_ids"].join(", ")}" %>
+    <% end %>
+        
+  </td>
+</tr>

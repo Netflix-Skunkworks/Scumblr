@@ -1,0 +1,55 @@
+<%= form_for(@task) do |f| %>
+  <% if @task.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@task.errors.count, "error") %>
+        prohibited this task from being saved:</h2>
+      <ul>
+        <% @task.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="field">
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :group %>
+    <% groups = Task.select(&:group).map(&:group).uniq.sort.each_with_index.map{|g,i| [g,"Group #{i+1}"]}
+      groups << [groups.try(:last).try(:first).to_i+1, "New Group"]
+     %>
+    <%= f.collection_select :group, groups, :first, :last, {},  class: "select2" %>
+  </div>
+  <div class="field">
+    <%= f.check_box :enabled %> <%= f.label :enabled %> 
+  </div>
+
+  <div class="field">
+    <%= f.label :task_type %>
+    
+    <%= f.grouped_collection_select :task_type, @task_types, :last, :first, :first, :last, {prompt: "Choose a task type"}, {id: :task_type_field, "data-source"=> @task.new_record? ? options_tasks_path : options_task_path(@task) , class: "select2"} %>
+  </div>
+  <div id="task_description">
+    <% if @task_type_configuration.present? || @task_type_description.present?%>
+      <%= render :partial=>"task_types/task_configuration", :locals => {:task_options=>@task.try(:options), task_type_options: @task_type_options, task_type_description: @task_type_description, task_type_configuration: @task_type_configuration } %>
+    <% end %>
+  </div>
+  <div class="search_type_field field <%= "hidden" if !@task.task_type.to_s.match(/\ASearchProvider::/) %>">
+    <%= f.label :query %>
+    <%= f.text_field :query %>
+  </div>
+  <div id="task_type_options">
+    <%= render partial: 'task_types/options_fields', locals: {task_options: @task.options, task_type_options: @task.task_type_options} %>
+  </div>
+  <div id="tags" class="search_type_field <%= "hidden" if !@task.task_type.to_s.match(/\ASearchProvider::/) %>">
+    <%= f.label :tags %>
+    <%= f.hidden_field "tag_list", {value: @task.tag_list, class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
+  </div>
+  <div class="field">
+    <%= f.label :description %>
+    <%= f.text_area :description %>
+  </div>
+  <%= f.submit class: "button" %>
+  <%= link_to 'Back', tasks_path, class: "button secondary" %>
+<% end %>

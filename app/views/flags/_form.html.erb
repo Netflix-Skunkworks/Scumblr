@@ -1,0 +1,32 @@
+<%= form_for(@flag) do |f| %>
+  <% if @flag.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@flag.errors.count, "error") %>
+        prohibited this flag from being saved:</h2>
+      <ul>
+        <% @flag.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :workflow_id %><br>
+    <%= f.collection_select :workflow_id, Workflowable::Workflow.all, :id, :name %>
+  </div>
+  <div class="field">
+    <%= f.label :description %><br>
+    <%= f.text_area :description %>
+  </div>
+  <div id="subscribers">
+    <%= f.label :subscribers %><br />
+    <%= f.hidden_field "subscriber_list", {value: @flag.subscriber_list, class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"email" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"users", "data-attribute"=>"email" , "data-path"=>users_path} %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

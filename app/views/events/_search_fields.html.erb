@@ -1,0 +1,38 @@
+
+<%= label_tag do %>Action
+  <%= f.collection_select :action_in, Event.select(:action).distinct.map(&:action), :to_s, :to_s , {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Field
+  <%= f.collection_select :event_changes_field_in, EventChange.select(:field).distinct.map(&:field), :to_s, :to_s , {}, {class: "select2",:multiple=>true} %>
+<% end %>
+<%= label_tag do %>Old Value
+  <%= f.text_field :event_changes_old_value_cont %>
+<% end %>
+<%= label_tag do %>New Value
+  <%= f.text_field :event_changes_new_value_cont %>
+<% end %>
+
+<%= label_tag do %>Associated Type
+  <%= f.collection_select :eventable_type_eq, [""]+Event.all.select(:eventable_type).uniq.map{|type| type.eventable_type}.compact, :to_s, :to_s, {}, {include_blank: true, class: ""} %>
+<% end %>
+
+<%= label_tag do %>Associated Id
+  <%= f.text_field :eventable_id_eq %>
+<% end %>
+
+<%= label_tag do %>Occurred Before <% if @parsed_before_date.present? %>(Currently: <%= @parsed_before_date %>)<% end %> <span data-tooltip aria-haspopup="true" class="has-tip tip-left" title="Examples:<br/>yesterday<br/>2 days ago<br/>thursday at midnight<br/>March 1st 10:05pm<br/>10/15/2010<br/><br/>https://github.com/mojombo/chronic for more info."><i class="fi-info"></i></span>
+  <%= text_field_tag "q[chronic_date_lteq]", params.try(:[],:q).try(:[],:chronic_date_lteq) %>
+<% end %>
+<%= label_tag do %>Occurred After <% if @parsed_after_date.present? %>(Currently: <%= @parsed_after_date %>)<% end %> <span data-tooltip aria-haspopup="true" class="has-tip tip-left" title="Examples:<br/>yesterday<br/>2 days ago<br/>thursday at midnight<br/>March 1st 10:05pm<br/>10/15/2010<br/><br/>https://github.com/mojombo/chronic for more info."><i class="fi-info"></i></span>
+  <%= text_field_tag "q[chronic_date_gteq]", params.try(:[],:q).try(:[],:chronic_date_gteq) %>
+<% end %>
+
+
+<%= label_tag do %>Result Filter
+  <%= f.collection_select :eventable_id_in_saved_result_filter, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true %>
+<% end %>
+
+
+
+
+<hr/>

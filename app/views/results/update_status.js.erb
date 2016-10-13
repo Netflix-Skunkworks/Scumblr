@@ -1,0 +1,7 @@
+<% if @notice.present? %>
+  $('#flash_messages').html("<%= escape_javascript(render :partial=>"shared/notification", :locals => {:message=>@notice}) %>");
+<% end %>
+$('div#status-bar').html("<%= escape_javascript(render :partial=>"status_bar", :locals => {:result=>@result}) %>");  
+
+
+ready();

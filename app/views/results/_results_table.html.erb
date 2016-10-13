@@ -1,0 +1,70 @@
+<div class="overflow_scroll">
+  <table id="selection_table">
+    <thead>
+      <tr>
+        <th><%= link_to "&#9658;".html_safe, expandall_results_path(result_ids: @results.map(&:id).join(',')), :id => "expandall_arrow", :remote=>true %></th>
+        <th><%= check_box_tag "select_all", 'yes', false, {:id=>"check_all_results"} %></th>
+
+        <% exceptions = {} %>
+        <% @index_columns.each do |c| %>
+          <% if(c.blank? || !c.match(/\A[A-Za-z0-9_:]+\z/)) %>
+            <% next %>
+          <% end %>
+          <th>
+            <% begin %>
+              <%= render partial: "results/index_columns/#{c.to_s.gsub(":","_")}_header" %>
+              <% rescue ActionView::MissingTemplate => exception %>
+              <%= sort_link @q, c.to_sym, c.to_s.split(":").last.titleize %>
+              <% rescue => exception %>
+              <% Event.create(action: "Error", source: "results/index_columns/#{c}_header" , eventable_type: "Result", eventable_id: nil, details: "Error while rendering index partial for column header: #{c}" + "\n" + "#{exception.message}: #{exception.backtrace}}") if exceptions[c.to_s].blank? %>
+              <% exceptions[c.to_s] = true %>
+            <% end %>
+          </th>
+        <% end %>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @results.each do |result| %>
+        <tr>
+          <td><%= link_to "&#9658;".html_safe, summary_result_path(result), :id => "summary_icon_#{result.id}", :remote=>true %></td>
+          <td><%= check_box_tag "result_ids[]", result.id, false, {:class=>"result_checkbox"} %></td>
+          <% exceptions = {} %>
+          <% @index_columns.each do |c| %>
+            <% if(c.blank? || !c.match(/\A[A-Za-z0-9_:]+\z/)) %>
+              <% next %>
+            <% end %>
+            <% column_class = "" %>
+            <% begin -%>
+              <% column_class = render partial: "results/index_columns/#{c.to_s.gsub(":","_")}_column_class", locals:{result:result}  -%>
+              <% rescue ActionView::MissingTemplate => exception -%>
+              <% rescue => exception -%>
+              <% Event.create(action: "Error", source: "results/index_columns/#{c}_column_class" , eventable_type: "Result", eventable_id: nil, details: "Error while rendering index partial for column class: #{c}" + "\n" + "#{exception.message}: #{exception.backtrace}}") if exceptions[c.to_s].blank? -%>
+              <% exceptions[c.to_s] = true -%>
+            <% end -%>
+            <td class="<%= "#{column_class}" %>">
+              <% begin %>
+                <%= render partial: "results/index_columns/#{c.to_s.gsub(":","_")}_data", locals:{result:result}  %>
+                <% rescue ActionView::MissingTemplate => exception %>
+                <% if(c.match /metadata:/i) %>
+                  <%= result.try(c.gsub(":","_")).to_s.gsub(/\A"|"\Z/, '') %>
+                <% else %>
+                  <%= result.try(c).to_s %>
+                <% end %>
+                <% rescue => exception %>
+                <% Event.create(action: "Error", source: "results/index_columns/#{c}_data" , eventable_type: "Result", eventable_id: nil, details: "Error while rendering index partial for column data: #{c}" + "\n" + "#{exception.message}: #{exception.backtrace}}") if exceptions[c.to_s].blank? %>
+                <% exceptions[c.to_s] = true %>
+              <% end %>
+            </td>
+          <% end %>
+          <td><%= link_to 'Show', result, class: "button tiny" %></td>
+        </tr>
+        <tr>
+          <td colspan="100" style="padding: 0; margin: 0; border: 0;">
+            <div id="summary_<%= result.id %>" style="display:none;"> </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

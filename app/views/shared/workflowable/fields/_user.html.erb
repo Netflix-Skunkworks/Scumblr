@@ -1,0 +1,11 @@
+<dl class="dl-horizontal dl-form">
+  <dt class=>
+    <%= label_tag do %>
+      <%= label.to_s.titleize %>
+      <%= "*" if value_hash[:required] == true  %>
+    <% end %>
+  </dt>
+  <dd>
+    <%= f.hidden_field "#{key}][value", {:id=>"", :class=> "remote_select2", :data=>{"initial"=>value, :autosubmit=>false, "id-attribute"=>"self", :attribute=>"display_name", :object=>"results", :path =>workflow_autocomplete_results_path(stage_id: @next_stage.id, workflow_id: workflow_id, :action_id=>action_id,field_type:"user") }, value: "placeholder_value"} %>
+  </dd>
+</dl>

@@ -1,0 +1,2 @@
+SearchStatusPoller.addStatuses("<%= j render partial:'statuses', locals:{statuses: @statuses} %>");
+$('#task_count').html("<%= escape_javascript("<label class='label radius'>#{@statuses.count}</label>".html_safe) %>");

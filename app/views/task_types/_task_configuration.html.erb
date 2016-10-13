@@ -1,0 +1,31 @@
+<div class="panel">
+<% if task_type_description.present? %>
+  <p><b>Description</b><br/>
+  <%= task_type_description %><br/></p>
+<% end %>
+
+<% if task_type_configuration.present? && task_type_configuration.class == Hash %>
+  <b>Configuration options</b><br/>
+  <% task_type_configuration.each do |k, v| %>
+
+    <% if Rails.configuration.try(k).present? %>
+      <span class="fi-check" style="color:green"></span> 
+      <% tooltip = (v[:required] == true ? "Required" : "Optional") + " configuration value has been set.<br/><br/>This value can be seen/modified in your initializer (default location:  config/initializers/scumblr.rb) as:<br/><br/>  config.#{h k} = &lt;value&gt;" %>
+    <% elsif v[:required] == true %>
+      <span class="fi-x" style="color:red"></span>
+      <% tooltip = "Required configuration value is not set.<br/><br/>This task requires this value to be set in your initializer (default location:  config/initializers/scumblr.rb). Example:<br/><br/>  config.#{h k} = &lt;value&gt;" %>
+    <% else %> 
+      <span class="fi-alert" style="color:orange"></span>
+      <% tooltip = "Optional configuration value is not set.<br/><br/>Setting this value may help this task function better. This value can be set in your initializer (default location: config/initializers/scumblr.rb). Example:<br/><br/>  config.#{h k} = &lt;value&gt;" %>
+    <% end %>
+    <% if v[:description] %>
+      <% tooltip += "<br/><br/>#{escape_javascript(h v[:description])}" %>
+    <% end %>
+    
+    <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= tooltip %><br/>"><%= v[:name] %></span><br/>
+    
+  <% end %>
+
+<% end %>
+
+</div>

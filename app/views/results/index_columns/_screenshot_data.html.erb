@@ -1,0 +1,13 @@
+<% image_results = result.result_attachments.select{|x| x.attachment_content_type.match /\Aimage\/.+/ } %>
+<% if image_results.length > 0 %>
+  <span href="#" class="fi-monitor open_lightbox has-tip" data-tooltip title="<%= "<img src=\"" + image_url(result.result_attachments.select{|x| x.attachment_content_type.match /\Aimage\/.+/ }.last.attachment.expiring_url(6000, :medium)).html_safe + "\">" %>"></span>
+  <ul class="clearing-thumbs clearing-feature hide" data-clearing>
+    <% image_results.each_with_index do |attr,i| %>
+      <li <%= " class=clearing-featured-img" if i==0 %>>
+        <%= link_to attr.attachment.expiring_url(6000) do %>
+          <%= image_tag attr.attachment.expiring_url(6000, :thumb) %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

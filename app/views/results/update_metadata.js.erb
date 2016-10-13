@@ -1,0 +1,30 @@
+<% if params[:success_target] %>
+  <% if params[:success_message] %>
+    $("<%= params[:success_target] %>").text("<%= params[:success_message] %>")
+  <% end %>
+  
+  $("<%= params[:success_target] %>").show();
+<% end %>
+<% if params[:target].present? %>
+
+  <% if params[:target].class == String %>
+    $("<%= params[:target] %>").text("<%= params[:value] %>")
+    $(document).foundation('dropdown', 'closeall');
+    ready();
+  <% else %>
+    <% params[:target].each do |k,v| %>
+      <% if params[:value].try(:[], k) %>
+        $("<%= v %>").text("<%= params[:value][k] %>")
+      <% end %>
+      
+    <% end %>
+    $(document).foundation('dropdown', 'closeall');
+
+    
+    ready();
+  <% end %>
+  
+  
+
+<% end %>
+

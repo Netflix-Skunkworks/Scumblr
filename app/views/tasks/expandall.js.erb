@@ -1,0 +1,24 @@
+//$("#loading").hide();
+//$("#loading").show(); //fadeIn('slow');
+//alert("start");
+if (window.localStorage.getItem('expanded_all_tasks') == "true")
+{
+  window.localStorage.setItem('expanded_all_tasks', "false");
+  $("a#expandall_arrow").html("&#9658;");
+  <% @tasks.each do |task| %>
+    $("a#summary_icon_<%= task.id%>").html("&#9658;");
+    $("#summary_<%= task.id%>").hide();
+  <% end %>
+}
+else
+{
+  window.localStorage.setItem('expanded_all_tasks', "true");
+  $("a#expandall_arrow").html("&#9660;");
+  <% @tasks.each do |task| %>
+    $("a#summary_icon_<%= task.id%>").html("&#9660;");
+    $("#summary_<%= task.id%>").html("<%= escape_javascript(render partial: 'summary_data', locals: { task: task } ) %>");
+    $("#summary_<%= task.id%>").show();
+  <% end %>
+}
+//alert("end");
+//$("#loading").hide();

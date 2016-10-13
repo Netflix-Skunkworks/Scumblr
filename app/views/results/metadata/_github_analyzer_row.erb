@@ -1,0 +1,8 @@
+<% @result.metadata.select{|k, hash| k.match /github_analyzer*/}.each do |k,v| %>
+
+<%="<tr><td><b>Langugage</b></td><td>#{@result.metadata[k]["language"]}</td></tr>".html_safe %>
+<%="<tr><td><b>Owner</b></td><td>#{@result.metadata[k]["owner"]}</td></tr>".html_safe %>
+<%="<tr><td><b>Account Type</b></td><td>#{@result.metadata[k]["account_type"]}</td></tr>".html_safe %>
+<%="<tr><td><b>Private Repo?</b></td><td>#{@result.metadata[k]["private"]}</td></tr>".html_safe %>
+<% break %>
+<% end %>

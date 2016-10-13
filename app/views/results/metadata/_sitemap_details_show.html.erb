@@ -1,0 +1,16 @@
+<% 
+
+@object =
+{
+  sitemap: {object: @result.metadata["sitemap"], 
+    :attributes=>["url", "source" , "identified", "last_seen", "url"], 
+    :method=>:sitemap, 
+    :sort_keys=>["url", "source" , "identified", "last_seen"], 
+    :formatters=>[nil,nil,"time_string_time_ago_in_words", "time_string_time_ago_in_words", "link_icon"],
+    :labels =>[nil,nil,nil,nil,"Link"]
+  }
+}
+
+%>
+
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @object[:sitemap]} %>

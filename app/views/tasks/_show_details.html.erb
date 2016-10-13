@@ -1,0 +1,50 @@
+<h3 class="section_header">Details</h3>
+<table>
+  <tbody>
+    <tr>
+      <td class="header">Name</td>
+      <td>
+        <%= @task.name %>
+      </td>
+    </tr>
+    <tr>
+      <td class="header">Task Type</td>
+      <td>
+        <%= @task.task_type_name %>
+      </td>
+    </tr>
+    <tr>
+      <td class="header">Enabled</td>
+      <td>
+        <%= @task.enabled %>
+      </td>
+    </tr>
+    <tr>
+      <td class="header">Group</td>
+      <td>
+        <%= @task.group %>
+      </td>
+    </tr>
+    <% if @task.metadata.present? %>
+      <% if @task.description.to_s.strip != "" %>
+        <tr>
+          <td><b>Description: </b></td>
+          <td><%= simple_format(h(@task.description), {}, {wrapper_tag: "div"})  %></td>
+        </tr>
+      <% end %>
+      <% @task[:options].each do |key, val| %>
+        <% if key.to_s == "saved_result_filter" and val.to_s != "" %>
+          <tr>
+            <td ><b><%= key.gsub(/_/, ' ').split.map(&:capitalize)*' ' %></b></td>
+            <td><%= simple_format(h(SavedFilter.where(id: val.to_i).first.name), {}, {wrapper_tag: "div"}) %></td>
+          </tr>
+        <% elsif val.to_s != "" %>
+          <tr>
+            <td ><b><%= key.gsub(/_/, ' ').split.map(&:capitalize)*' ' %></b></td>
+            <td><%= simple_format(h(val), {}, {wrapper_tag: "div"}) %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,177 @@
+<p id="notice"><%= notice %></p>
+<%= content_for :main_content_top do %>
+<% end %>
+
+<%= content_for :sidebar do %>
+  <div class="sidebar result-sidebar-no-margin">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Task Execution Summary</h1>
+      </section>
+    </nav>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Current</th>
+          <th>Previous</th>
+        </tr>
+      </thead>
+      <tbody style="background: white">
+        <tr>
+          <td class="header">Task Error Events</td>
+          <td>
+            <% if @task.metadata.try(:[], "current_events").try(:[], "Error").present? %>
+              <%= search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["current_events"]["Error"].first(200).each do |error_event| %>
+                  <%= hidden_field_tag 'q[id_in][]', error_event %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "current_events").try(:[], "Error").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @task.metadata.try(:[], "previous_events").try(:[], "Error").present? %>
+              <%= search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["previous_events"]["Error"].first(200).each do |error_event| %>
+                  <%= hidden_field_tag 'q[id_in][]', error_event %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "previous_events").try(:[], "Error").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td class="header">Task Warn Events</td>
+          <td>
+            <% if @task.metadata.try(:[], "current_events").try(:[], "Warn").present? %>
+              <%= search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["current_events"]["Warn"].first(200).each do |warn_event| %>
+                  <%= hidden_field_tag 'q[id_in][]', warn_event %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "current_events").try(:[], "Warn").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @task.metadata.try(:[], "previous_events").try(:[], "Warn").present? %>
+              <%= search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["previous_events"]["Warn"].first(200).each do |warn_event| %>
+                  <%= hidden_field_tag 'q[id_in][]', warn_event %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "previous_events").try(:[], "Warn").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td class="header">Results Created</td>
+          <td>
+            <% if @task.metadata.try(:[], "current_results").try(:[], "created").present? %>
+              <%= search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["current_results"]["created"].first(200).each do |created_result| %>
+                  <%= hidden_field_tag 'q[id_in][]', created_result %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "current_results").try(:[], "created").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @task.metadata.try(:[], "previous_results").try(:[], "created").present? %>
+              <%= search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["previous_results"]["created"].first(200).each do |created_result| %>
+                  <%= hidden_field_tag 'q[id_in][]', created_result %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "previous_results").try(:[], "created").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <td class="header">Results Updated</td>
+          <td>
+            <% if @task.metadata.try(:[], "current_results").try(:[], "updated").present? %>
+              <%= search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["current_results"]["updated"].first(200).each do |updated_result| %>
+                  <%= hidden_field_tag 'q[id_in][]', updated_result %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "current_results").try(:[], "updated").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+          <td>
+            <% if @task.metadata.try(:[], "previous_results").try(:[], "updated").present? %>
+              <%= search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+                <% @task.metadata["previous_results"]["updated"].first(200).each do |updated_result| %>
+                  <%= hidden_field_tag 'q[id_in][]', updated_result %>
+                <% end %>
+                <%= link_to @task.metadata.try(:[], "previous_results").try(:[], "updated").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+              <% end %>
+            <% else %>
+              0
+            <% end %>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sidebar">
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Task Execution Details</h1>
+      </section>
+    </nav>
+    <table>
+      <tbody>
+        <tr>
+          <td class="header">Last Status</td>
+          <% if @task.metadata.try(:[], "_last_status") == "Failed" %>
+            <td><%= link_to(raw("<span class=\"label alert\">Failed #{@task.metadata.try(:[], "_last_status_event")}</span>"), event_path(@task.metadata.try(:[], "_last_status_event"))).html_safe  if @task.metadata.try(:[], "_last_status_event") %>
+            </span></td>
+        <% elsif @task.metadata.try(:[], "_last_status") == "Success" %>
+          <td><%= link_to(raw("<span class=\"label success\">Success #{@task.metadata.try(:[], "_last_status_event")}</span>"), event_path(@task.metadata.try(:[], "_last_status_event"))).html_safe  if @task.metadata.try(:[], "_last_status_event") %>
+          </span></td>
+      <% else %>
+        <td><span class="label warning">Unknown</span></td>
+      <% end %>
+    </tr>
+    <tr>
+      <td class="header">Last Status Message</td>
+      <td><%= @task.metadata.try(:[], "_last_status_message")%></td>
+    </tr>
+    <tr>
+      <td class="header">Last Run</td>
+      <td><%= "<span data-tooltip aria-haspopup=\"true\" class=\"has-tip\" title=\"#{@task.metadata.try(:[], "_last_run")}\">".html_safe %>
+        <%= unless(@task.metadata.try(:[], "_last_run").nil?) then time_ago_in_words(@task.metadata["_last_run"]) + " ago" else "" end%></td>
+      </tr>
+      <tr>
+        <td class="header">Last Successful Run</td>
+        <td><%= "<span data-tooltip aria-haspopup=\"true\" class=\"has-tip\" title=\"#{@task.metadata.try(:[], "_last_successful_run")}\">".html_safe %>
+          <%= unless(@task.metadata.try(:[], "_last_successful_run").nil?) then time_ago_in_words(@task.metadata["_last_successful_run"]) + " ago" else "" end%></td>
+        </tr>
+      </tbody>
+    </table>
+    <%= link_to 'Edit', edit_task_path(@task), class: "button" if can? :edit, @task %>
+    <%= link_to 'Back', tasks_path, class: "button secondary" if can? :index, Task %>
+    <%= link_to 'Run Now', run_task_path(@task), class: "button alert" if can? :run, @task %>
+  </div>
+<% end %>
+<div id="task_details">
+  <%= render 'show_details' %>
+</div>
+<h3 class="section_header">Events</h3>
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:events]} %>

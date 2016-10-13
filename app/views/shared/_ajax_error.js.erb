@@ -1,0 +1,14 @@
+
+<% if @notice.present? %>
+  $('#flash_messages').html("<%= escape_javascript(render :partial=>"shared/notification", :locals => {:message=>@notice}) %>");
+<% end %>
+
+
+
+
+
+ready();
+
+
+hide_preloader();
+$("#preloader-modal").foundation('reveal','close');

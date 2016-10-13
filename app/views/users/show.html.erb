@@ -1,0 +1,16 @@
+<p>
+  <strong>Email:</strong>
+  <%= @user.email %>
+</p>
+<% if current_user.try(:admin) %>
+  <p>
+    <strong>Admin:</strong>
+    <%= @user.admin %>
+  </p>
+  <p>
+    <strong>Disabled:</strong>
+    <%= @user.disabled %>
+  </p>
+<% end %>
+<%= link_to 'Edit', edit_user_path(@user), class: "button" %>
+<%= link_to 'Back', users_path, class: "button secondary" %>

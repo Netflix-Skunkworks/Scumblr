@@ -1,0 +1,8 @@
+<% result_link = make_link(@result) %>
+<% unless result_link.to_s.empty? %>
+<tr><td><b>Response Data</b></td>
+<td>
+<a href="<%= result_link %>">View Response</a>
+</td>
+</tr>
+<% end %>

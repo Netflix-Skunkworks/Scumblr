@@ -1,0 +1,8 @@
+<% if @notice.present? %>
+  $('#flash_messages').html("<%= escape_javascript(render :partial=>"shared/notification", :locals => {:message=>@notice}) %>");
+<% end %>
+$("#subscibers").html("<%= escape_javascript(render :partial=>"subscription") %>");
+$("#subscribers-modal.open").html("<%= escape_javascript(render :partial=>"subscriber_list") %>");
+
+
+ready();
