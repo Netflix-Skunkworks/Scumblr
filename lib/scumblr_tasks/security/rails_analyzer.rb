@@ -59,7 +59,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
 
 
   def self.description
-    "Downloads Rails projects and runs Brakeman. Creates vulnerabiltiies for findings"
+    "Downloads Rails projects and runs Brakeman. Creates vulnerabilities for findings"
   end
 
   def self.config_options

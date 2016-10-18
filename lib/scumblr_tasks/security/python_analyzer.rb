@@ -56,7 +56,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
   end
 
   def self.description
-    "Downloads python projects and runs Bandit. Creates vulnerabiltiies for findings"
+    "Downloads python projects and runs Bandit. Creates vulnerabilities for findings"
   end
 
   def self.config_options

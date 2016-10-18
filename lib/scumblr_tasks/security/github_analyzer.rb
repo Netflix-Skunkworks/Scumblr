@@ -312,7 +312,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             vuln.code_fragment = snippit["fragment"]
             vuln.match_location = snippit["property"]
 
-            # Append the github vulns to the vulnerablities array
+            # Append the github vulns to the vulnerabilities array
             vulnerabilities << vuln
           rescue => e
             create_event("Unable to add metadata.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")

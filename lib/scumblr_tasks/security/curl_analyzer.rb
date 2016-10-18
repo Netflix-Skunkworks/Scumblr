@@ -345,7 +345,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             vulnerabilities.push(*header_matches)
           end
 
-          # Update all vulnerablities
+          # Update all vulnerabilities
           r.update_vulnerabilities(vulnerabilities)
 
           if r.changed?
