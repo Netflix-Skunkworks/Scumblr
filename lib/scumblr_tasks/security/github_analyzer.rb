@@ -282,7 +282,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       search_metadata[:github_analyzer][:account_type] = user_type
       search_metadata[:github_analyzer][:git_clone_url] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
 
-      # Define data for vulnerablity object
+      # Define data for vulnerability object
       search_metadata[:github_analyzer_vulnerabilities] ||= {}
 
       # Parse out text matches if there are any
