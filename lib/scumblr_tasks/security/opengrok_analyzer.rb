@@ -108,7 +108,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
       puts "A key suffix was provided: #{@key_suffix}."
     end
 
-    # Set the max results if specified, otehrwise default to 200 results
+    # Set the max results if specified, otherwise default to 200 results
     @options[:max_results] = @options[:max_results].to_i > 0 ? @options[:max_results].to_i : 200
 
     # Check to make sure either search terms, url  or file_path was provided for search
