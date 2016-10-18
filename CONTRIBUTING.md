@@ -2,7 +2,7 @@
 
 Documentation for Scumblr is available in the Scumblr [wiki]( https://github.com/Netflix/Scumblr/wiki )
 
-The Scumblr team is following a very simple branching model.  We use [master](https://github.com/Netflix/Scumblr/tree/master) as the production branch, and all other branches are used for featues or bugs.  We do not maintain a dev only branch, staging, etc.  
+The Scumblr team is following a very simple branching model.  We use [master](https://github.com/Netflix/Scumblr/tree/master) as the production branch, and all other branches are used for features or bugs.  We do not maintain a dev only branch, staging, etc.  
 
 Contributions will be accepted to the [master](https://github.com/Netflix/dynomite-manager/tree/dev) only.
 
