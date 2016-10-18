@@ -277,7 +277,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       #search_metadata[:github_analyzer] = true
       search_metadata[:github_analyzer] ||= {}
       search_metadata[:github_analyzer][:owner] = search["repository"]["owner"]["login"]
-      search_metadata[:github_analyzer][:langugage] = search["repository"]["langugage"]
+      search_metadata[:github_analyzer][:language] = search["repository"]["language"]
       search_metadata[:github_analyzer][:private] = search["repository"]["private"]
       search_metadata[:github_analyzer][:account_type] = user_type
       search_metadata[:github_analyzer][:git_clone_url] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
