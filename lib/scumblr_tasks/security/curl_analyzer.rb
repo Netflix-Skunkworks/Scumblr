@@ -115,7 +115,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       return
     end
 
-    # Parse out all paylods or paths to iterate through when running the curl
+    # Parse out all payloads or paths to iterate through when running the curl
     if @options[:payloads].present?
       @payloads = @options[:payloads].to_s.split(/\r?\n/).reject(&:empty?)
     else
