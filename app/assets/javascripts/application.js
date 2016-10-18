@@ -687,10 +687,10 @@ var ready = function(){
     e.stopImmediatePropagation();
     e.preventDefault();
     Foundation.libs.dropdown.toggle($(e.target))
-    //Next lines hangle a bug that causes Foundation to inject Acordion links into the dropdown
+    //Next lines hangle a bug that causes Foundation to inject Accordion links into the dropdown
     $("#"+$(e.target).data("dropdown")).find("a").each(function(index, entry)
     {
-      if(entry.href.indexOf("#accordian_") != -1)
+      if(entry.href.indexOf("#accordion_") != -1)
       {
         entry.remove();
       }
