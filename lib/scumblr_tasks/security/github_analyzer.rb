@@ -419,7 +419,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
           # Only return max results and truncate any extras
           if @results.length >= @options[:max_results]
-            create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+            create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             return []
           end
           rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
@@ -433,7 +433,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
           # Only return max results and truncate any extras (could be more efficient)
           if @results.length >= @options[:max_results]
-            create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+            create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             #return @results[0..@options[:max_results].to_i]
             return []
           end
@@ -477,7 +477,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
             # only return max results and truncate any extras (could be more efficient)
             if @results.length >= @options[:max_results]
-              create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+              create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
               return []
             end
             rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
