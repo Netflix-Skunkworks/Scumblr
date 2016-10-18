@@ -18,7 +18,7 @@ require 'posix/spawn'
 require 'git'
 
 class RepoDownloader
-  # @top_url: depotsearch URL to start downloading from, will recursivly download all files from here
+  # @top_url: depotsearch URL to start downloading from, will recursively download all files from here
   # @save_location: where to save the downloaded file
   attr_accessor :top_url, :save_location, :repo_url
   # this expects the two required parameters from above
