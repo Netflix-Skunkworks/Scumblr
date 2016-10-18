@@ -431,7 +431,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           # Parse out the first page of results
           parse_search(response, json_response, type)
 
-          # Only return max results and truncate any extras (could be more efficent)
+          # Only return max results and truncate any extras (could be more efficient)
           if @results.length >= @options[:max_results]
             create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             #return @results[0..@options[:max_results].to_i]
@@ -475,7 +475,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             # prase restuls for each page
             parse_search(response, json_response, type)
 
-            # only return max results and truncate any extras (could be more efficent)
+            # only return max results and truncate any extras (could be more efficient)
             if @results.length >= @options[:max_results]
               create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
               return []
