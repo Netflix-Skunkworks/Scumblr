@@ -40,8 +40,8 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                       required: false,
                       type: :string
                       },
-      :confidence_level => {name: "Confindance Level",
-                            description: "Confindance level to include in results",
+      :confidence_level => {name: "Confidence Level",
+                            description: "Confidence level to include in results",
                             required: false,
                             type: :choice,
                             default: :High,
