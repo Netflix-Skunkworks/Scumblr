@@ -33,7 +33,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
   def self.config_options
     {:github_oauth_token =>{ name: "Github OAuth Token",
-      description: "Setting this token provides the access needed to search Github organziations or repos",
+      description: "Setting this token provides the access needed to search Github organizations or repos",
       required: true
       }
     }
@@ -65,8 +65,8 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                       description: "Provide URL for JSON array of search terms",
                       required: false,
                       type: :string},
-      :user => {name: "Scope To User Or Organizaton",
-                description: "Limit search to an Organizaton, User, or Repo Name.",
+      :user => {name: "Scope To User Or Organization",
+                description: "Limit search to an Organization, User, or Repo Name.",
                 required: false,
                 type: :string},
       :repo => {name: "Scope To Repository",

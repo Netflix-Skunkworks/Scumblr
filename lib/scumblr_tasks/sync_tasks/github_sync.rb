@@ -31,7 +31,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   def self.config_options
     {:github_oauth_token =>{ name: "Github Oauth Token",
-      description: "Setting this token can provide access to private Github organziation(s) or repo(s)",
+      description: "Setting this token can provide access to private Github organization(s) or repo(s)",
       required: false
       }
     }
