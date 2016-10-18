@@ -58,7 +58,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                        default: "200",
                        type: :string},
       :search_terms => {name: "Search Strings",
-                        description: "Provide newline delimieted search strings",
+                        description: "Provide newline delimited search strings",
                         required: false,
                         type: :text},
       :json_terms => {name: "JSON Array Strings URL",

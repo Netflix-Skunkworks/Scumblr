@@ -58,7 +58,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                                type: :saved_event_filter
                                },
       :payloads => {name: "Payload Strings",
-                    description: "Provide newline delimieted payloads (exp. paths)",
+                    description: "Provide newline delimited payloads (exp. paths)",
                     required: false,
                     type: :text},
       :force_port => {name: "Force Port to",
