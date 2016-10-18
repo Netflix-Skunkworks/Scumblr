@@ -77,7 +77,7 @@ class RepoDownloader
     return save_path
   end
 
-  # after this has been properly intialized, you can just call this function and it will download
+  # after this has been properly initialized, you can just call this function and it will download
   # everything recursively
   def download()
     clone_res = nil
