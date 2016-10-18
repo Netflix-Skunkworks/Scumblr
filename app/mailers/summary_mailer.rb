@@ -24,7 +24,7 @@ class SummaryMailer < ActionMailer::Base
     @results = results
     @filter = filter
     subject = "Scumblr: Daily update for: #{@filter.name}"
-    mail(:to=> "scumblr@scubmlr.com", :bcc=> recipients, :subject=>subject)
+    mail(:to=> "scumblr@scumblr.com", :bcc=> recipients, :subject=>subject)
 
   end
 
