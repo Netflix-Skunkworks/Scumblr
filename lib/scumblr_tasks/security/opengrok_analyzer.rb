@@ -80,7 +80,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
                     default: :any,
                     choices: [:any, :java, :javascript, :python, :ruby, :scala, :c, :"c++", :"c#"]} #,            
       #:files_projects => {name: "Return individual filenames, group by project, or containing repo",
-      #                    description: "In the resutls, return paths to filenames or the repos that contains the file(s)",
+      #                    description: "In the results, return paths to filenames or the repos that contains the file(s)",
       #                    required: true,
       #                    type: :choice,
       #                    default: :repo,

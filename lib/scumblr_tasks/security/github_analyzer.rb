@@ -339,7 +339,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         res.metadata.merge!({"github_analyzer" => search_metadata[:github_analyzer]})
         res.save!
         @results << res
-        # Do not create new result simply append vulns to resut
+        # Do not create new result simply append vulns to results
       else
         github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"], domain: "github.com", metadata: {"github_analyzer" => search_metadata[:github_analyzer]})
         github_result.save!
@@ -472,7 +472,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
               next
             end
             json_response = JSON.parse(response)
-            # parse restuls for each page
+            # parse results for each page
             parse_search(response, json_response, type)
 
             # only return max results and truncate any extras (could be more efficient)
