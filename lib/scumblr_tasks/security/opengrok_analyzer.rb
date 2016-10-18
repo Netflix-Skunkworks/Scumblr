@@ -102,7 +102,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
     @paths = []
     @total_matches = 0
 
-    # Appen a key suffix to metadata results for easier filtering
+    # Append a key suffix to metadata results for easier filtering
     if(@options[:key_suffix].present?)
       @key_suffix = "_" + @options[:key_suffix].to_s.strip
       puts "A key suffix was provided: #{@key_suffix}."
