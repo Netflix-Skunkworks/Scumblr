@@ -386,13 +386,13 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           end
 
           if response.nil?
-            @retry_interavl = 0
+            @retry_interval = 0
             next
           end
 
           # Retry up to two times if we hit a retry_after exception or rate limit exception
           if @retry_interval > 2
-            @retry_interavl = 0
+            @retry_interval = 0
             next
           else
             @retry_interval += 1
