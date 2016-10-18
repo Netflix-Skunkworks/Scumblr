@@ -239,7 +239,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
           end
       
         rescue => e
-          create_event("Warning Exception occured.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
+          create_event("Warning Exception occurred.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
           puts e.message
           puts e.backtrace
           next
