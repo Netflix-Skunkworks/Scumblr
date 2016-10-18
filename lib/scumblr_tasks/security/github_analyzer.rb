@@ -472,7 +472,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
               next
             end
             json_response = JSON.parse(response)
-            # prase restuls for each page
+            # parse restuls for each page
             parse_search(response, json_response, type)
 
             # only return max results and truncate any extras (could be more efficient)
