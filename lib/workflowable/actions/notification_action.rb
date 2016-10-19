@@ -1,7 +1,7 @@
 class Workflowable::Actions::NotificationAction < Workflowable::Actions::Action
   include ERB::Util
 
-  NAME="Notifcation Action"
+  NAME="Notification Action"
   OPTIONS = {
     :recipients => {
       :required=>true,

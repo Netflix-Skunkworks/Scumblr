@@ -36,9 +36,9 @@ Scumblr also provides a number of novel features that streamline security automa
 * Tracking, ticketing, regression monitoring, and auto-remediation of security vulnerabilities
 * Metadata storage in results to allow for advanced result filtering
 * Customizable views and sorting of results and tasks to get you to the important details faster
-* Saveable result filters that can be shared with collegues 
+* Saveable result filters that can be shared with colleagues 
 * Event model for auditing changes to results so you can keep an eye on what is happening
-* Email subscriptions for specific results or tasks you care about (such as monitoring when a security task finds a new vulnerablity)
+* Email subscriptions for specific results or tasks you care about (such as monitoring when a security task finds a new vulnerability)
 * Advanced asynchronous task scheduling to allow for task chaining and task batching
 
 Scumblr uses the [Workflowable gem](https://github.com/Netflix/Workflowable) to allow setting up flexible workflows for different types of results.
@@ -64,7 +64,7 @@ These are just a few examples of things that you may want to keep an eye on!
 
 # Scumblr found stuff, now what?
 
-Scumblr provides a handy vulnerablity object you can use to monitor a particular result security issues.  You can also create Status fields to associate with results, allowing you to track the state of a result or it's remediation over time.  
+Scumblr provides a handy vulnerability object you can use to monitor a particular result security issues.  You can also create Status fields to associate with results, allowing you to track the state of a result or it's remediation over time.  
 
 You can create simple or complex workflows to be used along with your results. This can be as simple as marking results as "Reviewed" once they've been looked at, or much more complex involving multiple steps with automated actions occurring during the process.
 

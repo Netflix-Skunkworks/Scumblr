@@ -58,11 +58,11 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
                        default: "50",
                        type: :string},
       :search_terms => {name: "Search Strings",
-                        description: "Provide newline delimieted search strings",
+                        description: "Provide newline delimited search strings",
                         required: false,
                         type: :text},
       :file_paths => {name: "File Paths",
-                      description: "Provide newline delimieted file path strings",
+                      description: "Provide newline delimited file path strings",
                       required: false,
                       type: :text},
       :json_terms => {name: "JSON Array Strings URL",
@@ -80,7 +80,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
                     default: :any,
                     choices: [:any, :java, :javascript, :python, :ruby, :scala, :c, :"c++", :"c#"]} #,            
       #:files_projects => {name: "Return individual filenames, group by project, or containing repo",
-      #                    description: "In the resutls, return paths to filenames or the repos that contains the file(s)",
+      #                    description: "In the results, return paths to filenames or the repos that contains the file(s)",
       #                    required: true,
       #                    type: :choice,
       #                    default: :repo,
@@ -102,13 +102,13 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
     @paths = []
     @total_matches = 0
 
-    # Appen a key suffix to metadata results for easier filtering
+    # Append a key suffix to metadata results for easier filtering
     if(@options[:key_suffix].present?)
       @key_suffix = "_" + @options[:key_suffix].to_s.strip
       puts "A key suffix was provided: #{@key_suffix}."
     end
 
-    # Set the max results if specified, otehrwise default to 200 results
+    # Set the max results if specified, otherwise default to 200 results
     @options[:max_results] = @options[:max_results].to_i > 0 ? @options[:max_results].to_i : 200
 
     # Check to make sure either search terms, url  or file_path was provided for search
@@ -239,7 +239,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
           end
       
         rescue => e
-          create_event("Warning Exception occured.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
+          create_event("Warning Exception occurred.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
           puts e.message
           puts e.backtrace
           next

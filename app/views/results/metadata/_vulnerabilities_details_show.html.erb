@@ -14,7 +14,7 @@ end
 
 findings = result.metadata["vulnerabilities"].sort{|a,b| vulnerability_sort(a,b)}#.select{|v| v["status"].match(/open/i) }
 
-finding_indicies = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| vulnerability_with_index_sort(a,b)}.map(&:last)
+finding_indices = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| vulnerability_with_index_sort(a,b)}.map(&:last)
 
 
 
@@ -28,7 +28,7 @@ findings = Kaminari.paginate_array(findings).page(params[:page] || 1).per(params
 
 <% findings.each_with_index do |finding, i| %>
 
-  <%= render partial:"results/metadata/vulnerability", locals: {finding: finding, finding_indicies: finding_indicies, accordion_id: accordion_id, i: i} %>
+  <%= render partial:"results/metadata/vulnerability", locals: {finding: finding, finding_indices: finding_indices, accordion_id: accordion_id, i: i} %>
 
 <% end %>
 

@@ -628,7 +628,7 @@ var ready = function(){
 
     var result_id = $(this).data("result-id");
     // find tex field with this id, get jira tickets
-    var tickets = $("#vulnerablity_jira_field_" + result_id).val();
+    var tickets = $("#vulnerability_jira_field_" + result_id).val();
 
     function reverse(s) {
       var o = '';
@@ -687,10 +687,10 @@ var ready = function(){
     e.stopImmediatePropagation();
     e.preventDefault();
     Foundation.libs.dropdown.toggle($(e.target))
-    //Next lines hangle a bug that causes Foundation to inject Acordion links into the dropdown
+    //Next lines hangle a bug that causes Foundation to inject Accordion links into the dropdown
     $("#"+$(e.target).data("dropdown")).find("a").each(function(index, entry)
     {
-      if(entry.href.indexOf("#accordian_") != -1)
+      if(entry.href.indexOf("#accordion_") != -1)
       {
         entry.remove();
       }

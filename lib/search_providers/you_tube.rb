@@ -30,7 +30,7 @@ class SearchProvider::YouTube < SearchProvider::Provider
   end
 
   def self.description
-    "Search Youtube to create results"
+    "Search YouTube to create results"
   end
 
   def self.config_options

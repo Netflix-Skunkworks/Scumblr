@@ -1,7 +1,7 @@
 # Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
-  #allows devise to use mutal TLS for auth
+  #allows devise to use mutual TLS for auth
   config.warden do |manager|
     manager.strategies.add(:mtlsable, Devise::Strategies::MTLSable)
     manager.default_strategies(:scope => :user).unshift :mtlsable

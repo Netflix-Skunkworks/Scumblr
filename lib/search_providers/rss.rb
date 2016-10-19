@@ -35,7 +35,7 @@ class SearchProvider::RSS < SearchProvider::Provider
   end
 
   def self.description
-    "Search for matching entrying in an RSS feed."
+    "Search for matching entry in an RSS feed."
   end
 
   def run

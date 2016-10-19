@@ -58,7 +58,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                                type: :saved_event_filter
                                },
       :payloads => {name: "Payload Strings",
-                    description: "Provide newline delimieted payloads (exp. paths)",
+                    description: "Provide newline delimited payloads (exp. paths)",
                     required: false,
                     type: :text},
       :force_port => {name: "Force Port to",
@@ -70,7 +70,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                           required: false,
                           type: :string},
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out expirmental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regularz expressions",
                       required: false,
                       type: :string
                       },
@@ -115,7 +115,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       return
     end
 
-    # Parse out all paylods or paths to iterate through when running the curl
+    # Parse out all payloads or paths to iterate through when running the curl
     if @options[:payloads].present?
       @payloads = @options[:payloads].to_s.split(/\r?\n/).reject(&:empty?)
     else
@@ -345,7 +345,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             vulnerabilities.push(*header_matches)
           end
 
-          # Update all vulnerablities
+          # Update all vulnerabilities
           r.update_vulnerabilities(vulnerabilities)
 
           if r.changed?

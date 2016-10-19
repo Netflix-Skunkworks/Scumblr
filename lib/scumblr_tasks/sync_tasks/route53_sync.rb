@@ -25,7 +25,7 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
   end
 
   def self.description
-    "Add results for entries in Route53. Requires the instnace to have access to the Amazon API either through an IAM role or through credentials stored as required by the AWS SDK (http://docs.aws.amazon.com/sdkforruby/api/Aws/Route53/Client.html)"
+    "Add results for entries in Route53. Requires the instance to have access to the Amazon API either through an IAM role or through credentials stored as required by the AWS SDK (http://docs.aws.amazon.com/sdkforruby/api/Aws/Route53/Client.html)"
   end
 
   def self.config_options

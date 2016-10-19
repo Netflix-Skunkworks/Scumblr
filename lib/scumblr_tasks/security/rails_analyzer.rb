@@ -36,12 +36,12 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                               type: :saved_result_filter
                               },
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out expirmental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regularz expressions",
                       required: false,
                       type: :string
                       },
-      :confidence_level => {name: "Confindance Level",
-                            description: "Confindance level to include in results",
+      :confidence_level => {name: "Confidence Level",
+                            description: "Confidence level to include in results",
                             required: false,
                             type: :choice,
                             default: :High,
@@ -59,7 +59,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
 
 
   def self.description
-    "Downloads Rails projects and runs Brakeman. Creates vulnerabiltiies for findings"
+    "Downloads Rails projects and runs Brakeman. Creates vulnerabilities for findings"
   end
 
   def self.config_options

@@ -33,7 +33,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
   def self.config_options
     {:github_oauth_token =>{ name: "Github OAuth Token",
-      description: "Setting this token provides the access needed to search Github organziations or repos",
+      description: "Setting this token provides the access needed to search Github organizations or repos",
       required: true
       }
     }
@@ -58,15 +58,15 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                        default: "200",
                        type: :string},
       :search_terms => {name: "Search Strings",
-                        description: "Provide newline delimieted search strings",
+                        description: "Provide newline delimited search strings",
                         required: false,
                         type: :text},
       :json_terms => {name: "JSON Array Strings URL",
                       description: "Provide URL for JSON array of search terms",
                       required: false,
                       type: :string},
-      :user => {name: "Scope To User Or Organizaton",
-                description: "Limit search to an Organizaton, User, or Repo Name.",
+      :user => {name: "Scope To User Or Organization",
+                description: "Limit search to an Organization, User, or Repo Name.",
                 required: false,
                 type: :string},
       :repo => {name: "Scope To Repository",
@@ -126,7 +126,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     @clone_schema =  @options[:clone_schema].to_s
 
-    # Set the max results if specified, otehrwise default to 200 results
+    # Set the max results if specified, otherwise default to 200 results
     @options[:max_results] = @options[:max_results].to_i > 0 ? @options[:max_results].to_i : 200
 
     # Check to make sure either search terms or url was provided for search
@@ -277,12 +277,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       #search_metadata[:github_analyzer] = true
       search_metadata[:github_analyzer] ||= {}
       search_metadata[:github_analyzer][:owner] = search["repository"]["owner"]["login"]
-      search_metadata[:github_analyzer][:langugage] = search["repository"]["langugage"]
+      search_metadata[:github_analyzer][:language] = search["repository"]["language"]
       search_metadata[:github_analyzer][:private] = search["repository"]["private"]
       search_metadata[:github_analyzer][:account_type] = user_type
       search_metadata[:github_analyzer][:git_clone_url] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
 
-      # Define data for vulnerablity object
+      # Define data for vulnerability object
       search_metadata[:github_analyzer_vulnerabilities] ||= {}
 
       # Parse out text matches if there are any
@@ -312,7 +312,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             vuln.code_fragment = snippit["fragment"]
             vuln.match_location = snippit["property"]
 
-            # Append the github vulns to the vulnerablities array
+            # Append the github vulns to the vulnerabilities array
             vulnerabilities << vuln
           rescue => e
             create_event("Unable to add metadata.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
@@ -339,7 +339,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         res.metadata.merge!({"github_analyzer" => search_metadata[:github_analyzer]})
         res.save!
         @results << res
-        # Do not create new result simply append vulns to resut
+        # Do not create new result simply append vulns to results
       else
         github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"], domain: "github.com", metadata: {"github_analyzer" => search_metadata[:github_analyzer]})
         github_result.save!
@@ -386,13 +386,13 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           end
 
           if response.nil?
-            @retry_interavl = 0
+            @retry_interval = 0
             next
           end
 
           # Retry up to two times if we hit a retry_after exception or rate limit exception
           if @retry_interval > 2
-            @retry_interavl = 0
+            @retry_interval = 0
             next
           else
             @retry_interval += 1
@@ -419,7 +419,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
           # Only return max results and truncate any extras
           if @results.length >= @options[:max_results]
-            create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+            create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             return []
           end
           rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
@@ -431,9 +431,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           # Parse out the first page of results
           parse_search(response, json_response, type)
 
-          # Only return max results and truncate any extras (could be more efficent)
+          # Only return max results and truncate any extras (could be more efficient)
           if @results.length >= @options[:max_results]
-            create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+            create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             #return @results[0..@options[:max_results].to_i]
             return []
           end
@@ -472,12 +472,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
               next
             end
             json_response = JSON.parse(response)
-            # prase restuls for each page
+            # parse results for each page
             parse_search(response, json_response, type)
 
-            # only return max results and truncate any extras (could be more efficent)
+            # only return max results and truncate any extras (could be more efficient)
             if @results.length >= @options[:max_results]
-              create_event("Hit maximium results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
+              create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
               return []
             end
             rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
