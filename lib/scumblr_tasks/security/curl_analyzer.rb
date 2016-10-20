@@ -63,7 +63,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                           required: false,
                           type: :string},
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out expirmental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regular expressions",
                       required: false,
                       type: :string
                       },

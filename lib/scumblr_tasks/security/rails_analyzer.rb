@@ -36,7 +36,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                               type: :saved_result_filter
                               },
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out experimental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regular expressions",
                       required: false,
                       type: :string
                       },
