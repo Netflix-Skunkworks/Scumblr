@@ -355,10 +355,9 @@ background: linear-gradient(to left, #141E30 , #243B55); /* W3C, IE 10+/ Edge, F
 
 .top-bar-section ul.left li.name{
     display: inline-block;
-    color: #fff!important;
+    color: #fff;
     text-decoration: none;
-    background: transparent; /* fallback for old browsers */
-    
+    background: transparent; /* fallback for old browsers */  
 }
 
 .top-bar-section ul.left li.name::after {
@@ -374,11 +373,35 @@ background: linear-gradient(to left, #141E30 , #243B55); /* W3C, IE 10+/ Edge, F
     color: #ffffff!important;
 }
 
-.top-bar-section ul.left li.name.active::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 4px;
+@media screen and (max-width: 1250px) {
+
+  .top-bar-section ul.left li.name{
+      display: block!important;
+  }
+
+  .top-bar .title-area .name {
+    border-bottom: 1px solid #fff;
+  }
+
+nav.top-bar .top-bar-section li:not(.has-form) a:not(.button) {
+      line-height: 25px!important;
+  }
+
+  .top-bar-section .name {
+    height: auto;
+  }
+
+  .top-bar-section .divider {
+    border-top: solid 1px #fff!important;
+  }
+
+}
+
+.top-bar-section ul.left li.name{
+    display: inline-block;
+    color: #fff;
+    text-decoration: none;
+    background: transparent; /* fallback for old browsers */  
 }
 
 
@@ -446,11 +469,11 @@ table tr th, table tr td {
   z-index: 105 !important;
 }
 
-nav.top-bar {
-  margin-bottom: 0.9375rem;
-  background: #141E30; /* fallback for old browsers */
-  background: -webkit-linear-gradient(to left, #141E30 , #243B55); /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to left, #141E30 , #243B55); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+nav.top-bar, .top-bar.expanded .title-area {
+/*  margin-bottom: 0.9375rem;*/
+  background: #141E30!important; /* fallback for old browsers */
+  background: -webkit-linear-gradient(to left, #141E30 , #243B55)!important; /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to left, #141E30 , #243B55)!important; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 .top-bar-section li:not(.has-form) a:not(.button) {
@@ -458,6 +481,19 @@ nav.top-bar {
     background: transparent!important;
 }
 
+@media only screen and (min-width: 1250px) {
+
+.top-bar-section .has-dropdown.hover > .dropdown, .top-bar-section .has-dropdown.not-click:hover > .dropdown {
+    top: 55px;
+  }
+}
+
+@media only screen and (min-width: 64.063em){
+  .large-9 {
+      width: 75%;
+      padding-right: 0!important;
+  }
+}
 
 
 nav.warning-bar
@@ -478,6 +514,16 @@ nav.top-bar ul li.has-dropdown ul.dropdown li
   background-color: #243B55 !important;
 }
 
+.top-bar-section .dropdown li.title h5 a {
+    color: #008cba!important;
+    font-size: 14px;
+    padding-bottom: 0;
+    padding-top: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: block;
+}
+
 nav.top-bar ul li.has-dropdown ul.dropdown li label
 {
   background-color: #243B55 !important;
@@ -494,6 +540,10 @@ nav label
   font-size: 10px !important;
   margin-left:10px
 
+}
+
+.tab-bar, .large-9.columns a.button {
+    margin-top: 0.9375rem!important;
 }
 
 .tab-bar h1 span.small-heading
@@ -559,6 +609,7 @@ nav label
 {
   margin-right: 5px;
 }
+
 
 button.adjust_top
 {
@@ -638,6 +689,13 @@ button.adjust_top
 {
   right: 1em;
   top: .9em;
+}
+
+table {
+    background: white;
+    margin-bottom: 1.25rem;
+    margin-top: 0.9375rem!important;
+    border: solid 1px #dddddd;
 }
 
 table button,table .button
