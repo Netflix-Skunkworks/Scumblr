@@ -45,7 +45,7 @@ Scumblr uses the [Workflowable gem](https://github.com/Netflix/Workflowable) to 
 
 ## How do I use Scumblr?
 
-Scumblr is a web application based on Ruby on Rails. In order to get started, you'll need to setup / deploy a Scumblr environment and configure it to search and analyze the things you care about. Setup information is described in great detail on the [Wiki](https://github.com/Netflix/Scumblr2/wiki).
+Scumblr is a web application based on Ruby on Rails. In order to get started, you'll need to setup / deploy a Scumblr environment and configure it to search and analyze the things you care about. Setup information is described in great detail on the [Wiki](https://github.com/Netflix/Scumblr/wiki).
 
 You'll optionally want to setup and configure workflows so that you can track the status of identified results through your triage process.
 
