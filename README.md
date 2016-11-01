@@ -85,7 +85,7 @@ This is a minor release that addresses a few bugs and adds some new features
     > Option: Negative searching
     
     > Option: Strip path off of result (useful for sitemaps that may have trailing images, etc.)
-    
+
 * Abstract view for response metadata with filtering and pagination
 * A number of bug fixes in views
 * Fixed an issue with curl security task and thread safety
