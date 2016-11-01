@@ -81,7 +81,9 @@ This is a minor release that addresses a few bugs and adds some new features
 * releasing curl 2 security task added which includes a number of new features:
 
     > response Metadata: New option to allow you to arbitrarily define metadata to collect from http responses (think CSP policies, Server headers)
+    
     > Option: Negative searching
+    
     > Option: Strip path off of result (useful for sitemaps that may have trailing images, etc.)
     
 * Abstract view for response metadata with filtering and pagination
