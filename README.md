@@ -74,6 +74,19 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 
 ## Release History ##
 
+**Version 2.0.1** - "O'Reilly Security Edition" - *November 2nd, 2016*
+
+This is a minor release that addresses a few bugs and adds some new features
+
+* releasing curl 2 security task added which includes a number of new features:
+* * response Metadata: New option to allow you to arbitrarily define metadata to collect from http responses (think CSP policies, Server headers)
+* * Option: Negative searching
+* * Option: Strip path off of result (useful for sitemaps that may have trailing images, etc.)
+* Abstract view for response metadata with filtering and pagination
+* A number of bug fixes in views
+* Fixed an issue with curl security task and thread safety
+* Updated stylesheets for better views on small screens
+
 **Version 2.0** - "Dirty Laundry" - *October 12th, 2016*
 
 This is a major release that addresses a number of bugs and adds many new features
