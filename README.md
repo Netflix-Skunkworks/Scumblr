@@ -78,9 +78,9 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 
 This is a minor release that addresses a few bugs and adds some new features
 
-* releasing curl 2 security task added which includes a number of new features:
+* Releasing curl 2 security task added which includes a number of new features:
 
-    > response Metadata: New option to allow you to arbitrarily define metadata to collect from http responses (think CSP policies, Server headers)
+    > Response Metadata: New option to allow you to arbitrarily define metadata to collect from http responses (think CSP policies, Server headers)
     
     > Option: Negative searching
     
