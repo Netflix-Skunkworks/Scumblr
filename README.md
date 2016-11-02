@@ -45,7 +45,7 @@ Scumblr uses the [Workflowable gem](https://github.com/Netflix/Workflowable) to 
 
 ## How do I use Scumblr?
 
-Scumblr is a web application based on Ruby on Rails. In order to get started, you'll need to setup / deploy a Scumblr environment and configure it to search and analyze the things you care about. Setup information is described in great detail on the [Wiki](https://github.com/Netflix/Scumblr2/wiki).
+Scumblr is a web application based on Ruby on Rails. In order to get started, you'll need to setup / deploy a Scumblr environment and configure it to search and analyze the things you care about. Setup information is described in great detail on the [Wiki](https://github.com/Netflix/Scumblr/wiki).
 
 You'll optionally want to setup and configure workflows so that you can track the status of identified results through your triage process.
 
@@ -73,6 +73,23 @@ You can create simple or complex workflows to be used along with your results. T
 Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed instructions on setup, configuration, and use!
 
 ## Release History ##
+
+**Version 2.0.1** - "O'Reilly Security Edition" - *November 2nd, 2016*
+
+This is a minor release that addresses a few bugs and adds some new features
+
+* Releasing curl 2 security task added which includes a number of new features:
+
+    > Response Metadata: New option to allow you to arbitrarily define metadata to collect from http responses (think CSP policies, Server headers)
+    
+    > Option: Negative searching
+    
+    > Option: Strip path off of result (useful for sitemaps that may have trailing images, etc.)
+
+* Abstract view for response metadata with filtering and pagination
+* A number of bug fixes in views
+* Fixed an issue with curl security task and thread safety
+* Updated stylesheets for better views on small screens
 
 **Version 2.0** - "Dirty Laundry" - *October 12th, 2016*
 
