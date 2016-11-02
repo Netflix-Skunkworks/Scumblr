@@ -118,6 +118,7 @@ GEM
       timers (>= 4.1.1)
     celluloid-supervision (0.20.6)
       timers (>= 4.1.1)
+    chartkick (2.1.1)
     chronic (0.10.2)
     climate_control (0.0.3)
       activesupport (>= 3.0)
@@ -131,6 +132,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.7.1)
+    colorize (0.8.1)
     columnize (0.8.9)
     commonjs (0.2.7)
     connection_pool (2.0.0)
@@ -529,8 +531,10 @@ DEPENDENCIES
   bundler-audit
   byebug
   cancan
+  chartkick
   chronic
   coffee-rails (= 4.0.1)
+  colorize
   database_cleaner
   devise
   factory_girl_rails

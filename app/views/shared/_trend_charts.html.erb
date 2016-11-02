@@ -1,0 +1,12 @@
+<% trend_data.each do |k,v| %>
+<div class="chart">
+
+  <% if v.try(:[],"data").count > 1 %>
+    <%= column_chart v["data"], stacked: true, library: {title: {display:true, text: k.titleize}}.merge(v["library"] || {}) %>
+  <% else %>
+    <%=line_chart v["data"], library: {title: {display:true, text: k.titleize}}.merge(v["library"] || {}) %>
+    
+    
+  <% end %>
+</div>
+<% end %>

@@ -86,7 +86,7 @@
     </tr>
   </thead>
   <tbody>
-    <% instance_variable_get("@#{result_set[:method]}_paginated").each do |i| %>
+    <% (instance_variable_get("@#{result_set[:method]}_paginated") || []).each do |i| %>
       <tr>
         <% if result_set[:link] %>
         

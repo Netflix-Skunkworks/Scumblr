@@ -1,0 +1,16 @@
+<% 
+
+@object =
+{
+  sitemap: {object: @result.metadata["scan_metadata"], 
+    :attributes=>["parsed", "source", "new", "existing", "regression", "reopened", "closed", "started", "ended", "task_id"], 
+    :method=>:scan_metadata, 
+    :sort_keys=>["parsed", "source", "new", "existing", "regression", "reopened", "closed", "started", "ended", "task_id"],
+    :formatters=>["pretty_time",nil,nil,nil,nil,nil,nil,"pretty_time","pretty_time", "task_link_icon"],
+    
+  }
+}
+
+%>
+
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @object[:sitemap]} %>

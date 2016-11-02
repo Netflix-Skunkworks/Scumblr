@@ -1,0 +1,4 @@
+<tr>
+<td><b>Lastest Result Link</b></td>
+<td><%= link_to @task.metadata["latest_results_link"]["text"], results_path.to_s + "?#{@task.metadata["latest_results_link"]["search"]}" %></td>
+</tr>

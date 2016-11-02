@@ -1,0 +1,14 @@
+<% 
+
+@object =
+{
+  sitemap: {object: @result.metadata["curl_metadata"].map{|k,v| {"key"=>k, "value"=>v}}, 
+    :attributes=>["key", "value"], 
+    :method=>:curl_metadata, 
+    :sort_keys=>["key", "value"]
+  }
+}
+
+%>
+
+<%= render :partial=>"shared/abstract_table", :locals => {result_set: @object[:sitemap]} %>

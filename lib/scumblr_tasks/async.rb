@@ -74,20 +74,20 @@ class ScumblrTask::Async < ScumblrTask::Base
         #if it's less than 2 (this and one other) time to end this thread or we'll loop forever
         #this is for cases when all the workers died for some reason (error)
         if other_workers_running && threads_alive == 0
-          Rails.logger.info "breaking out of queue thread"
+          Rails.logger.debug "breaking out of queue thread"
           break
         end
         #we'll put 100 per worker in the queue
         while queue.size > @workers * 20
           sleep 0.5
-          Rails.logger.info "in queue thread sleep"
+          Rails.logger.debug "in queue thread sleep"
         end
-        Rails.logger.info "pushing onto queue: #{r.title.inspect}"
+        Rails.logger.debug "pushing onto queue: #{r.title.inspect}"
         #we have less than 1000, let's add one to the queue
         queue.push([i, r])
         i += 1
       end
-      Rails.logger.info "queue thread finished all results"
+      Rails.logger.debug "queue thread finished all results"
     end
     @parent_tracker ||= {}
     @parent_tracker["current_events"] ||= {}
@@ -101,7 +101,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     #lets get some stuff in the queue (or not if there are no results to add to the queue)
     while(threads[0].alive? && queue.empty?)
       sleep 0.01
-      Rails.logger.info "waiting for queue to have something in it, or if first thread died"
+      Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
     end
 
     @workers.times do |i|
@@ -139,7 +139,7 @@ class ScumblrTask::Async < ScumblrTask::Base
                     }
                   end_time = Time.now
                   #pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
-                  Rails.logger.info "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
+                  Rails.logger.debug "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
                   r_i = nil
                 rescue => e
                   create_error(e)
@@ -148,7 +148,7 @@ class ScumblrTask::Async < ScumblrTask::Base
                 #wait for a bit to let the other thread fill the queue
                 while(threads[0].alive? && queue.empty?)
                   sleep 0.01
-                  Rails.logger.info "in sleep waiting of queue to be filled"
+                  Rails.logger.debug "in sleep waiting of queue to be filled"
                 end
               end
             end
@@ -165,7 +165,7 @@ class ScumblrTask::Async < ScumblrTask::Base
           retry
 
         rescue ThreadError => e
-          Rails.logger.info e.inspect
+          Rails.logger.debug e.inspect
         rescue=>e
           create_error(e)
         ensure
@@ -185,6 +185,30 @@ class ScumblrTask::Async < ScumblrTask::Base
       Thread.current["current_events"] = @parent_tracker["current_events"]
     end
     return @final_results
+  end
+
+  private
+
+  # This will at take a key and a hash with values and puts these values into the trends hash
+  # if the key already exists in the trends hash it will sum the values together
+  # example: @trends = {updated: {results: 1, tasks:10}},  key= :updated, count= {results: 5, tasks: 2}
+  #   @trends will be updated to {updated: {results: 6, tasks: 12}}
+  def update_trends(key, count, chart_options={}, series_options=[], options={})
+
+    @semaphore.synchronize {
+      if !defined? @trends
+        @trends = {}
+        
+      end
+      
+      @trend_options ||= {}
+      @trend_options[key] ||= {}
+      @trend_options[key]["chart_options"] = chart_options
+      @trend_options[key]["series_options"] = series_options
+      @trend_options[key]["options"] = options
+      @trends[key] ||= Hash.new(0)
+      @trends[key] = [@trends[key], count].inject(Hash.new(0)) { |memo, subhash| subhash.each { |prod, value| memo[prod] += value.to_f } ; memo }
+    }
   end
 
 end

@@ -152,5 +152,49 @@ module ScumblrTask
     def create_error(event)
       create_event(event, "Error")
     end
+
+    # Adds an entry to the trends key in the task's metadata
+    # Expects a key (which will be created or added to) and a hash
+    # containing a list of key/values pairs t
+    def save_trends(time_value=Time.now)
+      if defined? @trends && @trends.count > 0 && @options[:_self].present? 
+        @trend_options ||= {}
+        @options[:_self].metadata ||={}
+        @options[:_self].metadata["trends"] ||={}
+        @trends.each do |key, counts|
+          @options[:_self].metadata["trends"][key] ||= {"data"=>[]}
+          if @trend_options[key].try(:[],"chart_options").present?
+            @options[:_self].metadata["trends"][key]["library"] = @trend_options[key]["chart_options"]
+          end
+          
+          if(@trend_options[key].try(:[],"options").try(:[],"date_format").present?)
+            date_value = time_value.strftime(@trend_options[key].try(:[],"options").try(:[],"date_format"))
+          else
+            date_value = time_value.strftime("%b %d %Y %H:%M:%S")
+          end
+          
+          counts.each do |trend_name, trend_value|
+            series = @options[:_self].metadata["trends"][key]["data"].select{|el| el["name"] == trend_name }.first
+            
+            if(series.blank?)            
+              
+                  
+              
+              series = {"name"=> trend_name, "data" =>{ date_value => trend_value}}
+              if defined?(@trend_options) && @trend_options.try(:[],key).try(:[],"series_options").try(:[],trend_name)
+                series["library"] = @trend_options[key]["series_options"][trend_name] 
+              end
+              
+              @options[:_self].metadata["trends"][key]["data"] << series
+            else
+              series["data"][date_value] = trend_value
+            end
+          end
+          
+        end
+      end
+    end
+
+
   end
 end

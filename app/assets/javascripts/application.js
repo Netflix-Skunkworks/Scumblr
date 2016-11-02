@@ -20,6 +20,8 @@
 //= require foundation_datepicker
 //= require jquery.datetimepicker
 
+//= require Chart.bundle
+//= require chartkick
 //= require results
 //= require searches
 //= require select2
@@ -35,6 +37,7 @@
 
 
 
+Chart.defaults.global.title.fontSize=24
 
 // Better tool tips
 betterTooltips = function()

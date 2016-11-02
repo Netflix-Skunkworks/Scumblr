@@ -10,12 +10,14 @@ gem 'posix-spawn'
 #For Tasks/Search Providers
 gem 'google-api-client', '~>0.8.0'
 gem "github_api", require: false
+gem 'colorize', require: false
 gem 'twitter'
 gem 'market_bot'
 gem 'koala'
 gem "brakeman"
 gem "bundler-audit"
 gem 'rest-client'
+gem 'chartkick'
 
 gem 'redcarpet'
 

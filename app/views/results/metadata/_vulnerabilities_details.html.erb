@@ -2,8 +2,6 @@
 accordion_id = SecureRandom.hex 
 @result.metadata["vulnerabilities"] ||= []
 open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"].match(/open/i)}.length
-
-
 %>
 
 <% content_for :title_content do %>

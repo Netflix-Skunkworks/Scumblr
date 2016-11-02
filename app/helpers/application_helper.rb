@@ -58,4 +58,17 @@ module ApplicationHelper
     return "<a href='#{CGI::escapeHTML(url)}'target='_blank' class='fi-page-export'></a>".html_safe
   end
 
+  def task_link_icon(task_id)
+    return link_icon(task_path(task_id))
+  end
+
+  def pretty_time(value)
+    begin
+      return Time.parse(value).to_s
+    rescue
+      return ""
+    end  
+  end
+
+
 end

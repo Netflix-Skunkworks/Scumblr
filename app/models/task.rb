@@ -193,7 +193,7 @@ class Task < ActiveRecord::Base
     end
 
     if(results.blank?)
-      puts Thread.current["current_events"]
+      # puts Thread.current["current_events"]
       unless Thread.current["current_events"].nil?
         task.metadata.merge!({"current_events": Thread.current["current_events"]})
       end
@@ -208,12 +208,12 @@ class Task < ActiveRecord::Base
       Thread.current["previous_results"] = {}
       Thread.current["current_events"] = {}
       Thread.current["previous_events"] = {}
-      Rails.logger.warn "No results returned"
+      Rails.logger.debug "No results returned"
       return
     end
 
 
-    Rails.logger.warn "Results #{results}"
+    Rails.logger.debug "Results #{results}"
     new_status = Status.find_by_default(true).try(:id)
 
     counter = 0
