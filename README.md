@@ -87,6 +87,7 @@ This is a minor release that addresses a few bugs and adds some new features. **
     > Option: Strip path off of result (useful for sitemaps that may have trailing images, etc.)
 
 * Abstract view for response metadata with filtering and pagination
+* Result and task trends added with customized views
 * A number of bug fixes in views
 * Fixed an issue with curl security task and thread safety
 * Updated stylesheets for better views on small screens
