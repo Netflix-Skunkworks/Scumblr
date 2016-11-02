@@ -76,7 +76,7 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 
 **Version 2.0.1** - "O'Reilly Security Edition" - *November 2nd, 2016*
 
-This is a minor release that addresses a few bugs and adds some new features
+This is a minor release that addresses a few bugs and adds some new features. **Note: if upgrading from 2.0 make sure to run `bundle install` and restart your server.**
 
 * Releasing curl 2 security task added which includes a number of new features:
 
