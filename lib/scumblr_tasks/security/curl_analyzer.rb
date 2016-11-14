@@ -14,6 +14,7 @@
 #
 require 'shellwords'
 require 'posix/spawn'
+require 'byebug'
 
 class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   include ActionView::Helpers::TextHelper
@@ -49,6 +50,10 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                     description: "Provide newline delimieted payloads (exp. paths)",
                     required: false,
                     type: :text},
+      :saved_payloads => {name: "System Metadata Payload Strings",
+                          description: "Use system metadata payloads to seed your curl analyzer.  Expectes metadata to be in JSON array format.  ",
+                          required: false,
+                          type: :system_metadata},
       :force_port => {name: "Force Port to",
                       description: "Specify port for all requests.  This will replace whatever the result was using",
                       require: false,
@@ -73,6 +78,10 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                             required: false,
                             type: :text
                             },
+      :saved_request_metadata => {name: "System Metadata Request Metadata",
+                                  description: "Use system metadata payloads to seed your curl analyzer.  Expects metadata to be in JSON array format. \nProvide LABEL:REGEX (delimited by :) to store arbitrary metadata based on a regular expression match. exp:\n[\"Server\":Server(.*)\",\"Host:Host(.*)\"]",
+                                  required: false,
+                                  type: :system_metadata},
       :status_code => {name: "HTTP Status Code",
                        description: "Provide HTTP status code to flag result",
                        required: false,
@@ -125,6 +134,42 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     else
       @request_metadata = nil
     end
+
+    # Parse and validate regular expressions for system metadata that's request metadata
+    if @options[:saved_request_metadata].present?
+      begin
+        saved_request_metadata = SystemMetadata.where(id: @options[:saved_request_metadata]).try(:first).metadata
+      rescue
+        saved_request_metadata = nil
+        create_event("Could not parse System Metadata for saved reqeust metadatums, skipping. \n Exception: #{e.message}\n#{e.backtrace}", "Error")
+      end
+
+      unless saved_request_metadata.kind_of?(Array)
+        saved_request_metadata = nil
+        create_event("System Metadata request metadata should be in array format, exp:\n[\"Server\":Server(.*)\",\"Host:Host(.*)\"]", "Error")
+      end
+
+      unless saved_request_metadata.blank?
+        saved_request_metadata.each do | check_expressions |
+          unless !!(check_expressions =~ /\w.+\:.*/)
+            create_event("Request Metadata doesn't match LABEL:REGEX format: #{check_expressions}")
+            raise "Request Metadata doesn't match LABEL:REGEX format: #{check_expressions}"
+            return
+          end
+        end
+        saved_request_metadata.map! { |x| [x.split(':', 2)[0], x.split(':', 2)[1]] }
+        saved_request_metadata = saved_request_metadata.to_h
+        if @request_metadata.present?
+          @request_metadata.concat(saved_request_metadata)
+          @request_metadata = @request_metadata.reject(&:blank?)
+        else
+          @request_metadata = saved_request_metadata
+          #@request_metadata = @request_metadata.reject(&:blank?)
+        end
+      end
+    end
+
+
 
     unless(@options[:curl_command].include? "$$result$$" or @options[:curl_command].include? "$$sitemap$$")
       create_event("Command entered doesn't specify a $$result$$ or $$sitemap$$ placeholder")
@@ -189,6 +234,26 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       @strip_last_path = false
     end
 
+    if(@options[:saved_payloads].present?)
+      begin
+        saved_payloads = SystemMetadata.where(id: @options[:saved_payloads]).try(:first).metadata
+      rescue
+        saved_payloads = nil
+        create_event("Could not parse System Metadata for saved payloads, skipping. \n Exception: #{e.message}\n#{e.backtrace}", "Error")
+      end
+
+      unless saved_payloads.kind_of?(Array)
+        saved_payloads = nil
+        create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
+      end
+
+      # If there are staved payloads, load them.
+      if saved_payloads.present?
+        @payloads.concat(saved_payloads)
+        @payloads = @payloads.reject(&:blank?)
+      end
+
+    end
   end
 
 
@@ -407,12 +472,12 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         urls << r.url.to_s
       end
     end
-    
+
     urls.each do |url|
       # puts "[*] Testing url #{url}"
       @payloads.each do |payload|
         request_url = URI.parse(url)
-        
+
         if @options[:force_port].present?
           request_url.port = @options[:force_port].to_i
         end
@@ -421,7 +486,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
           request_url.scheme = @options[:force_protocol].to_s
         end
 
-        
+
         cmd = @options[:curl_command].gsub(/\$\$result\$\$/, "#{request_url.to_s.shellescape}").gsub(/\$\$sitemap\$\$/, "#{request_url.to_s.shellescape}").gsub(/\$\$payload\$\$/, "#{payload.shellescape}").gsub(/\\\r\n/,"")
         cmd = cmd + ' --connect-timeout 8 --max-time 12'
         data = ""
@@ -460,9 +525,9 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
           exit_status = -1
         end
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
-        
+
         # puts "[*] #{data.inspect}"
-        
+
 
         match_update = false
         # vulnerabilities = []
@@ -482,6 +547,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             response = data.split("\n")
             # Make union of regex's
             #metadata_checks = Regexp.union(@request_metadata.map {|key,val| Regexp.new val.strip})
+
             metadata_checks = @request_metadata.map {|key,val| Regexp.new val.strip}
 
             request_metadata_parser(r, response, request_url, @request_metadata, metadata_checks)
@@ -526,7 +592,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             end
             # If status_code matches, create a vulnerability
           elsif @response_string.nil? and @status_code.present? and @status_code.to_i == status_code.to_i
-            
+
 
             match_update = true
             vuln = Vulnerability.new
@@ -589,11 +655,11 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                 vulnerabilities.push(*header_matches)
               end
             end
-            
+
           end
 
         end
-      
+
       end
     end
     # Track not-vulnerable results too.
@@ -603,13 +669,13 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
     counts["closed"] *= -1
     update_trends("scan_results", counts, {}, {
-      "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
-      "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
-      "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
-      "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
-      "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
-      }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"} )
-      
+                    "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
+                    "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
+                    "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
+                    "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
+                    "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
+    }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"} )
+
     if r.changed?
       upload_s3(r, data)
     end
@@ -618,9 +684,9 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   def perform_work(r)
     # Ensure metadata is defined before iterating results
     curl_runner(r)
-    
 
-    
+
+
   end
 
   def run

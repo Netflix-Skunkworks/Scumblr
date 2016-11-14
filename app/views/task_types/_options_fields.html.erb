@@ -14,6 +14,9 @@
       <%= builder.select key, value[:choices],{ selected: builder.object[key] || value[:default]} %>
     <% elsif value[:type] == :saved_result_filter %>
       <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true %>
+    <% elsif value[:type] == :system_metadata %>
+      <%= builder.collection_select key, SystemMetadata.all.uniq, :id, :key, include_blank: true %>
+
     <% elsif value[:type] == :saved_event_filter %>
       <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, include_blank: true %>
 <% elsif value[:type] == :text %>

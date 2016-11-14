@@ -11,11 +11,26 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+require 'byebug'
 class SystemMetadata < ActiveRecord::Base
   validates :key, uniqueness: true
   validates :key, presence: true
-  # validates_format_of :url, with: /\A#{URI::regexp}\z/
+  validates :metadata, :presence => { :message => "bad json " }
+  # set custom emtadata presence message and check if nil using prescence
+  #validates :metadata, presence: true
+  attr_accessor :metadata_raw
 
-  serialize :metadata, JSON
+  def metadata_raw
+  	byebug
+    self.metadata.to_s
+  end
+
+  def metadata_raw=(value)
+    begin
+      self.metadata = JSON(value)
+    rescue
+      self.metadata = ""
+    end
+  end
+  # validates :start, :end, :values, :presence => true
 end

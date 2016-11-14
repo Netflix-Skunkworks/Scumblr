@@ -9,7 +9,7 @@
     <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
-    
+
   </head>
   <body>
     <!-- Header and Nav -->
@@ -28,6 +28,7 @@
             <li class="name <%= @menu_item == "dashboard" ? "active" : "" %>"><%= link_to "Dashboard", dashboard_results_path %></li>
             <li class="name <%= @menu_item == "results" ? "active" : "" %>"><%= link_to "Results", root_path  %></li>
             <li class="name <%= @menu_item == "tasks" ? "active" : "" %>"><%= link_to "Tasks", tasks_path  %></li>
+            <li class="name <%= @menu_item == "system_metadata" ? "active" : "" %>"><%= link_to "System Metadata", system_metadata_path  %></li>
             <li class="name <%= @menu_item == "events" ? "active" : "" %>"><%= link_to "Events", events_path  %></li>
             <li class='has-dropdown not-click'><%= link_to "Result Filters", "#"  %>
               <ul class="dropdown">
@@ -95,7 +96,7 @@
                 </ul>
               </li>
               <li class="divider"></li>
-              
+
               <% if current_user.thumbnail.present? %>
                 <li class="thumbnail"><%= image_tag current_user.thumbnail %></li>
               <% end %>
@@ -105,15 +106,15 @@
                   <li><%= link_to('Logout', destroy_user_session_path, :method => :delete) %></li>
                 </ul>
               </li>
-              
-              
+
+
             <% else %>
               <li><%= link_to "Sign in", openid_connect_path %></li>
             <% end %>
           </ul>
 
       </section>
-    </nav>  
+    </nav>
 <% end # end of current user cached%>
 
     <!-- Main Page Content and Sidebar -->

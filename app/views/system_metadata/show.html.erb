@@ -1,0 +1,21 @@
+<p id="notice"><%= notice %></p>
+<h3>System Metadata</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Metadata</th>
+
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><%= @system_metadata.key %></td>
+        <td><%= @system_metadata.metadata.to_json %></td>
+
+      </tr>
+  </tbody>
+</table>
+<br>
+<%= link_to "Edit", edit_system_metadatum_path(@system_metadata), class: "button" %>
+<%= link_to 'Back', system_metadata_path, class: "button" %>

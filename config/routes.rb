@@ -16,6 +16,7 @@ require 'sidekiq/web'
 
 Scumblr::Application.routes.draw do
 
+  resources :system_metadata
   resources :events, only: [:index, :show] do
     collection do
       post 'search' => 'events#index'
