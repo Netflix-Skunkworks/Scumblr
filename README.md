@@ -75,6 +75,7 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 ## Release History ##
 
 **Version 2.0.1a** - "System Metadata" - *November 15th, 2016*
+
 This is a minor release that adds some new functioanlity:
 
 * Creation of a system metadata model.  System metadata allows you to store collections of data to share across tasks.  
