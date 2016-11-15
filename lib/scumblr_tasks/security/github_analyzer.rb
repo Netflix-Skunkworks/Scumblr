@@ -17,7 +17,7 @@ require 'net/http'
 require 'json'
 require 'rest-client'
 require 'time'
-
+require 'byebug'
 class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
   def self.task_type_name
     "Github Code Search"
@@ -73,16 +73,16 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 description: "Limit search to an Organization, User, or Repo Name.",
                 required: false,
                 type: :string},
-      :saved_users => {name: "System Metadata User or Orginizations",
-                       description: "Use system metadata to search users and/or originzations.  Expectes metadata to be in JSON array format.",
+      :saved_users => {name: "System Metadata User(s) or Organization(s)",
+                       description: "Use system metadata to search users and/or organization.  Expects metadata to be in JSON array format.",
                        required: false,
                        type: :system_metadata},
       :repo => {name: "Scope To Repository",
                 description: "Limit search to a specific repository.",
                 required: false,
                 type: :string},
-      :saved_repos => {name: "System Metadata User or Orginizations",
-                       description: "Use system metadata to search users and/or originzations.  Expectes metadata to be in JSON array format.",
+      :saved_repos => {name: "System Metadata Repo(s)",
+                       description: "Use system metadata to search repo(s).  Expectes metadata to be in JSON array format.",
                        required: false,
                        type: :system_metadata},
       :scope => {name: "Search for file paths, file contents, or both",
@@ -117,8 +117,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     super
 
     @github_oauth_token = @github_oauth_token.to_s.strip
-
-
 
     @search_scope = {}
     @results = []
@@ -174,23 +172,48 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
     end
 
+    @saved_users_or_repos = []
+
     # Only let one type of search be defined
     if @options[:user].present? and @options[:repo].present?
       create_event("Both user/originzation and repo provided, defaulting to user/originzation.")
+      @search_scope.merge!(@options[:user] => "user")
+      @saved_users_or_repos.concat([@options[:user]])
+      @search_type = "user"
       # Append any repos to the search scope
     elsif @options[:repo].present?
       @search_scope.merge!(@options[:repo] => "repo")
+      @saved_users_or_repos.concat([@options[:repo]])
+      @search_type = "repo"
+    elsif @options[:user].present?
+      @search_scope.merge!(@options[:user] => "user")
+      @saved_users_or_repos.concat([@options[:user]])
+      @search_type = "user"
     end
 
     if @options[:saved_users].present? and @options[:saved_repos].present?
-      create_event("Both user/originzation and repo provided, defaulting to user/originzation.")
+      create_event("Both user/originzation and repo provided, defaulting to user(s)/originzation(s).")
       # Append any repos to the search scope
-    elsif @options[:saved_repos].present?
-      @search_scope.merge!(@options[:repo] => "repo")
-    end
+      @search_type = "user"
+      begin
+        saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
+      rescue
+        saved_users = nil
+        create_event("Could not parse System Metadata for saved users/originzations, skipping", "Error")
+      end
+      unless saved_users.kind_of?(Array)
+        saved_users = nil
+        create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
+      end
 
-    @saved_users = []
-    if(@options[:saved_users].present?)
+      # If there are staved payloads, load them.
+      if saved_users.present?
+        @search_type = "user"
+        @saved_users_or_repos.concat(saved_users)
+        @saved_users_or_repos = @saved_users_or_repos.reject(&:blank?)
+      end
+
+    elsif(@options[:saved_users].present?)
       begin
         saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
       rescue
@@ -205,13 +228,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
       # If there are staved payloads, load them.
       if saved_users.present?
-        @saved_users.concat(saved_users)
-        @saved_users = @saved_users.reject(&:blank?)
+        @search_type = "user"
+        @saved_users_or_repos.concat(saved_users)
+        @saved_users_or_repos = @saved_users_or_repos.reject(&:blank?)
       end
-    end
 
-    @saved_repos = []
-    if(@options[:saved_repos].present?)
+    elsif(@options[:saved_repos].present?)
       begin
         saved_repos = SystemMetadata.where(id: @options[:saved_repos]).try(:first).metadata
       rescue
@@ -226,11 +248,11 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
       # If there are staved payloads, load them.
       if saved_repos.present?
-        @saved_repos.concat(saved_repos)
-        @saved_repos = @saved_repos.reject(&:blank?)
+        @search_type = "repo"
+        @saved_users_or_repos.concat(saved_repos)
+        @saved_users_or_repos = @saved_users_or_repos.reject(&:blank?)
       end
     end
-
 
     # If for some reason terms are still empty, raise an exception.
     if @terms.empty?
@@ -239,14 +261,36 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       return
     end
 
+    if(@options[:saved_terms].present?)
+      begin
+        saved_terms = SystemMetadata.where(id: @options[:saved_terms]).try(:first).metadata
+      rescue
+        saved_terms = nil
+        create_event("Could not parse System Metadata for saved terms, skipping. \n Exception: #{e.message}\n#{e.backtrace}", "Error")
+      end
+
+      unless saved_terms.kind_of?(Array)
+        saved_terms = nil
+        create_event("System Metadata terms should be in array format, exp: [\"foo\", \"bar\"]", "Error")
+      end
+
+      # If there are staved payloads, load them.
+      if saved_terms.present?
+        @terms.concat(saved_terms)
+        @terms = @terms.reject(&:blank?)
+      end
+
+    end
+
     # make sure search terms are unique
     @terms.uniq!
 
     # Check ratelimit for core lookups
     begin
       response = JSON.parse(RestClient.get "https://api.github.com/rate_limit?access_token=#{@github_oauth_token}")
+      puts "https://api.github.com/rate_limit?access_token=#{@github_oauth_token}"
       core_rate_limit = response["resources"]["core"]["remaining"].to_i
-
+      puts 1
       # If we have hit the core limit, sleep
       rate_limit_sleep(core_rate_limit, response["resources"]["core"]["reset"])
     rescue => e
@@ -255,15 +299,22 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     end
 
     # Determine if supplied input is org or not.
+    @scope_type_array = []
     begin
       while true
-        if @options[:user].present? and core_rate_limit >= 0
-          response = RestClient.get "https://api.github.com/users/#{@options[:user]}?access_token=#{@github_oauth_token}"
-          json_response = JSON.parse(response)
-          core_rate_limit -= 1
-          @scope_type = json_response["type"]
-          @search_scope[@options[:user]] = json_response["type"]
-          rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+        if @search_type == "user" and core_rate_limit >= 0
+          @saved_users_or_repos.each do | user_or_repo |
+
+            response = RestClient.get "https://api.github.com/users/#{user_or_repo}?access_token=#{@github_oauth_token}"
+            json_response = JSON.parse(response)
+            core_rate_limit -= 1
+
+            @scope_type = json_response["type"]
+            @search_scope[user_or_repo] = json_response["type"]
+            @scope_type_array.concat([@scope_type])
+
+            rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+          end
           break
         else
           break
@@ -275,66 +326,79 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     end
 
     # Determine how many pages of users we need to retrieve
-    more_pages = false
-    pages = 1
-    begin
-      while true
-        if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
-          response = RestClient.get "https://api.github.com/orgs/#{@options[:user]}/members?access_token=#{@github_oauth_token}"
-          json_response = JSON.parse(response)
-          core_rate_limit -= 1
-          # Check if has more than one page
-          # If no link, then it's just one page it seems (API bug maybe?)
-          unless response.headers[:link].present?
-            more_pages = true
-            json_response.each do | member_object |
-              @search_scope.merge!(member_object["login"] => "user")
-            end
-            break
-          end
-
-          # If has more than one page, determine the number
-          unless response.headers[:link].split(" ")[0].split("=").last.gsub!(/\W/,'') == 0
-            more_pages = true
-            pages = response.headers[:link].split(" ")[2].split("=").last.gsub!(/\W/,'')
-          end
-
-          # Sleep if we hit a ratelimit
-          rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
-          break
-        else
-          break
-        end
-      end
-    rescue => e
-      create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-      raise "Unable to if suppiled input is an org"
-      return
-    end
-
-    # Append each user from each page to the searched_scope array
-    if more_pages and @options[:members] == true
+    # Commented these out, I don't think they have to be initalized here
+    # more_pages = false
+    # pages = 1
+    @scope_type_array.each_with_index do |scope_type, index|
+      puts index
       begin
-        1.upto(pages.to_i) do | page |
-          if core_rate_limit >= 0
-            response = RestClient.get "https://api.github.com/orgs/#{@options[:user]}/members?access_token=#{@github_oauth_token}&page=#{page}"
+        while true
+          more_pages = false
+          pages = 1
+          if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
+
+            response = RestClient.get "https://api.github.com/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
             core_rate_limit -= 1
-
-            # parse out each page here
-            json_response.each do | member_object |
-              @search_scope.merge!(member_object["login"] => "user")
+            # Check if has more than one page
+            # If no link, then it's just one page it seems (API bug maybe?)
+            unless response.headers[:link].present?
+              more_pages = true
+              json_response.each do | member_object |
+                @search_scope.merge!(member_object["login"] => "user")
+              end
+              break
             end
-            # Sleep if we hit a rate limit
+
+            # If has more than one page, determine the number
+            unless response.headers[:link].split(" ")[0].split("=").last.gsub!(/\W/,'') == 0
+              more_pages = true
+              pages = response.headers[:link].split(" ")[2].split("=").last.gsub!(/\W/,'')
+            end
+
+            # Sleep if we hit a ratelimit
             rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+            break
+          else
+
+            break
           end
+          break
         end
       rescue => e
+
         create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
         raise "Unable to if suppiled input is an org"
         return
       end
+
+      # Append each user from each page to the searched_scope array
+      if more_pages and @options[:members] == true
+        begin
+          1.upto(pages.to_i) do | page |
+            if core_rate_limit >= 0
+              response = RestClient.get "https://api.github.com/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}&page=#{page}"
+              json_response = JSON.parse(response)
+              core_rate_limit -= 1
+
+              # parse out each page here
+              json_response.each do | member_object |
+                @search_scope.merge!(member_object["login"] => "user")
+              end
+              # Sleep if we hit a rate limit
+              rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+            end
+          end
+        rescue => e
+          create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
+          raise "Unable to if suppiled input is an org"
+          return
+        end
+      end
+
     end
+    @search_scope
+
   end
 
   def parse_search(response, json_response, user_type)
