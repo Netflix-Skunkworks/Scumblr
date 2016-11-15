@@ -33,10 +33,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
   def self.config_options
     {:github_oauth_token =>{ name: "Github OAuth Token",
-      description: "Setting this token provides the access needed to search Github organizations or repos",
-      required: true
-      }
-    }
+                             description: "Setting this token provides the access needed to search Github organizations or repos",
+                             required: true
+                             }
+     }
   end
 
   def self.options
@@ -61,6 +61,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                         description: "Provide newline delimited search strings",
                         required: false,
                         type: :text},
+      :saved_terms => {name: "System Metadata Search Strings",
+                       description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
+                       required: false,
+                       type: :system_metadata},
       :json_terms => {name: "JSON Array Strings URL",
                       description: "Provide URL for JSON array of search terms",
                       required: false,
@@ -69,16 +73,24 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 description: "Limit search to an Organization, User, or Repo Name.",
                 required: false,
                 type: :string},
+      :saved_users => {name: "System Metadata User or Orginizations",
+                       description: "Use system metadata to search users and/or originzations.  Expectes metadata to be in JSON array format.",
+                       required: false,
+                       type: :system_metadata},
       :repo => {name: "Scope To Repository",
                 description: "Limit search to a specific repository.",
                 required: false,
                 type: :string},
+      :saved_repos => {name: "System Metadata User or Orginizations",
+                       description: "Use system metadata to search users and/or originzations.  Expectes metadata to be in JSON array format.",
+                       required: false,
+                       type: :system_metadata},
       :scope => {name: "Search for file paths, file contents, or both",
                  description: "Search for file paths, file contents, or both.",
                  required: false,
                  type: :choice,
                  default: :both,
-                 choices: [:file, :path, :both]},          
+                 choices: [:file, :path, :both]},
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
                    required: false,
@@ -106,7 +118,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     @github_oauth_token = @github_oauth_token.to_s.strip
 
-    
+
 
     @search_scope = {}
     @results = []
@@ -137,7 +149,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     end
 
     # Check that they actually specified a repo or org.
-    unless @options[:user].present? or @options[:repo].present?
+    unless @options[:user].present? ||
+        @options[:repo].present? ||
+        @options[:saved_users].present? ||
+        @options[:saved_repos].present?
       create_event("No user, org, or repo provided.")
       raise 'No user, org, or repo provided.'
       return
@@ -159,10 +174,63 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
     end
 
-    # Append any repos to the search scope
-    if @options[:repo].present?
+    # Only let one type of search be defined
+    if @options[:user].present? and @options[:repo].present?
+      create_event("Both user/originzation and repo provided, defaulting to user/originzation.")
+      # Append any repos to the search scope
+    elsif @options[:repo].present?
       @search_scope.merge!(@options[:repo] => "repo")
     end
+
+    if @options[:saved_users].present? and @options[:saved_repos].present?
+      create_event("Both user/originzation and repo provided, defaulting to user/originzation.")
+      # Append any repos to the search scope
+    elsif @options[:saved_repos].present?
+      @search_scope.merge!(@options[:repo] => "repo")
+    end
+
+    @saved_users = []
+    if(@options[:saved_users].present?)
+      begin
+        saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
+      rescue
+        saved_users = nil
+        create_event("Could not parse System Metadata for saved users/originzations, skipping", "Error")
+      end
+
+      unless saved_users.kind_of?(Array)
+        saved_users = nil
+        create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
+      end
+
+      # If there are staved payloads, load them.
+      if saved_users.present?
+        @saved_users.concat(saved_users)
+        @saved_users = @saved_users.reject(&:blank?)
+      end
+    end
+
+    @saved_repos = []
+    if(@options[:saved_repos].present?)
+      begin
+        saved_repos = SystemMetadata.where(id: @options[:saved_repos]).try(:first).metadata
+      rescue
+        saved_repos = nil
+        create_event("Could not parse System Metadata for saved users/originzations, skipping.", "Error")
+      end
+
+      unless saved_repos.kind_of?(Array)
+        saved_repos = nil
+        create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
+      end
+
+      # If there are staved payloads, load them.
+      if saved_repos.present?
+        @saved_repos.concat(saved_repos)
+        @saved_repos = @saved_repos.reject(&:blank?)
+      end
+    end
+
 
     # If for some reason terms are still empty, raise an exception.
     if @terms.empty?
