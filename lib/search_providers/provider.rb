@@ -87,6 +87,11 @@ module SearchProvider
     end
 
     private
+
+    def create_error(event)
+      create_event(event, "Error")
+    end
+
     def create_event(event, level="Error")
       if(event.respond_to?(:message))
         details = "An error occurred in #{self.class.provider_name}. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"
