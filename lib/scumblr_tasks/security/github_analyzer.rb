@@ -40,8 +40,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                                 description: "Allow configurable endpoint for Github Enterprise deployments",
                                 required: false
                               }
-      }
-
      }
   end
 
