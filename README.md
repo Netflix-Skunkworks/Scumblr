@@ -74,6 +74,10 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 
 ## Release History ##
 
+**Version 2.0.2** - "XSS fix" - *November 30th, 2016*
+
+This fixes a XSS issue on the main Tasks page reported by Michael Carlson.  The XSS vulnerability is only exploitable by administrator users of the application. 
+
 **Version 2.0.1a** - "System Metadata" - *November 15th, 2016*
 
 This is a minor release that adds some new functioanlity:
