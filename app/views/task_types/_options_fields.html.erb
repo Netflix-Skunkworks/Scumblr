@@ -4,7 +4,7 @@
     <%= label_tag do %>
     <%= value[:name] + (value[:required] == true ? "*" : "") %>
       <% if value[:description].present? %>
-        <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= value[:description] %>"><i class="fi-info"></i></span>
+        <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= h(value[:description]) %>"><i class="fi-info"></i></span>
       <% end %>
     <% end %>
 

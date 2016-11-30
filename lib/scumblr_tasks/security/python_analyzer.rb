@@ -45,8 +45,8 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
                             default: :High,
                             choices: [:High, :Medium, :Low]
                             },
-      :severity_level => {name: "Confidence Level",
-                          description: "Confidence level to include in results",
+      :severity_level => {name: "Severity Level",
+                          description: "Severity level to include in results",
                           required: false,
                           type: :choice,
                           default: :High,
