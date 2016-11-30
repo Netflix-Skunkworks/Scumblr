@@ -1,0 +1,26 @@
+version: "2"
+services:
+  scumblr:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "postgres"
+      - "redis"
+    links:
+      - "postgres"
+      - "redis"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - scumblr-vars.env
+    entrypoint:
+      - /docker-entrypoint.sh
+      - init
+  postgres:
+    image: postgres:9.5
+    environment:
+      - POSTGRES_USER=scumblr
+      - POSTGRES_PASSWORD=scumblr
+  redis:
+    image: redis:latest
