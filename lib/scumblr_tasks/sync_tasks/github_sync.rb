@@ -30,9 +30,16 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   end
 
   def self.config_options
-    {:github_oauth_token =>{ name: "Github Oauth Token",
-      description: "Setting this token can provide access to private Github organization(s) or repo(s)",
-      required: false
+    {
+      :github_oauth_token => {
+        name: "Github Oauth Token",
+        description: "Setting this token can provide access to private Github organization(s) or repo(s)",
+        required: false
+      },
+      :github_api_endpoint => {
+        name: "Github Endpoint",
+        description: "Allow configurable endpoint for Github Enterprise deployments",
+        required: false
       }
     }
   end
@@ -67,11 +74,12 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
     super
     
     @github_oauth_token = @github_oauth_token.to_s.strip
+    @github_api_endpoint = @github_api_endpoint.to_s.strip.empty? ? "https://api.github.com" : @github_api_endpoint
 
     if(@github_oauth_token.present?)
-      @github = Github.new oauth_token: @github_oauth_token
+      @github = Github.new oauth_token: @github_oauth_token, endpoint: @github_api_endpoint
     else
-      @github = Github.new
+      @github = Github.new endpoint: @github_api_endpoint
     end
     
     @options[:max_results] = @options[:max_results].to_i

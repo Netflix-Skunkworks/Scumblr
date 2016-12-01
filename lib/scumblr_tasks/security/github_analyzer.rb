@@ -35,7 +35,11 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     {:github_oauth_token =>{ name: "Github OAuth Token",
                              description: "Setting this token provides the access needed to search Github organizations or repos",
                              required: true
-                             }
+                             },
+      :github_api_endpoint => { name: "Github Endpoint",
+                                description: "Allow configurable endpoint for Github Enterprise deployments",
+                                required: false
+                              }
      }
   end
 
@@ -117,6 +121,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     super
 
     @github_oauth_token = @github_oauth_token.to_s.strip
+    @github_api_endpoint = @github_api_endpoint.to_s.strip.empty? ? "https://api.github.com" : @github_api_endpoint
 
     @search_scope = {}
     @results = []
@@ -287,8 +292,8 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     # Check ratelimit for core lookups
     begin
-      response = JSON.parse(RestClient.get "https://api.github.com/rate_limit?access_token=#{@github_oauth_token}")
-      puts "https://api.github.com/rate_limit?access_token=#{@github_oauth_token}"
+      response = JSON.parse(RestClient.get "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}")
+      puts "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}"
       core_rate_limit = response["resources"]["core"]["remaining"].to_i
       puts 1
       # If we have hit the core limit, sleep
@@ -305,7 +310,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         if @search_type == "user" and core_rate_limit >= 0
           @saved_users_or_repos.each do | user_or_repo |
 
-            response = RestClient.get "https://api.github.com/users/#{user_or_repo}?access_token=#{@github_oauth_token}"
+            response = RestClient.get "#{@github_api_endpoint}/users/#{user_or_repo}?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
             core_rate_limit -= 1
 
@@ -337,7 +342,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           pages = 1
           if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
 
-            response = RestClient.get "https://api.github.com/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
+            response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
             core_rate_limit -= 1
             # Check if has more than one page
@@ -377,7 +382,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         begin
           1.upto(pages.to_i) do | page |
             if core_rate_limit >= 0
-              response = RestClient.get "https://api.github.com/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}&page=#{page}"
+              response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}&page=#{page}"
               json_response = JSON.parse(response)
               core_rate_limit -= 1
 
@@ -496,9 +501,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         begin
           # If the scope is a repo, we need to set a different query string
           if type == "repo"
-            response = RestClient.get URI.escape("https://api.github.com/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
+            response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
           else
-            response = RestClient.get URI.escape("https://api.github.com/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
+            response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
           end
         rescue RestClient::Exception => e
           Rails.logger.error e.message
@@ -582,9 +587,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             begin
               # If the scope is a repo, we need to set a different query string
               if type == "repo"
-                response = RestClient.get URI.escape("https://api.github.com/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
+                response = RestClient.get URI.escape("#{github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
               else
-                response = RestClient.get URI.escape("https://api.github.com/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
+                response = RestClient.get URI.escape("#{github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
               end
             rescue RestClient::Exception => e
               begin
