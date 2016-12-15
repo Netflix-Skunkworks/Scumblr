@@ -107,14 +107,14 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     if remaining.to_i <= 1
       time_to_sleep = (reset.to_i - Time.now.to_i)
       puts "Sleeping for #{time_to_sleep}"
-      sleep (time_to_sleep + 1)
+      sleep (time_to_sleep + 1) if time_to_sleep > 0
     end
   end
 
   def retry_after(reset)
     # This method sleeps until the rate limit resets
     puts "Sleeping for #{reset} due to 403"
-    sleep (reset.to_i + 1)
+    sleep (reset.to_i + 1) if reset.to_i > 0
   end
 
   def initialize(options={})

@@ -146,14 +146,14 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
     if e.try(:http_headers).try(:[],:retry_after).present?
       wait_for = e.http_headers["retry_after"].to_i
       puts "Sleeping for #{wait_for}"
-      sleep(wait_for + 1)
+      sleep(wait_for + 1) if wait_for.to_i > 0
     elsif(e.try(:http_headers).try(:[],"x-ratelimit-remaining").present? && e.try(:http_headers).try(:[],"x-ratelimit-remaining").to_i <= 1)
 
 
       wait_for = e.http_headers["x-ratelimit-reset"].to_i - Time.now.to_i 
       
       puts "Sleeping for #{wait_for}"
-      sleep (wait_for + 1)
+      sleep (wait_for + 1) if wait_for.to_i > 0
     else
       create_error("Unknown Github error", "Warn")
       
