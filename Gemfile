@@ -117,6 +117,10 @@ gem 'stackprof'
 gem 'faraday'
 gem 'net-http-persistent'
 
+gem 'minitest'
+
+gem 'minitest-rails'
+
 group :development, :test, :production do
   gem 'unicorn'
   gem 'unicorn-rails'

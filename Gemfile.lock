@@ -264,6 +264,9 @@ GEM
     mime-types (2.99.2)
     mini_portile2 (2.1.0)
     minitest (5.9.1)
+    minitest-rails (2.2.1)
+      minitest (~> 5.7)
+      railties (~> 4.1)
     msgpack (1.0.0)
     multi_json (1.12.1)
     multi_xml (0.5.5)
@@ -537,6 +540,8 @@ DEPENDENCIES
   less-rails
   market_bot
   meta_request
+  minitest
+  minitest-rails
   net-http-persistent
   oj
   oj_mimic_json

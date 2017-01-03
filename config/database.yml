@@ -10,6 +10,17 @@ development:
   pool: 75
   socket: /tmp/mysql.sock
 
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: scumblr_dev
+  host: localhost
+  username: scumblr
+  password: scumblr
+  port: 5432
+  pool: 75
+  socket: /tmp/mysql.sock
+
 # staging:
 #   adapter: postgresql
 #   encoding: unicode
