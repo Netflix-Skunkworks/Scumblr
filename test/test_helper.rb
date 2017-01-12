@@ -15,3 +15,11 @@ class ActiveSupport::TestCase
   fixtures :all
   # Add more helper methods to be used by all tests here...
 end
+
+# Shoulda::Matchers.configure do |config|
+#   config.integrate do |with|
+#     # Choose a test framework:
+#     with.test_framework :minitest
+#     with.library :rails
+#   end
+# end

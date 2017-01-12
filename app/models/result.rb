@@ -60,7 +60,7 @@ class Result < ActiveRecord::Base
   end
 
   # Uncommenting this line will cause a events to be created everytime
-  # a result is saved. This can result in a large number of events being 
+  # a result is saved. This can result in a large number of events being
   # stored in an active deployment
   # before_save :create_events
 
@@ -72,7 +72,7 @@ class Result < ActiveRecord::Base
 
   def self.to_csv
     CSV.generate do |csv|
-      
+
       attributes = all.try(:first).try(:attributes).try(:keys)
       csv << attributes
       all.each do |result|
@@ -509,9 +509,9 @@ class Result < ActiveRecord::Base
         filter_data = filter_data.try(:[],f)
       end
     end
-    
-    
-    
+
+
+
     # Define a proc for filtering the array
     # +keys+:: The key(s) under which a value is stored in the array element
     # +v+:: Should contain the current element of the array we're testing
@@ -525,7 +525,7 @@ class Result < ActiveRecord::Base
             value = nil
           end
         end
-        
+
         if(value.class == Array)
           (values & value).present?
         elsif(value.present?)
@@ -548,9 +548,9 @@ class Result < ActiveRecord::Base
       }
     end
 
-        
 
-    
+
+
 
     return data
   end
@@ -570,7 +570,7 @@ class Result < ActiveRecord::Base
 
     k=keys.shift
     parent = data
-    
+
     begin
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
@@ -584,18 +584,18 @@ class Result < ActiveRecord::Base
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
 
-            
+
             k = data.each_with_index.select { |v,index| k2.include?(v.try(:[],field).to_s) }.map { |pair| pair.try(:[],1) }.join(",")
             k = "[#{k}]"
-            
+
           end
 
           k2 = k[1..k.length-2].split(',')
-          
+
 
           k2.each do |k3|
             # data = data[k.to_i]
-            
+
             r = _traverse_and_update_metadata(data, [k3]+keys,value, r)
           end
           return r
@@ -713,7 +713,7 @@ class Result < ActiveRecord::Base
           end
           return r
         end
-            
+
       else
         # For other key types, we'll try it as a hash
         data = data.try(:[],k)

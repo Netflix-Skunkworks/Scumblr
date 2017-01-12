@@ -1,0 +1,142 @@
+
+result_1:
+  id: 1
+  title: https://www.netflix.com
+  url: https://www.netflix.com
+  status_id: 1
+  created_at: 2016-11-02 15:35:43.402487000 Z
+  updated_at: 2016-11-12 00:48:53.892322000 Z
+  domain:
+  user_id:
+  content:
+  metadata_archive: {}
+
+  metadata:
+    trends:
+      open_vulnerabilities:
+        data:
+        - data:
+            Nov 11 2016 11:48:52: 0
+            Nov 11 2016 16:48:53: 0
+          name: open
+          library:
+            steppedLine: true
+    sitemap: []
+    curl_metadata:
+      Server: shakti-prod i-0ee8e795b8bde9360
+    scan_metadata:
+    - new: 0
+      closed: 1
+      parsed: '2016-11-11T11:48:52.491-08:00'
+      source: 'Curl: Curl - Test Task'
+      task_id: 1
+      existing: 0
+      reopened: 0
+      regression: 0
+    - new: 0
+      closed: 0
+      parsed: '2016-11-11T16:48:53.805-08:00'
+      source: 'Curl: Curl - Test Task'
+      task_id: 1
+      existing: 0
+      reopened: 0
+      regression: 0
+    vulnerabilities:
+    - id: c58ce1dcef0fd20b99cb725abb1b8aad
+      url: https://www.netflix.com
+      term: '200'
+      type: '"200" - HTTP Status Code Match'
+      source:
+      - curl
+      status: Auto Remediated
+      payload: ''
+      task_id: '1'
+      severity: Observation
+      identified: '2016-11-11T09:19:22.820-08:00'
+      status_code: '200'
+      attack_vectors: []
+      match_location: headers
+    vulnerability_count:
+      low: 0
+      high: 0
+      open: 0
+      closed: 1
+      medium: 0
+      source: {}
+      task_id: {}
+      critical: 0
+      key_suffix: {}
+      observation: 1
+      informational: 0
+  metadata_hash: {}
+
+
+# result_2:
+#   id: 1
+#   title: https://www.netflix.com
+#   url: https://www.netflix.com
+#   status_id: 1
+#   created_at: 2016-11-02 15:35:43.402487000 Z
+#   updated_at: 2016-11-12 00:48:53.892322000 Z
+#   domain:
+#   user_id:
+#   content:
+#   metadata_archive: {}
+#   metadata:
+#     trends:
+#       open_vulnerabilities:
+#         data:
+#         - data:
+#             Nov 11 2016 11:48:52: 0
+#             Nov 11 2016 16:48:53: 0
+#           name: open
+#           library:
+#             steppedLine: true
+#     sitemap: []
+#     curl_metadata:
+#       Server: shakti-prod i-0ee8e795b8bde9360
+#     scan_metadata:
+#     - new: 0
+#       closed: 1
+#       parsed: '2016-11-11T11:48:52.491-08:00'
+#       source: 'Curl: Curl - Test Task'
+#       task_id: 1
+#       existing: 0
+#       reopened: 0
+#       regression: 0
+#     - new: 0
+#       closed: 0
+#       parsed: '2016-11-11T16:48:53.805-08:00'
+#       source: 'Curl: Curl - Test Task'
+#       task_id: 1
+#       existing: 0
+#       reopened: 0
+#       regression: 0
+#     vulnerabilities:
+#     - id: c58ce1dcef0fd20b99cb725abb1b8aad
+#       url: https://www.netflix.com
+#       term: '200'
+#       type: '"200" - HTTP Status Code Match'
+#       source:
+#       - curl
+#       status: Auto Remediated
+#       payload: ''
+#       task_id: '1'
+#       severity: Observation
+#       identified: '2016-11-11T09:19:22.820-08:00'
+#       status_code: '200'
+#       attack_vectors: []
+#       match_location: headers
+#     vulnerability_count:
+#       low: 0
+#       high: 0
+#       open: 0
+#       closed: 1
+#       medium: 0
+#       source: {}
+#       task_id: {}
+#       critical: 0
+#       key_suffix: {}
+#       observation: 1
+#       informational: 0
+#   metadata_hash:
