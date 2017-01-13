@@ -21,16 +21,8 @@ class ResultTest < ActiveSupport::TestCase
   should have_many(:stages).through(:result_flags)
   should have_many(:taggings).dependent(:delete_all)
 
-  # Callback Tests
-  # should callback(:set_status).before(:create)
-  # should callback(:flush_cass).after(:commit)
-
   fixture_result = Result.first
-
-  test "get a result record" do
-    result = Result.first
-    assert_not_nil(result)
-  end
+  github_result = Result.last
 
   # Class Method Tests
   test "should generate a csv file" do
@@ -38,19 +30,43 @@ class ResultTest < ActiveSupport::TestCase
     assert_includes(csv, "id,title,url,status_id,created_at,updated_at,domain,user_id,content,metadata_archive,metadata,metadata_hash")
   end
 
+
+  test "should generate an array of valid column names" do
+    assert_equal(Result.valid_column_names, ["id", "title", "url", "status_id", "created_at", "updated_at", "domain", "user_id", "screenshot", "link"])
+  end
+
+  # Class Method Search Tests
   test "should perform a default result search" do
     ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})
+    assert_equal(results.length, 2)
+  end
 
+  test "should perform a tag result search" do
+    ransack, results = Result.perform_search(q={"tags_id_eq"=>1})
     assert_equal(results.length, 1)
   end
 
-  # test "should perform a url result search" do
-  #   ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})[1].to_sql
+  test "should perform a single metadata hash element result search" do
+    ransack, results = Result.perform_search({metadata_search: "curl_metadata:Server==\"shakti-prod i-0ee8e795b8bde9360\",vulnerability_count:closed==1"}, 1, 25, {include_metadata_column:true})
+    assert_equal(results.length, 1)
+  end
 
-  #   assert_equal(results.length, 1)
-  # end
+  test "should perform a single metadata array element result search" do
+    ransack, results = Result.perform_search({metadata_search: "array_test@>[\"1\"]"}, 1, 25, {include_metadata_column:true})
+    assert_equal(results.length, 1)
+  end
 
-  #{"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}}
+  test "should perform a multi metadata hash element result search" do
+    ransack, results = Result.perform_search({url_cont: "netflix", metadata_search: "curl_metadata:Server==\"shakti-prod i-0ee8e795b8bde9360\""}, 1, 25, {include_metadata_column:true})
+    assert_equal(results.length, 1)
+  end
+
+
+  test "should perform a negative metadata  element result search" do
+    ransack, results = Result.perform_search({metadata_search: "github_analyzer:private!=false"}, 1, 25, {include_metadata_column:true})
+    assert_equal(results.length, 1)
+  end
+  #edx:hysterix@>["HystrixMembershipCreateAutoLoginToken"]
 
   # Instance Method Tests
   test "executes creat_task_event correctly" do
@@ -58,6 +74,23 @@ class ResultTest < ActiveSupport::TestCase
     fixture_result.create_task_event
     assert_equal(Thread.current["current_results"]["created"], [1])
   end
+
+  test "executes traverse_metadata correctly" do
+
+    assert_equal(fixture_result.traverse_metadata(["array_test"]), {"array_test"=>["1", "2"]})
+  end
+
+  test "sets tag_list on a result" do
+    Thread.current[:current_task] = 1
+    fixture_result.tag_list="Foo"
+    assert_equal(fixture_result.tag_list="Foo", "Foo")
+  end
+
+  test "executes set_status on result" do
+    github_result.set_status
+    assert_equal(github_result.status_id, 1)
+  end
+
 
   test "executes update_task_event correctly" do
     Thread.current[:current_task] = 1
