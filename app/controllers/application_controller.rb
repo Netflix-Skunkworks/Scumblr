@@ -41,7 +41,7 @@ class ApplicationController < ActionController::Base
   end
 
   def ssl_configured?
-    !(Rails.env.development? || Rails.env.profile? || Rails.env.dirtylaundrydev? )
+    !(Rails.env.development? || Rails.env.profile? || Rails.env.test? )
   end
 
   def handler_exception(exception)
