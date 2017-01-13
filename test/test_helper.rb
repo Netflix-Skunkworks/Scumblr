@@ -23,3 +23,16 @@ end
 #     with.library :rails
 #   end
 # end
+
+#does sign in for integration tests 
+module SignInHelper
+  def sign_in
+    host! 'localhost:3000'
+    post_via_redirect user_session_path, {"user[email]" => 'testscumblr@netflix.com', "user[password]" => Rails.application.config.test_password, commit: "Sign in"} 
+    assert_response :success
+  end
+end
+ 
+class ActionDispatch::IntegrationTest
+  include SignInHelper
+end
