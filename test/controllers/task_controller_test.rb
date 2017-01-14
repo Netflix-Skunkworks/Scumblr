@@ -29,6 +29,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "verfiy tasks index page no error rendering" do
+    sign_in
+    get "/tasks"
+    assert_response :success
+  end
+
+  test "verfiy summary_tasks no error rendering" do
+    sign_in
+    res = Task.first
+    xhr :get, "/tasks/#{res.id}/summary.js"
+    assert_response :success
+  end
+
 
 
   #commented out until we get status in fixtures
