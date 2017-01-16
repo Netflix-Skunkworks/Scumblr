@@ -98,7 +98,7 @@ result_2:
       - github
       status: Open
       task_id: '2'
-      severity: Observation
+      severity: High
       file_name: services.js
       identified: '2016-11-15T17:45:41.211-08:00'
       code_fragment: |-
