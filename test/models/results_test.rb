@@ -30,10 +30,10 @@ class ResultTest < ActiveSupport::TestCase
     assert_includes(csv, "id,title,url,status_id,created_at,updated_at,domain,user_id,content,metadata_archive,metadata,metadata_hash")
   end
 
-
   test "should generate an array of valid column names" do
     assert_equal(Result.valid_column_names, ["id", "title", "url", "status_id", "created_at", "updated_at", "domain", "user_id", "screenshot", "link"])
   end
+
 
   # Class Method Search Tests
   test "should perform a default result search" do
@@ -51,6 +51,11 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal(results.length, 1)
   end
 
+  test "should perform a single negative metadata hash element result search" do
+    ransack, results = Result.perform_search({metadata_search: "curl_metadata:Server==\"shakti-prod i-0ee8e795b8bde9360\",vulnerability_count:closed!=0"}, 1, 25, {include_metadata_column:true})
+    assert_equal(results.length, 1)
+  end
+
   test "should perform a single metadata array element result search" do
     ransack, results = Result.perform_search({metadata_search: "array_test@>[\"1\"]"}, 1, 25, {include_metadata_column:true})
     assert_equal(results.length, 1)
@@ -61,12 +66,11 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal(results.length, 1)
   end
 
-
   test "should perform a negative metadata  element result search" do
     ransack, results = Result.perform_search({metadata_search: "github_analyzer:private!=false"}, 1, 25, {include_metadata_column:true})
     assert_equal(results.length, 1)
   end
-  #edx:hysterix@>["HystrixMembershipCreateAutoLoginToken"]
+
 
   # Instance Method Tests
   test "executes creat_task_event correctly" do
@@ -76,7 +80,6 @@ class ResultTest < ActiveSupport::TestCase
   end
 
   test "executes traverse_metadata correctly" do
-
     assert_equal(fixture_result.traverse_metadata(["array_test"]), {"array_test"=>["1", "2"]})
   end
 
@@ -91,6 +94,19 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal(github_result.status_id, 1)
   end
 
+  test "executes traverse and update metadata on result" do
+    fixture_result.traverse_and_update_metadata(["vulnerabilities", "[id:c58ce1dcef0fd20b99cb725abb1b8aad]", "severity"], "High")
+    assert_equal(fixture_result.metadata["vulnerabilities"].first["severity"], "High")
+  end
+
+  test "executes traverse metadata on array nested object" do
+    assert_equal(fixture_result.traverse_metadata([{:a=>{b:1,c:2}},[:a,:b]]), {{:a=>{:b=>1, :c=>2}}=>nil})
+  end
+
+  test "executes filter metadata on result" do
+    foo = fixture_result.filter_metadata(fixture_result.metadata, ["status"], ["Auto Remediated"], ["vulnerabilities"])
+    assert_equal(foo["vulnerabilities"].count, 1)
+  end
 
   test "executes update_task_event correctly" do
     Thread.current[:current_task] = 1
@@ -115,17 +131,35 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal(fixture_result.create_attachment_from_url("https://www.google.com/"), false)
   end
 
+  test "no url configured error for attachment from sketchy" do
+    Scumblr::Application.configure do
+      config.sketchy_url = ""
+      config.sketchy_access_token = ""
+    end
+
+    foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
+    assert_equal(foo, fixture_result.metadata["sketchy_ids"])
+  end
+
+
   if Rails.configuration.try(:sketchy_url).present?
     test "create attachment from sketchy" do
       fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(Fixnum, fixture_result.metadata["sketchy_ids"].first.class)
+      fixture_result.metadata["sketchy_ids"] = nil
     end
   end
 
+  if Rails.configuration.try(:sketchy_url).present?
+    test "runtime error for attachment from sketchy" do
+      Scumblr::Application.configure do
+        config.sketchy_url = "https://google.com"
+        config.sketchy_access_token = ""
+      end
 
-  # test "get a result record" do
-  #   result = Result.first
-  #   assert_not_nil(result)
-  # end
+      foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
+      assert_equal(nil, fixture_result.metadata["sketchy_ids"])
+    end
+  end
 
 end

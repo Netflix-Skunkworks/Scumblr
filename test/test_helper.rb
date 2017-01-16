@@ -2,6 +2,7 @@ require 'simplecov'
 SimpleCov.start
 ENV["RAILS_ENV"] = "test"
 require File.expand_path("../../config/environment", __FILE__)
+Dir[File.expand_path("../support/**/*.rb", __FILE__)].each { |rb| require(rb) }
 require "rails/test_help"
 require "minitest/rails"
 
@@ -26,15 +27,15 @@ end
 #   end
 # end
 
-#does sign in for integration tests 
+#does sign in for integration tests
 module SignInHelper
   def sign_in
     host! 'localhost:3000'
-    post_via_redirect user_session_path, {"user[email]" => 'testscumblr@netflix.com', "user[password]" => Rails.application.config.test_password, commit: "Sign in"} 
+    post_via_redirect user_session_path, {"user[email]" => 'testscumblr@netflix.com', "user[password]" => Rails.application.config.test_password, commit: "Sign in"}
     assert_response :success
   end
 end
- 
+
 class ActionDispatch::IntegrationTest
   include SignInHelper
 end
