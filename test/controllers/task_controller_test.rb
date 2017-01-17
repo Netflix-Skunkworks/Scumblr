@@ -35,6 +35,12 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "new task page no error rendering" do
+    sign_in
+    get "/tasks/new"
+    assert_response :success
+  end
+
   test "verfiy summary_tasks no error rendering" do
     sign_in
     res = Task.first
@@ -42,7 +48,56 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "individual task loads with no error" do
+    sign_in
+    res = Task.first
+    get "/tasks/#{res.id}"
+    assert_response :success
+  end
 
+  test "individual task edit loads with no error" do
+    sign_in
+    res = Task.first
+    get "/tasks/#{res.id}/edit"
+    assert_response :success
+  end
+
+  test "bulk update tasks no error rendering" do
+    sign_in
+    ids = []
+    res = Task.all
+    #ids = ""
+    res.each do |r|
+      #if ids != ""
+      #  ids += ","
+      #end
+      #ids += r.id.to_s
+      ids.push r.id
+    end
+    ActiveSupport::Deprecation.silence do
+      post "/tasks/bulk_update.html", {task_ids: ids, commit: "Disable"}
+      assert_response :redirect
+      post "/tasks/bulk_update.html", {task_ids: ids, commit: "Enable"}
+      assert_response :redirect
+    end
+  end
+
+
+  test "individual task disable and enable loads with no error" do
+    sign_in
+    res = Task.first
+    post "/tasks/#{res.id}/disable"
+    assert_response :redirect
+    post "/tasks/#{res.id}/enable"
+    assert_response :redirect
+  end
+
+  test "individual task run loads with no error" do
+    sign_in
+    res = Task.first
+    get "/tasks/#{res.id}/run"
+    assert_response :redirect
+  end
 
   #commented out until we get status in fixtures
   #test "update status result renders no errors" do
