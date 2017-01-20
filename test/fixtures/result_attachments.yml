@@ -1,0 +1,11 @@
+
+result_attachment_1:
+  id: 1
+  result_id: 20
+  created_at: 2017-01-20 20:23:34.519812000 Z
+  updated_at: 2017-01-20 20:23:34.519812000 Z
+  attachment_file_name: test.png
+  attachment_content_type: image/png
+  attachment_file_size: 424764
+  attachment_updated_at: 2017-01-20 20:23:34.248531000 Z
+  attachment_fingerprint: 2fdb47789dfa0a72a02494fc711c23ce

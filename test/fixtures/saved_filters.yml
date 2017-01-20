@@ -1,0 +1,31 @@
+
+saved_filter_1:
+  id: 1
+  name: Error Events
+  query: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      action_in: &1
+      - ''
+      - Error
+      event_changes_field_in: &2
+      - ''
+      event_changes_old_value_cont: ''
+      event_changes_new_value_cont: ''
+      eventable_type_eq: ''
+      eventable_id_eq: ''
+      chronic_date_lteq: ''
+      chronic_date_gteq: ''
+      eventable_id_in_saved_result_filter: ''
+    ivars:
+      :@permitted: false
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          *1: true
+          *2: true
+  user_id: 1
+  public: false
+  created_at: 2017-01-16 20:13:53.554635000 Z
+  updated_at: 2017-01-16 20:13:53.554635000 Z
+  saved_filter_type: Event
+  store_index_columns: 
+  index_columns: 'null'

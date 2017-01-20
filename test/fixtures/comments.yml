@@ -1,0 +1,14 @@
+
+comment_1:
+  id: 1
+  commentable_id: 2
+  commentable_type: Result
+  title: ''
+  body: bar
+  subject: ''
+  user_id: 1
+  parent_id:
+  lft: 3
+  rgt: 4
+  created_at: &1 2017-01-16 20:40:25.801185000 Z
+  updated_at: *1
