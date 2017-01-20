@@ -19,8 +19,58 @@ require 'rails/all'
 
 Bundler.require(:default, Rails.env)
 
+# Hack to make root path element accessible to allow
+# Customizing the locations where files are loaded.
+# This allow providing customizations for models,
+# controllers, views, etc. that can be stored in a 
+# location separate from the main Scumblr repo.
+module Rails
+    module Paths
+        class Root
+            attr_accessor :root
+        end
+    end
+end
+
 module Scumblr
     class Application < Rails::Application
+
+        
+        ## Setup paths to allow loading customizatoins
+        # Create a copy of the original paths
+        tmp_root = Rails.configuration.paths.root
+        
+        # Create an empty set of paths
+        new_root = {}
+
+        # Inject paths for custom models, views and controllers
+        ["custom/", "../custom/"].each do |custom_path|
+            if Dir.exists?("#{Rails.root.to_s}/#{custom_path}")
+                r = Rails::Paths::Root.new("#{Rails.root.to_s}/#{custom_path}")
+                ["app/models", "app/controllers", "app/views"].each do |folder|
+                    new_root[custom_path + folder] = Rails::Paths::Path.new(r, custom_path + folder, [custom_path + folder], {eager_load: true})
+                end
+                
+            end
+        end
+
+
+        # Merge in original path list
+        new_root.merge!(tmp_root)
+
+        # Add paths for custom initializers, environments, and views
+        new_root["config/initializers"] << "../custom/config/initializers"
+        new_root["config/initializers"] << "custom/config/initializers"
+        new_root["config/environments"] << "../custom/config/environments"
+        new_root["config/environments"] << "custom/config/environments"
+        new_root["app/views"].unshift("custom/app/views")
+        new_root["app/views"].unshift("../custom/app/views")
+
+
+        # Overwrite the original path element
+        Rails.configuration.paths.root = new_root
+
+
         # Settings in config/environments/* take precedence over those specified here.
         # Application configuration should go into files in config/initializers
         # -- all .rb files in that directory are automatically loaded.

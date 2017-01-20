@@ -14,7 +14,32 @@
 
 require 'sidekiq/web'
 
+class ActionDispatch::Routing::Mapper
+  def draw_custom
+    ["custom/config/routes.rb", "../custom/config/routes.rb"].each do |filename|
+      instance_eval(File.read(Rails.root.join(filename))) if File.file?(filename)
+    end
+    
+  end
+end
+
 Scumblr::Application.routes.draw do
+
+  draw_custom
+
+  if(User.devise_modules.include?(:omniauthable))
+    devise_for :users , :controllers => { :omniauth_callbacks => "users/omniauth_callbacks" }
+    match '/users/auth/openid_connect/callback' => 'users/omniauth_callbacks#openid_connect_callback', via: [:get, :post]
+    match '/users/auth/openid_connect' => 'users/omniauth_callbacks#openid_connect', via: [:get, :post], as: "openid_connect"
+  else
+    devise_for :users
+  end
+
+  resources :users do
+    member do
+      post 'toggle_admin'
+    end
+  end
 
   resources :system_metadata
   resources :events, only: [:index, :show] do
@@ -83,18 +108,6 @@ Scumblr::Application.routes.draw do
 
   end
 
-
-  devise_for :users
-
-  resources :users do
-    member do
-      post 'toggle_admin'
-    end
-  end
-
-
-
-
   resources :tags, only: :index
 
   resources :tasks do
@@ -121,20 +134,14 @@ Scumblr::Application.routes.draw do
     end
   end
 
-
   resources :statuses do
     member do
       post 'set_default'
     end
   end
 
-
-
-
-
   get 'status', to: 'status#status'
   get 'about', to: 'status#about'
-
 
   root to: "results#index"
 

@@ -188,3 +188,14 @@ gem 'rb-readline'
 # needed by  sidekiq
 gem 'json'
 gem 'ffi'
+
+
+if File.exists?("custom/Gemfile")
+  eval(IO.read("custom/Gemfile"), binding)
+end
+if File.exists?("../custom/Gemfile")
+  eval(IO.read("../custom/Gemfile"), binding)
+end
+if File.exists?("./Gemfile.append")
+  eval(IO.read("./Gemfile.append"), binding)
+end

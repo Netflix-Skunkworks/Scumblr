@@ -16,15 +16,18 @@
 # Support for legacy search providers
 require 'search_providers/provider'
 Dir[Rails.root + "lib/search_providers/*.rb"].each {|file| require file }
+Dir[Rails.root + "custom/lib/search_providers/*.rb"].each {|file| require file }
+Dir[Rails.root + "../custom/lib/search_providers/*.rb"].each {|file| require file }
 
 
 require 'scumblr_tasks/base.rb'
 require 'scumblr_tasks/async.rb'
 
 Dir[Rails.root + "lib/scumblr_tasks/**/*.rb"].each {|file| require file }
+Dir[Rails.root + "custom/lib/scumblr_tasks/**/*.rb"].each {|file| require file }
+Dir[Rails.root + "../custom/lib/scumblr_tasks/**/*.rb"].each {|file| require file }
 
 
 Dir[Rails.root + "lib/helpers/**/*.rb"].each {|file| require file }
-
-
-
+Dir[Rails.root + "custom/lib/helpers/**/*.rb"].each {|file| require file }
+Dir[Rails.root + "../custom/lib/helpers/**/*.rb"].each {|file| require file }

@@ -1,4 +1,8 @@
-
+<% if File.exists?("custom/config/database.yml") %>
+  <%= ERB.new(File.read("custom/config/database.yml")).result %>
+<% elsif File.exists?("../custom/config/database.yml") %>
+  <%= ERB.new(File.read("../custom/config/database.yml")).result %>
+<% else %>
 development:
   adapter: postgresql
   encoding: unicode
@@ -13,7 +17,7 @@ development:
 test:
   adapter: postgresql
   encoding: unicode
-  database: scumblr_dev
+  database: scumblr_test
   host: localhost
   username: scumblr
   password: scumblr
@@ -53,3 +57,4 @@ test:
 #   port: 5432
 #   pool: 75
 #   socket: /tmp/mysql.sock
+<% end %>

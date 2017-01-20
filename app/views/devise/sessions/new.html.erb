@@ -13,6 +13,9 @@
 
           <div class="form-actions">
             <%= f.button :submit, "Sign in" %>
+            <% if User.devise_modules.include?(:omniauthable) %>
+              <%= render partial: "omniauth_button", locals: {f: f } %>
+            <% end %>
           </div>
         <% end %>
 
