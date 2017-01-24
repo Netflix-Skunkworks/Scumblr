@@ -19,8 +19,6 @@ class Flag < ActiveRecord::Base
   has_many :subscribers, as: :subscribable
   belongs_to :workflow, class_name: "Workflowable::Workflow"
 
-  has_many :subscribers, as: :subscribable
-
   validates :name, presence: true
   validates :name, uniqueness: true
 

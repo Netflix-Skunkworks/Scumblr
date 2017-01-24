@@ -41,6 +41,7 @@ dump.rdb
 #Ignore spec directory
 /spec
 
+/coverage
 
 /root/var/chef/tmp/
 

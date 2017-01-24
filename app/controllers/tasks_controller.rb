@@ -256,7 +256,6 @@ class TasksController < ApplicationController
         message = "Running tasks."
 
       end
-
       Event.import events
     else
       message = "No tasks selected to update."
