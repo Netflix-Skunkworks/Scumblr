@@ -1,0 +1,23 @@
+<%
+o = [('a'..'z'), ('A'..'Z'), ('0'..'9')].map { |i| i.to_a }.flatten
+test_password = (0...50).map { o[SecureRandom.random_number(o.length)] }.join
+Rails.application.config.test_password = test_password
+%>
+
+user_1:
+  id: 1
+  email: testscumblr@netflix.com
+  encrypted_password: <%= User.new.send(:password_digest, test_password) %>
+  sign_in_count: 0
+  current_sign_in_at: 
+  last_sign_in_at: 
+  current_sign_in_ip: 
+  last_sign_in_ip: 
+  provider: 
+  uid: 
+  admin: true
+  disabled: false
+  first_name: 
+  last_name: 
+  thumbnail: 
+  metadata: 

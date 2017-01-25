@@ -1,0 +1,140 @@
+
+result_1:
+  id: 1
+  title: https://www.netflix.com
+  url: https://www.netflix.com
+  status_id: 1
+  created_at: 2016-11-02 15:35:43.402487000 Z
+  updated_at: 2016-11-12 00:48:53.892322000 Z
+  domain:
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata:
+    array_test: ["1","2"]
+    trends:
+      open_vulnerabilities:
+        data:
+        - data:
+            Nov 11 2016 11:48:52: 0
+            Nov 11 2016 16:48:53: 0
+          name: open
+          library:
+            steppedLine: true
+    sitemap: []
+    curl_metadata:
+      Server: shakti-prod i-0ee8e795b8bde9360
+    scan_metadata:
+    - new: 0
+      closed: 1
+      parsed: '2016-11-11T11:48:52.491-08:00'
+      source: 'Curl: Curl - Test Task'
+      task_id: 1
+      existing: 0
+      reopened: 0
+      regression: 0
+    - new: 0
+      closed: 0
+      parsed: '2016-11-11T16:48:53.805-08:00'
+      source: 'Curl: Curl - Test Task'
+      task_id: 1
+      existing: 0
+      reopened: 0
+      regression: 0
+    vulnerabilities:
+    - id: c58ce1dcef0fd20b99cb725abb1b8aad
+      url: https://www.netflix.com
+      term: '200'
+      type: '"200" - HTTP Status Code Match'
+      source:
+      - curl
+      status: Auto Remediated
+      payload: ''
+      task_id: '1'
+      severity: Observation
+      identified: '2016-11-11T09:19:22.820-08:00'
+      status_code: '200'
+      attack_vectors: []
+      match_location: headers
+    vulnerability_count:
+      low: 0
+      high: 0
+      open: 0
+      closed: 1
+      medium: 0
+      source: {}
+      task_id: {}
+      critical: 0
+      key_suffix: {}
+      observation: 1
+      informational: 0
+  metadata_hash: {}
+
+result_2:
+  id: 2
+  title: https://github.com/Netflix/grouper
+  url: https://github.com/Netflix/grouper
+  status_id:
+  created_at: 2016-11-16 01:45:41.206070000 Z
+  updated_at: 2017-01-12 21:36:06.803003000 Z
+  domain: github.com
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata:
+    github_analyzer:
+      owner: Netflix
+      private: true
+      language:
+      account_type: Organization
+      git_clone_url: ssh://github.com/Netflix/grouper.git
+    vulnerabilities:
+    - id: 2600a431554c04bbbcd2b74a57f18d54
+      url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: Api
+      type: '"Api" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '2'
+      severity: High
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        'use strict';
+
+        angular.module('grouper')
+          .service('SearchApi', function (GrouperRestangular
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    - id: da05be901b9be3c6fadec856d5f29158
+      url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: Api
+      type: '"Api" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '2'
+      severity: Observation
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        ) {
+            return GrouperRestangular.all('search');
+          })
+          .service('SearchService', function (SearchApi
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    vulnerability_count:
+      open: 2
+      closed: 0
+      source:
+        github: 2
+      task_id:
+        '2': 2
+      key_suffix: {}
+  metadata_hash:

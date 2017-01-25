@@ -169,6 +169,10 @@ group :test do
   gem 'database_cleaner'
   gem 'shoulda'
   gem 'activerecord-nulldb-adapter'
+  gem 'minitest-reporters'
+  gem 'shoulda-matchers', '~> 2.0'
+  gem 'shoulda-callback-matchers', '~> 1.1.1'
+  gem 'simplecov', :require => false, :group => :test
 end
 
 gem 'foundation-rails', '5.3.3.0'

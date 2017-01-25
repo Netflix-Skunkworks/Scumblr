@@ -60,7 +60,7 @@ class Result < ActiveRecord::Base
   end
 
   # Uncommenting this line will cause a events to be created everytime
-  # a result is saved. This can result in a large number of events being 
+  # a result is saved. This can result in a large number of events being
   # stored in an active deployment
   # before_save :create_events
 
@@ -72,13 +72,14 @@ class Result < ActiveRecord::Base
 
   def self.to_csv
     CSV.generate do |csv|
-      
+
       attributes = all.try(:first).try(:attributes).try(:keys)
       csv << attributes
       all.each do |result|
         csv << result.attributes.values_at(*attributes)
       end
     end
+
   end
 
 
@@ -146,68 +147,71 @@ class Result < ActiveRecord::Base
   #  end
   # end
 
-  def create_events
+  # Unused method, consider removing Janurary 12th (S.B.)
+  # def create_events
 
-    # This will catch if the metadata hash was updated directly (i.e. result.metadata[:k] = v)
-    # But the event will not contain the correct old value. The work around is reassigning the
-    # metadata value by merging the changes in. I.e.:
-    # result.metadata = result.metadata.merge(k:v)
-    # Doing it this will both catch the change and the new/old value.
-    if(self.metadata_hash != self.metadata.to_json.hash.to_s)
-      self.metadata_will_change!
-    end
-    self.metadata_hash = self.metadata.to_json.hash.to_s
+  #   # This will catch if the metadata hash was updated directly (i.e. result.metadata[:k] = v)
+  #   # But the event will not contain the correct old value. The work around is reassigning the
+  #   # metadata value by merging the changes in. I.e.:
+  #   # result.metadata = result.metadata.merge(k:v)
+  #   # Doing it this will both catch the change and the new/old value.
+  #   if(self.metadata_hash != self.metadata.to_json.hash.to_s)
+  #     self.metadata_will_change!
+  #   end
+  #   self.metadata_hash = self.metadata.to_json.hash.to_s
 
 
 
-    if(self.changes.present?)
-      event = self.events.build(action: self.new_record? ? "Created" : "Updated", user_id: self.current_user.try(:id) )
-      self.changes.each do |k, v|
-        if k == "metadata_hash"
-          # We don't need to create a record of changes to the metadata hash
+  #   if(self.changes.present?)
+  #     event = self.events.build(action: self.new_record? ? "Created" : "Updated", user_id: self.current_user.try(:id) )
+  #     self.changes.each do |k, v|
+  #       if k == "metadata_hash"
+  #         # We don't need to create a record of changes to the metadata hash
 
-        elsif(k.ends_with?("_id") && (association = self.class.reflect_on_all_associations.select{|a| a.try(:foreign_key) == k}).present?)
-          associated_values = association.first.klass.where(id: [ v[0], v[1] ])
-          event.event_changes.build(field: association.first.class_name,
-                                    old_value: associated_values.select{|a| a.id == v[0]}.try(:first).to_s,
-                                    new_value: associated_values.select{|a| a.id == v[1]}.try(:first).to_s,
-                                    old_value_key: v[0],
-                                    new_value_key: v[1],
-                                    value_class: association.first.klass.to_s,
-                                    )
-        elsif(self.class.serialized_attributes.keys.include?(k))
+  #       elsif(k.ends_with?("_id") && (association = self.class.reflect_on_all_associations.select{|a| a.try(:foreign_key) == k}).present?)
+  #         associated_values = association.first.klass.where(id: [ v[0], v[1] ])
+  #         event.event_changes.build(field: association.first.class_name,
+  #                                   old_value: associated_values.select{|a| a.id == v[0]}.try(:first).to_s,
+  #                                   new_value: associated_values.select{|a| a.id == v[1]}.try(:first).to_s,
+  #                                   old_value_key: v[0],
+  #                                   new_value_key: v[1],
+  #                                   value_class: association.first.klass.to_s,
+  #                                   )
+  #       elsif(self.class.serialized_attributes.keys.include?(k))
 
-          event.event_changes.build(field: k.to_s, old_value: v[0].to_s, new_value: v[1].to_s)
-          HashDiff.diff(v[0] || {},v[1]).each do |diff|
-            field_name = (k.to_s + ": " + diff[1].to_s).titlecase
-            if(diff[0] == "-")
-              event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: nil)
-            elsif(diff[0] == "+")
-              event.event_changes.build(field: field_name, old_value: nil, new_value: diff[2].to_s)
-            elsif(diff[0] == "~")
-              event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: diff[3].to_s)
-            end
-          end
-        else
-          event.event_changes.build(field: k.to_s.titlecase, old_value: v[0].to_s, new_value: v[1].to_s)
-        end
-      end
-    end
-  end
+  #         event.event_changes.build(field: k.to_s, old_value: v[0].to_s, new_value: v[1].to_s)
+  #         HashDiff.diff(v[0] || {},v[1]).each do |diff|
+  #           field_name = (k.to_s + ": " + diff[1].to_s).titlecase
+  #           if(diff[0] == "-")
+  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: nil)
+  #           elsif(diff[0] == "+")
+  #             event.event_changes.build(field: field_name, old_value: nil, new_value: diff[2].to_s)
+  #           elsif(diff[0] == "~")
+  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: diff[3].to_s)
+  #           end
+  #         end
+  #       else
+  #         event.event_changes.build(field: k.to_s.titlecase, old_value: v[0].to_s, new_value: v[1].to_s)
+  #       end
+  #     end
+  #   end
+  # end
 
 
   def to_s
     "Result #{id}"
   end
 
-  def self.tagged_with(name)
-    Tagging.where({:tag_id=>Tag.find_all_by_name(name).map(&:id), :taggable_type=> "Result"}).map{|tagging| tagging.taggable}
-  end
+  # Unused methods and not fully implemented
+  # Removed 1-12-17 (S.B.)
+  # def self.tagged_with(name)
+  #   Tagging.where({:tag_id=>Tag.find_all_by_name(name).map(&:id), :taggable_type=> "Result"}).map{|tagging| tagging.taggable}
+  # end
 
-  def self.tag_counts
-    Tag.select("tags.*, count(taggings.tag_id) as count").
-      joins(:taggings).group("taggings.tag_id")
-  end
+  # def self.tag_counts
+  #   Tag.select("tags.*, count(taggings.tag_id) as count").
+  #     joins(:taggings).group("taggings.tag_id")
+  # end
 
   def tag_list
     tags.map(&:name).join(", ")
@@ -265,6 +269,7 @@ class Result < ActiveRecord::Base
         if(!status_code_only)
           sketchy_id = JSON.parse(response.body).try(:[],"id")
           self.metadata["sketchy_ids"] ||= []
+
           self.metadata["sketchy_ids"] << sketchy_id
           self.save
         end
@@ -509,9 +514,9 @@ class Result < ActiveRecord::Base
         filter_data = filter_data.try(:[],f)
       end
     end
-    
-    
-    
+
+
+
     # Define a proc for filtering the array
     # +keys+:: The key(s) under which a value is stored in the array element
     # +v+:: Should contain the current element of the array we're testing
@@ -525,7 +530,7 @@ class Result < ActiveRecord::Base
             value = nil
           end
         end
-        
+
         if(value.class == Array)
           (values & value).present?
         elsif(value.present?)
@@ -548,9 +553,9 @@ class Result < ActiveRecord::Base
       }
     end
 
-        
 
-    
+
+
 
     return data
   end
@@ -570,7 +575,7 @@ class Result < ActiveRecord::Base
 
     k=keys.shift
     parent = data
-    
+
     begin
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
@@ -584,18 +589,18 @@ class Result < ActiveRecord::Base
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
 
-            
+
             k = data.each_with_index.select { |v,index| k2.include?(v.try(:[],field).to_s) }.map { |pair| pair.try(:[],1) }.join(",")
             k = "[#{k}]"
-            
+
           end
 
           k2 = k[1..k.length-2].split(',')
-          
+
 
           k2.each do |k3|
             # data = data[k.to_i]
-            
+
             r = _traverse_and_update_metadata(data, [k3]+keys,value, r)
           end
           return r
@@ -713,7 +718,7 @@ class Result < ActiveRecord::Base
           end
           return r
         end
-            
+
       else
         # For other key types, we'll try it as a hash
         data = data.try(:[],k)

@@ -1,0 +1,17 @@
+
+event_8:
+  id: 8
+  action: Error
+  source: 'Task: Curl - Test Task'
+  details: |-
+    Unable to run task Curl - Test Task.
+
+    Error: undefined local variable or method `save_trends' for #<ScumblrTask::CurlAnalyzer:0x007ff21086fb00>
+
+    ["/Users/sbehrens/dev/Scumblr2/lib/scumblr_tasks/security/curl_analyzer.rb:640:in `run'", "/Users/sbehrens/dev/Scumblr2/app/models/task.rb:161:in `perform_task'", "(pry):3:in `__pry__'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:355:in `eval'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:355:in `evaluate_ruby'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:323:in `handle_line'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:243:in `block (2 levels) in eval'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:242:in `catch'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:242:in `block in eval'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:241:in `catch'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_instance.rb:241:in `eval'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:77:in `block in repl'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:67:in `loop'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:67:in `repl'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:38:in `block in start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/input_lock.rb:61:in `__with_ownership'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/input_lock.rb:79:in `with_ownership'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:38:in `start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/repl.rb:15:in `start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/pry-0.10.1/lib/pry/pry_class.rb:169:in `start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/railties-4.2.6/lib/rails/commands/console.rb:110:in `start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/railties-4.2.6/lib/rails/commands/console.rb:9:in `start'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/railties-4.2.6/lib/rails/commands/commands_tasks.rb:68:in `console'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/railties-4.2.6/lib/rails/commands/commands_tasks.rb:39:in `run_command!'", "/Users/sbehrens/.rvm/gems/ruby-2.3.0/gems/railties-4.2.6/lib/rails/commands.rb:17:in `<top (required)>'", "bin/rails:4:in `require'", "bin/rails:4:in `<main>'"]
+  date: 2016-11-11 17:20:15.573493000 Z
+  user_id:
+  eventable_id: 1
+  created_at: 2016-11-11 17:20:15.573589000 Z
+  updated_at: 2016-11-11 17:20:15.573589000 Z
+  eventable_type: Task

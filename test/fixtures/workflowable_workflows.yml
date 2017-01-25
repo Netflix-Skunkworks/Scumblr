@@ -1,0 +1,6 @@
+workflowable_workflow_1:
+  id: 1
+  name: Test Workflow
+  initial_stage_id:
+  created_at: 2017-01-20 18:44:39.686193000 Z
+  updated_at: 2017-01-20 18:44:39.686193000 Z

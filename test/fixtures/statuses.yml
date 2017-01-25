@@ -1,0 +1,18 @@
+
+status_1:
+  id: 1
+  name: Open
+  created_at: 2016-11-10 20:15:17.884749000 Z
+  updated_at: 2016-11-10 20:15:17.884749000 Z
+  closed: false
+  is_invalid: false
+  default: true
+
+status_2:
+  id: 2
+  name: Closed
+  created_at: 2016-11-10 20:15:33.884261000 Z
+  updated_at: 2016-11-10 20:15:33.884261000 Z
+  closed: true
+  is_invalid: false
+  default: false
