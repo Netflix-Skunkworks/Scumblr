@@ -14,7 +14,6 @@
 #
 require 'shellwords'
 require 'posix/spawn'
-require 'byebug'
 
 class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   include ActionView::Helpers::TextHelper
