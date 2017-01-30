@@ -92,7 +92,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
 
   def scan_with_bandit(local_repo_path)
     results = []
-    
+
     conf_str = ""
     if @options[:confidence_level].to_s.downcase == "low"
       conf_str = "-i"
@@ -140,7 +140,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
         end
         status = Timeout::timeout(600) do
           Rails.logger.info "Cloning and scanning #{git_url}"
-          
+
           #download the repo so we can scan it
           repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}"
           dsd = RepoDownloader.new(git_url, repo_local_path)
@@ -184,7 +184,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
         FileUtils.rm_rf(repo_local_path)
       end
     end
-    
+
   end
 
   def run
