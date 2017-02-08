@@ -123,6 +123,7 @@ $(function(){
               <%= link_to 'Enable', enable_task_path(task), method: :post, class: "button tiny" if can? :enable, task %>
             <% end %>
             <%= link_to 'Edit', edit_task_path(task), class: "button tiny" if can? :edit, task %>
+            <%= link_to 'Duplicate', new_task_path(task_id: task.id), class: "button tiny" if can? :create, Task %>
             <%= link_to 'Destroy', task, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" if can? :destroy, task %></td>
         </tr>
         <tr>
