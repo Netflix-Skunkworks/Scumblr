@@ -298,12 +298,15 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       rescue
         next
       end
+      if(searched_code)
+        matches = true
+      end
 
-      if searched_code
+      if searched_code && !@negative_match
         # puts "----Got Match!----\n"
         # puts searched_code.to_s
         vuln = Vulnerability.new
-        matches = true
+        
         if(@options[:key_suffix].present?)
           vuln.key_suffix = @options[:key_suffix]
         end
@@ -662,7 +665,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       end
     end
     # Track not-vulnerable results too.
-    counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@task_type}", @options[:_self].id, true, {})
+    counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@task_type}", @options[:_self].id, true, {isolate_vulnerabilities: true})
     open_count = ["new", "existing", "regression", "reopened"].sum{|type| counts[type].to_i }
     update_trends("open_vulnerability_count", {"open" =>open_count},{legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
 
@@ -691,7 +694,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   def run
     @trends = {}
     super
-    @options[:_self].metadata["latest_results_link"] = {text: "#{@trends.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:12>0"}
+    @options[:_self].metadata["latest_results_link"] = {text: "#{@trends.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
     save_trends
 
 

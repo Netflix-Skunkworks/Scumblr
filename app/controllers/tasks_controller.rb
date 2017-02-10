@@ -67,6 +67,21 @@ class TasksController < ApplicationController
     @task = Task.new
     @task_types = task_types
 
+    if(params[:task_id].present?)
+      @original_task = Task.where(id: params[:task_id]).first
+      if(@original_task)
+        @task.name = @original_task.name + " (Copy)"
+
+        @task.task_type = @original_task.task_type
+        @task.options = @original_task.options
+        @task.description = @original_task.description + " Copied from Task #{@original_task.id}"
+        @task.query = @original_task.query
+        @task.enabled = @original_task.enabled
+        @task.group = @original_task.group
+      end
+    end
+
+    
 
 
     respond_to do |format|
