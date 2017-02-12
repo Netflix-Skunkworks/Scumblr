@@ -195,10 +195,10 @@ class Task < ActiveRecord::Base
     if(results.blank?)
       # puts Thread.current["current_events"]
       unless Thread.current["current_events"].nil?
-        task.metadata.merge!({"current_events": Thread.current["current_events"]})
+        task.metadata.merge!({"current_events" => Thread.current["current_events"]})
       end
       unless Thread.current["current_results"].nil?
-        task.metadata.merge!({"current_results": Thread.current["current_results"]})
+        task.metadata.merge!({"current_results" => Thread.current["current_results"]})
       end
       if was_successful
         task.metadata["_last_run"] = task.metadata["_last_successful_run"] = Time.now
@@ -248,10 +248,10 @@ class Task < ActiveRecord::Base
     results = nil
     # Sync up and merge all the results and events changed
     unless Thread.current["current_events"].nil?
-      task.metadata.merge!({"current_events": Thread.current["current_events"]})
+      task.metadata.merge!({"current_events" => Thread.current["current_events"]})
     end
     unless Thread.current["current_results"].nil?
-      task.metadata.merge!({"current_results": Thread.current["current_results"]})
+      task.metadata.merge!({"current_results" => Thread.current["current_results"]})
     end
     Thread.current["current_results"] = {}
     Thread.current["previous_results"] = {}
