@@ -102,7 +102,7 @@ open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"]
          <%= hidden_field_tag("success_message", "Vulnerability added.") %>
 
          <tr>
-            <td><%= submit_tag("Add") %></td>
+            <td><%= submit_tag("Add", class:"button small") %></td>
             <td>
                <div id="panel_new_vuln_<%=@result.id%>" class="alert-box success" style="display: none"></div>
             </td>

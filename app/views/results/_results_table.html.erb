@@ -47,7 +47,7 @@
                 <%= render partial: "results/index_columns/#{c.to_s.gsub(":","_")}_data", locals:{result:result}  %>
                 <% rescue ActionView::MissingTemplate => exception %>
                 <% if(c.match /metadata:/i) %>
-                  <%= result.try(c.gsub(":","_")).to_s.gsub(/\A"|"\Z/, '') %>
+                  <%= result.try(c.gsub(":","_").to_s.downcase).to_s.gsub(/\A"|"\Z/, '') %>
                 <% else %>
                   <%= result.try(c).to_s %>
                 <% end %>

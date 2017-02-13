@@ -41,6 +41,7 @@
 
 
 
+
 li.name h1 a {
   padding-right: 0px !important;
 }
@@ -63,11 +64,6 @@ div.select2-drop-active
   display: none
 }
 
-td
-{
-word-wrap: break-word;
-white-space: normal;
-}
 
 ul.select2-choices li.select2-search-choice
 {
@@ -124,12 +120,12 @@ dl.accordion > dd dl.accordion > dd
 
 div.sidebar.result-sidebar
 {
-  margin-top: 50px
+  margin-top: 40px;
 }
 
 div.sidebar.result-sidebar-no-margin
 {
-  margin-top: 20px
+  margin-top: 10px
 }
 
 
@@ -373,7 +369,7 @@ background: linear-gradient(to left, #141E30 , #243B55); /* W3C, IE 10+/ Edge, F
     color: #ffffff!important;
 }
 
-@media screen and (max-width: 1250px) {
+@media screen and (max-width: 1510px) {
 
   .top-bar-section ul.left li.name{
       display: block!important;
@@ -470,7 +466,7 @@ table tr th, table tr td {
 }
 
 nav.top-bar, .top-bar.expanded .title-area {
-/*  margin-bottom: 0.9375rem;*/
+  margin-bottom: 0.9375rem;
   background: #141E30!important; /* fallback for old browsers */
   background: -webkit-linear-gradient(to left, #141E30 , #243B55)!important; /* Chrome 10-25, Safari 5.1-6 */
   background: linear-gradient(to left, #141E30 , #243B55)!important; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
@@ -481,7 +477,7 @@ nav.top-bar, .top-bar.expanded .title-area {
     background: transparent!important;
 }
 
-@media only screen and (min-width: 1250px) {
+@media only screen and (min-width: 1510px) {
 
 .top-bar-section .has-dropdown.hover > .dropdown, .top-bar-section .has-dropdown.not-click:hover > .dropdown {
     top: 55px;
@@ -540,10 +536,6 @@ nav label
   font-size: 10px !important;
   margin-left:10px
 
-}
-
-.tab-bar, .large-9.columns a.button {
-    margin-top: 0.9375rem!important;
 }
 
 .tab-bar h1 span.small-heading
@@ -691,13 +683,6 @@ button.adjust_top
   top: .9em;
 }
 
-table {
-    background: white;
-    margin-bottom: 1.25rem;
-    margin-top: 0.9375rem!important;
-    border: solid 1px #dddddd;
-}
-
 table button,table .button
 {
   margin-bottom: 0px;
@@ -745,7 +730,15 @@ table button,table .button
   margin-bottom: 5px;
 }
 
+#status-bar .sub-nav
+{
+  margin: -0.2rem 0 -0.1rem;
+}
 
+#result_details table, #result_associations table
+{
+  margin-bottom: 0px;
+}
 
 
 header {

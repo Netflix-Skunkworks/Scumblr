@@ -1070,7 +1070,7 @@ $topbar-height: 55px;
 // Transitions and breakpoint styles
 // $topbar-transition-speed: 300ms;
 // Using rem-calc for the below breakpoint causes issues with top bar
-$topbar-breakpoint: 1250px; // Change to 9999px for always mobile layout
+$topbar-breakpoint: 1510px; // Change to 9999px for always mobile layout
 $topbar-media-query: "only screen and (min-width: #{$topbar-breakpoint})" !default;
 
 // Divider Styles

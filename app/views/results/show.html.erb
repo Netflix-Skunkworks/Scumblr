@@ -8,6 +8,7 @@
 <div id="result_details">
   <%= render 'show_details' %>
 </div>
+<div id="result_associations">
 <h3 class="section_header">Identified By</h3>
 <%= render :partial=>"shared/abstract_table", :locals => {result_set: @associated_objects[:task_results]} %>
 <div id="upload_form" class="reveal-modal custom-modal" data-reveal>
@@ -63,6 +64,7 @@
 <% @comments.each do |thread| %>
   <%= render "shared/comment", :comment=> thread %>
 <% end %>
+</div>
 <%= content_for :sidebar do %>
   <div class="sidebar result-sidebar">
     <nav class="tab-bar">
