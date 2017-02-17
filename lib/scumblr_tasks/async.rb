@@ -74,20 +74,20 @@ class ScumblrTask::Async < ScumblrTask::Base
         #if it's less than 2 (this and one other) time to end this thread or we'll loop forever
         #this is for cases when all the workers died for some reason (error)
         if other_workers_running && threads_alive == 0
-          Rails.logger.debug "breaking out of queue thread"
+          #Rails.logger.debug "breaking out of queue thread"
           break
         end
         #we'll put 100 per worker in the queue
         while queue.size > @workers * 20
           sleep 0.5
-          Rails.logger.debug "in queue thread sleep"
+          #Rails.logger.debug "in queue thread sleep"
         end
         Rails.logger.debug "pushing onto queue: #{r.title.inspect}"
         #we have less than 1000, let's add one to the queue
         queue.push([i, r])
         i += 1
       end
-      Rails.logger.debug "queue thread finished all results"
+      #Rails.logger.debug "queue thread finished all results"
     end
     @parent_tracker ||= {}
     @parent_tracker["current_events"] ||= {}
@@ -101,7 +101,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     #lets get some stuff in the queue (or not if there are no results to add to the queue)
     while(threads[0].alive? && queue.empty?)
       sleep 0.01
-      Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
+      #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
     end
 
     @workers.times do |i|

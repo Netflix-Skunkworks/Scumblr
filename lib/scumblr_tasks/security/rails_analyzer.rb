@@ -1,4 +1,4 @@
-#     Copyright 2014 Netflix, Inc.
+#     Copyright 2016 Netflix, Inc.
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
 #     you may not use this file except in compliance with the License.
@@ -25,29 +25,23 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
   end
 
   def self.task_category
-    "Generic"
+    "Security"
   end
 
   def self.options
     return {
       :saved_result_filter=> {name: "Result Filter",
                               description: "Only run endpoint analyzer matching the given filter",
-                              required: true,
+                              required: false,
                               type: :saved_result_filter
                               },
-      # Not sure if this makes sense here, removing for now
-      #:saved_event_filter => { name: "Event Filter",
-      #  description: "Only @results with events matching the event filter",
-      #  required: false,
-      #  type: :saved_event_filter
-      #  },
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out expirmental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regularz expressions",
                       required: false,
                       type: :string
                       },
-      :confidence_level => {name: "Confindance Level",
-                            description: "Confindance level to include in results",
+      :confidence_level => {name: "Confidence Level",
+                            description: "Confidence level to include in results",
                             required: false,
                             type: :choice,
                             default: :High,
@@ -63,11 +57,29 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
     }
   end
 
+
+  def self.description
+    "Downloads Rails projects and runs Brakeman. Creates vulnerabilities for findings"
+  end
+
+  def self.config_options
+    {:downloads_tmp_dir =>{ name: "Repo Download Location",
+      description: "Location to download repos. Defaults to /tmp/rails_analyzer",
+      required: false
+      }
+    }
+  end
+
   def initialize(options={})
     # Do setup
     super
 
-    @temp_path = '/mnt/data/scumblr/rails_analyzer/'
+    @temp_path = Rails.configuration.try(:downloads_tmp_dir).to_s.strip
+    if @temp_path == ""
+      @temp_path = "/tmp"
+    end
+    @temp_path += "/rails_analyzer/"
+
     unless File.directory?(@temp_path)
       FileUtils.mkdir_p(@temp_path)
     end
@@ -78,7 +90,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
     before = {}
     after ={}
     contents = []
-    puts file_path
+    Rails.logger.info file_path
     if line_no.to_i <= 0 || file_path.strip == ""
       return the_hits
     end
@@ -146,8 +158,8 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
         end
       end
     end
-    puts "looked for #{filename}"
-    puts "found #{results.inspect}"
+    Rails.logger.info "looked for '#{filename}'"
+    Rails.logger.info "found '#{results.size}'"
     return results
   end
 
@@ -195,26 +207,35 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
 
   def perform_work(r)
     repo_local_path = ""
-    if r.metadata["depot_analyzer"].nil? || r.metadata["depot_analyzer"]["stash_git_url"] .nil?
-      create_event("No URL for result: #{r.id.to_s}", "Warn")
+    unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
+      create_error("No  URL for result: #{r.id.to_s}")
     else
-      stash_git_url = r.metadata["depot_analyzer"]["stash_git_url"]
-      puts "Cloning and scanning #{stash_git_url}"
+      if r.metadata.try(:[], "github_analyzer").present?
+        if r.metadata["github_analyzer"]["git_clone_url"].nil?
+          git_url = r.url + ".git"
+        else
+          git_url = r.metadata["github_analyzer"]["git_clone_url"]
+        end
+      elsif r.metadata.try(:[], "depot_analyzer").present?
+        git_url = r.metadata["depot_analyzer"]["git_clone_url"]
+      end
+      Rails.logger.info "Cloning and scanning #{git_url}"
       findings = []
       begin
-        #download the repo so we can scan it
-        #local_repo_path = download_repo(stash_git_url, r.url)
-        status = Timeout::timeout(120) do
-          repo_local_path = "#{@temp_path}#{stash_git_url.split('/').last.gsub(/\.git$/,"")}"
-          puts repo_local_path
-          url_parts = r.url.split("/")
-          project_base_url = "https://depotsearch.netflix.com/source/xref/stash/#{url_parts[4]}/#{url_parts[6]}"
-          dsd = RepoDownloader.new(project_base_url, stash_git_url, repo_local_path)
+        status = Timeout::timeout(600) do
+          #download the repo so we can scan it
+          #local_repo_path = download_repo(stash_git_url, r.url)
+          if git_url != ""
+            tmp_download_folder = r.url.split("/")[3]
+          end
+        
+          repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
+          dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
         end
         #Brakeman hangs when scanning some repos, normally a scan takes less than 5 seconds
         #We'll give it a minute before we kill it
-        status = Timeout::timeout(10) do
+        status = Timeout::timeout(100) do
           scan_with_brakeman(repo_local_path).each do |scan_result|
             scan_result["warnings"].each do |warning|
               #Only worry about the confidence level and above that was
@@ -293,14 +314,14 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
           r.metadata["rails_analyzer"] = true
           r.metadata["rails_results"] ||= {}
           r.metadata["rails_results"]["latest"] ||= {}
-          r.metadata["rails_results"]["git_repo"] = stash_git_url
+          r.metadata["rails_results"]["git_repo"] = git_url
           r.metadata["rails_results"]["results_date"] = Time.now.to_s
           if !findings.empty?
             r.update_vulnerabilities(findings)
           end
-          if r.changed?
+          #if r.changed?
             r.save!
-          end
+          #end
           #now that we're done with it, delete the cloned repo
           if Dir.exists?(repo_local_path)
             FileUtils.rm_rf(repo_local_path)
