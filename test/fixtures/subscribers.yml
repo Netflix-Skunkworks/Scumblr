@@ -3,7 +3,16 @@ subscriber_1:
   id: 1
   subscribable_id: 1
   subscribable_type: Flag
-  email: test_email@example.com
-  user_id: 
+  email: testscumblr@netflix.com
+  user_id:
+  created_at: 2017-01-20 18:45:47.865509000 Z
+  updated_at: 2017-01-20 18:45:47.865509000 Z
+
+subscriber_2:
+  id: 2
+  subscribable_id: 1
+  subscribable_type: SavedFilter
+  email: testscumblr@netflix.com
+  user_id:
   created_at: 2017-01-20 18:45:47.865509000 Z
   updated_at: 2017-01-20 18:45:47.865509000 Z

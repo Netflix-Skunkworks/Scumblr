@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rails', '4.2.6'
 
 gem 'zip'
-
+gem 'lograge'
 # Allow using posix-spawn for popen to save memory with multiple threads.
 gem 'posix-spawn'
 
@@ -152,7 +152,7 @@ end
 group :development, :dirtylaundrydev, :profile do
 
   gem 'byebug'
-  # gem 'quiet_assets'
+  gem 'quiet_assets'
   gem "better_errors"
   gem 'pry'
 

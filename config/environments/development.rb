@@ -21,6 +21,13 @@ Scumblr::Application.configure do
   config.cache_classes = false
   #config.cache_classes = true
 
+  config.lograge.enabled = true
+  config.lograge.custom_options = lambda do |event|
+    exceptions = %w(controller action format id)
+    {
+      params: event.payload[:params].except(*exceptions)
+    }
+  end
 
   # Disable automatically joining tables. This was added to prevent Rails from modifying searches on
   # metadata (jsonb) fields using the @> operator. If the right operand contains a dot separated value
