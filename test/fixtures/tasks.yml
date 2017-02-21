@@ -271,3 +271,161 @@ task_1:
     _last_status_event: 1023
     _last_status_message: Task completed in 95.585624344 seconds
     _last_successful_run: '2016-11-28T11:33:43.354-08:00'
+
+task_54:
+  id: 54
+  task_type: ScumblrTask::CurlAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: observation
+      saved_result_filter: '49'
+      saved_event_filter: ''
+      payloads: ''
+      saved_payloads: ''
+      force_port: ''
+      force_protocol: ''
+      key_suffix: ''
+      curl_command: 'curl -i -s -k -X ''GET'' -H ''User-Agent: Mozilla/5.0 (Macintosh;
+        Intel Mac OS X 10.11; rv:42.0) Gecko/20100101 Firefox/42.0'' ''$$result$$'' '
+      request_metadata: ''
+      saved_request_metadata: ''
+      status_code: '200'
+      response_string: ''
+      negative_match: '0'
+      strip_last_path: '0'
+    ivars:
+      :@permitted: true
+  name: Curl Test
+  description: ''
+  created_at: 2017-02-21 17:03:39.879247000 Z
+  updated_at: 2017-02-21 17:13:17.466585000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    trends:
+      scan_results:
+        data:
+        - data:
+            Feb 21 2017 09:04:17.472: 0.0
+            Feb 21 2017 09:06:42.594: 0.0
+            Feb 21 2017 09:09:35.419: 0.0
+            Feb 21 2017 09:13:16.199: 0.0
+          name: existing
+          library:
+            borderColor: "#999"
+            backgroundColor: "#999"
+        - data:
+            Feb 21 2017 09:04:17.472: 0.0
+            Feb 21 2017 09:06:42.594: 0.0
+            Feb 21 2017 09:09:35.419: 0.0
+            Feb 21 2017 09:13:16.199: 1.0
+          name: new
+          library:
+            borderColor: "#990000"
+            backgroundColor: "#990000"
+        - data:
+            Feb 21 2017 09:04:17.472: 0.0
+            Feb 21 2017 09:06:42.594: 0.0
+            Feb 21 2017 09:09:35.419: 0.0
+            Feb 21 2017 09:13:16.199: 0.0
+          name: reopened
+          library:
+            borderColor: "#fc8d59"
+            backgroundColor: "#fc8d59"
+        - data:
+            Feb 21 2017 09:04:17.472: 0.0
+            Feb 21 2017 09:06:42.594: 0.0
+            Feb 21 2017 09:09:35.419: 0.0
+            Feb 21 2017 09:13:16.199: 0.0
+          name: regression
+          library:
+            borderColor: "#ef6548"
+            backgroundColor: "#ef6548"
+        - data:
+            Feb 21 2017 09:04:17.472: 0.0
+            Feb 21 2017 09:06:42.594: 0.0
+            Feb 21 2017 09:09:35.419: 0.0
+            Feb 21 2017 09:13:16.199: 0.0
+          name: closed
+          library:
+            borderColor: "#034e7b"
+            backgroundColor: "#034e7b"
+      open_vulnerability_count:
+        data:
+        - data:
+            Feb 21 2017 09:04:17: 0.0
+            Feb 21 2017 09:06:42: 0.0
+            Feb 21 2017 09:09:35: 0.0
+            Feb 21 2017 09:13:16: 1.0
+          name: open
+          library:
+            steppedLine: true
+        library:
+          legend:
+            display: true
+    _last_run: '2017-02-21T09:13:17.280-08:00'
+    _start_time: '2017-02-21T09:13:10.047-08:00'
+    _last_status: Success
+    current_events:
+      Error: []
+      Warning: []
+    current_results:
+      created: []
+      updated:
+      - 60750
+    previous_events:
+      Error: []
+      Warning: []
+    previous_results:
+      created: []
+      updated:
+      - 60750
+    _last_status_event: 5120037
+    latest_results_link:
+      text: 1 results
+      search: q[metadata_search]=vulnerability_count:task_id:54>0
+    _last_status_message: Task completed in 6.217909 seconds
+    _last_successful_run: '2017-02-21T09:13:17.280-08:00'
+
+task_55:
+  id: 55
+  task_type: ScumblrTask::CurlAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: observation
+      saved_result_filter: '49'
+      saved_event_filter: ''
+      payloads: ''
+      saved_payloads: ''
+      force_port: ''
+      force_protocol: ''
+      key_suffix: ''
+      curl_command: 'NOPE -i -s -k -X ''GET'' -H ''User-Agent: Mozilla/5.0 (Macintosh;
+        Intel Mac OS X 10.11; rv:42.0) Gecko/20100101 Firefox/42.0'' ''$$result$$'' '
+      request_metadata: ''
+      saved_request_metadata: ''
+      status_code: '200'
+      response_string: ''
+      negative_match: '0'
+      strip_last_path: '0'
+    ivars:
+      :@permitted: true
+  name: Curl Test Bad Configuration
+  description: Bad configuration should result in error
+  created_at: 2017-02-21 20:12:13.276055000 Z
+  updated_at: 2017-02-21 20:12:26.177603000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-02-21T12:12:25.563-08:00'
+    _start_time: '2017-02-21T12:12:24.146-08:00'
+    _last_status: Failed
+    current_events:
+      Error:
+      - 5120039
+      - 5120040
+    current_results: {}
+    _last_status_event: 5120040
+    _last_status_message: Unable to run task Curl Test Bad Configuration....

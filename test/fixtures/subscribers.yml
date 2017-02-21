@@ -16,3 +16,12 @@ subscriber_2:
   user_id:
   created_at: 2017-01-20 18:45:47.865509000 Z
   updated_at: 2017-01-20 18:45:47.865509000 Z
+
+subscriber_3:
+  id: 3
+  subscribable_id: 1
+  subscribable_type: Task
+  email: testscumblr@netflix.com
+  user_id:
+  created_at: 2017-01-20 18:45:47.865509000 Z
+  updated_at: 2017-01-20 18:45:47.865509000 Z
