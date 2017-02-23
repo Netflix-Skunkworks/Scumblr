@@ -251,7 +251,9 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
 
               if confidence_levels.include?(warning["confidence"].to_s.strip)
                 vuln = Vulnerability.new
+                vuln.match_location = "fingerprint"
                 vuln.type = warning["warning_type"].to_s
+                vuln.fingerprint = warning["fingerprint"]
                 vuln.source_code_file = warning["file"].to_s
                 vuln.source_code_line = warning["line"].to_s
                 vuln.source_code = get_relevant_source(scan_result["railspath"] + "/" + warning["file"].to_s, warning["line"].to_i)
