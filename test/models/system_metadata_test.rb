@@ -15,13 +15,13 @@ class SystemMetadataTest < ActiveSupport::TestCase
   # Instance Method Tests
   test "should dump raw metadata" do
     metadata = fixture_result.metadata_raw
-    assert_equal(metadata, ["foo", "bar", "usa"].to_s)
+    assert_equal(["foo", "bar", "usa"].to_s, metadata)
   end
 
   test "should change to JSON" do
     metadata = SystemMetadata.new(key: "test")
     raw = metadata.metadata_raw={"foo": "bar"}
-    assert_equal(raw, {:foo=>"bar"})
+    assert_equal({:foo=>"bar"}, raw)
   end
 
 end

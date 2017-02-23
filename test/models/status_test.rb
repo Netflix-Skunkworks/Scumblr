@@ -12,15 +12,15 @@ class StatusTest < ActiveSupport::TestCase
   test "should set_defaults on new status" do
     status = Status.new
     status.set_defaults
-    assert_equal(status.is_invalid, false)
-    assert_equal(status.closed, false)
+    assert_equal(false, status.is_invalid)
+    assert_equal(false, status.closed)
   end
 
   test "should reset_default on after_save callback" do
-    assert_equal(fixture_status.reset_default.count, 2)
+    assert_equal(2, fixture_status.reset_default.count)
   end
 
   test "should to_string a name" do
-    assert_equal(fixture_status.to_s, "Open")
+    assert_equal("Open", fixture_status.to_s)
   end
 end

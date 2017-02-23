@@ -12,12 +12,12 @@ class TagTest < ActiveSupport::TestCase
   test "should show tagged results" do
     # Should load up one tagged result
     tagged = fixture_tag.tagged("Result")
-    assert_equal(tagged.count, 1)
+    assert_equal(1, tagged.count)
   end
 
   test "should show name_value" do
     # Should load up one tagged result
-    assert_equal(fixture_tag.name_value, "Foo: Bar")
+    assert_equal("Foo: Bar", fixture_tag.name_value)
   end
 
 end

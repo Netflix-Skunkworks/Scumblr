@@ -22,7 +22,7 @@ Scumblr::Application.configure do
   # and recreated between test runs. Don't rely on the data there!
   config.cache_classes = true
   config.eager_load = false
-
+  config.active_support.test_order = :sorted
   Rails.application.routes.default_url_options[:host] = "foo.scumblr.com"
   Rails.application.routes.default_url_options[:protocol] = "https://"
   # Disable automatically joining tables. This was added to prevent Rails from modifying searches on

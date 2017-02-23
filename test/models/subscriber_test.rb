@@ -14,6 +14,6 @@ class SubscriberTest < ActiveSupport::TestCase
 
   # Instance Method Tests
   test "should to_string a name" do
-    assert_equal(fixture_subscriber.subscriber_email, "testscumblr@netflix.com")
+    assert_equal("testscumblr@netflix.com", fixture_subscriber.subscriber_email)
   end
 end

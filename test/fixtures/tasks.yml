@@ -429,3 +429,59 @@ task_55:
     current_results: {}
     _last_status_event: 5120040
     _last_status_message: Unable to run task Curl Test Bad Configuration....
+
+task_56:
+  id: 56
+  task_type: ScumblrTask::GithubSyncAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      sync_type: user
+      owner: scumblrtest2
+      members: '0'
+      scope_visibility: public
+    ivars:
+      :@permitted: true
+  name: Github Sync Task
+  description: ''
+  created_at: 2017-02-22 00:55:29.701925000 Z
+  updated_at: 2017-02-22 00:56:35.305889000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-02-21T16:56:35.091-08:00'
+    _start_time: '2017-02-21T16:56:31.572-08:00'
+    _last_status: Success
+    current_results: {}
+    _last_status_event: 5120042
+    _last_status_message: Task completed in 2.231314 seconds
+    _last_successful_run: '2017-02-21T16:56:35.091-08:00'
+
+task_57:
+  id: 57
+  task_type: SearchProvider::Google
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      cx: ''
+      site: ''
+      days_to_search: ''
+      max_results: '1'
+    ivars:
+      :@permitted: true
+  name: Google Search Test
+  description: ''
+  created_at: 2017-02-22 17:37:22.538118000 Z
+  updated_at: 2017-02-22 17:37:50.772192000 Z
+  query: netflix
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-02-22T09:37:50.608-08:00'
+    _start_time: '2017-02-22T09:37:46.460-08:00'
+    _last_status: Success
+    current_results:
+      created:
+      - 61124
+    _last_status_event: 5120044
+    _last_status_message: Task completed in 1.046229 seconds
+    _last_successful_run: '2017-02-22T09:37:50.608-08:00'

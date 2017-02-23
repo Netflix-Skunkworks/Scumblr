@@ -28,26 +28,4 @@ class CommentTest < ActiveSupport::TestCase
   test "execute find_commentable method" do
     assert_equal(1, Comment.find_commentable("Result", 1).id)
   end
-  # Helpter Method Tests
-  # test "peform update_fields before save" do
-  #   new_event = Event.new(action: "Error", field: "foo", new_value: "bar", old_value: "test")
-  #   new_event.save!
-  #   assert_instance_of(ActiveSupport::TimeWithZone, new_event.date)
-  # end
-
-  # test "peform private field_name call" do
-  #   assert_equal("Task", fixture_event.send(:field_name))
-  # end
-
-  # # Instance Method Tests
-  # test "should perform a single event search" do
-  #   ransack, results = Event.perform_search(q={action_in: ["", "Error"], chronic_date_lteq: "today"}, 1, 25)
-  #   assert_equal(results.length, 1)
-  # end
-
-  # test "should perform a single event greater search" do
-  #   ransack, results = Event.perform_search(q={action_in: ["", "Error"], chronic_date_gteq: "November 10 2016"}, 1, 25)
-  #   assert_equal(results.length, 1)
-  # end
-
 end
