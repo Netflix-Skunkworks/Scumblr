@@ -231,6 +231,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
       end
 
+
       # If there are staved payloads, load them.
       if saved_users.present?
         @search_type = "user"
@@ -326,8 +327,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         end
       end
     rescue => e
-      create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-      raise "Unable to if suppiled input is an org"
+      create_event("Unable to determine if suppiled input is a valid org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
     end
 
     # Determine how many pages of users we need to retrieve
@@ -402,6 +402,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
 
     end
+
     @search_scope
 
   end
@@ -501,6 +502,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         begin
           # If the scope is a repo, we need to set a different query string
           if type == "repo"
+
             response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
           else
             response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
