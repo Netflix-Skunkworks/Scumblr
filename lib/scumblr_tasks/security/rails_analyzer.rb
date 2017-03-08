@@ -13,6 +13,13 @@
 #     limitations under the License.
 #
 #This task will download a repo via git or scraping depotsearch then run a scanner (or scanners) on it
+
+# Prioritize Brakeman Pro if available.
+begin
+  gem 'brakeman-pro'
+rescue Gem::LoadError
+end
+
 require 'brakeman'
 require 'bundler/audit/scanner'
 require 'shellwords'

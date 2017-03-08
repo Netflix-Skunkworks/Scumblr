@@ -14,7 +14,7 @@ gem 'colorize', require: false
 gem 'twitter'
 gem 'market_bot'
 gem 'koala'
-gem "brakeman"
+gem "brakeman", require: false
 gem "bundler-audit"
 gem 'rest-client'
 gem 'chartkick'
