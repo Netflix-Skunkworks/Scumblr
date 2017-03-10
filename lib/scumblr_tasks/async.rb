@@ -56,39 +56,41 @@ class ScumblrTask::Async < ScumblrTask::Base
       total = @results.count
     end
     
-    threads << Thread.new do
-      other_workers_running = false
+    #threads << Thread.new do
+      #other_workers_running = false
       i = 1
-      @results.find_each(batch_size: 200) do |r|
+      @results.find_each(batch_size: 10) do |r|
         #we only want to check if the other threads have had a chance to start up
-        threads_alive = 0
-        if threads.size > 2
-          threads.each_with_index do |check_thread, index|
-            if check_thread.alive? && index != 0
-              other_workers_running = true
-              threads_alive += 1
-            end
-          end
-        end
+        #threads_alive = 0
+        #if threads.size > 2
+        #  threads.each_with_index do |check_thread, index|
+        #    if check_thread.alive? && index != 0
+        #      other_workers_running = true
+        #      threads_alive += 1
+        #    end
+        #  end
+        #end
 
         #if it's less than 2 (this and one other) time to end this thread or we'll loop forever
         #this is for cases when all the workers died for some reason (error)
-        if other_workers_running && threads_alive == 0
+        #if other_workers_running && threads_alive == 0
           #Rails.logger.debug "breaking out of queue thread"
-          break
-        end
+        #  break
+        #end
         #we'll put 100 per worker in the queue
-        while queue.size > @workers * 20
-          sleep 0.5
+        #while queue.size > @workers * 20
+        #  sleep 0.5
           #Rails.logger.debug "in queue thread sleep"
-        end
-        Rails.logger.debug "pushing onto queue: #{r.title.inspect}"
+        #end
+        #Rails.logger.debug "pushing onto queue: #{r.title.inspect}"
         #we have less than 1000, let's add one to the queue
-        queue.push([i, r])
+        queue.push([i, r.id])
         i += 1
       end
+
+      @results = nil
       #Rails.logger.debug "queue thread finished all results"
-    end
+    #end
     @parent_tracker ||= {}
     @parent_tracker["current_events"] ||= {}
     @parent_tracker["current_events"]["Error"] ||= []
@@ -113,10 +115,11 @@ class ScumblrTask::Async < ScumblrTask::Base
           ActiveRecord::Base.connection_pool.with_connection do
             #run while the queue loading thread is still loading items
             #or if that finished loading, until the queue is empty
-            while(threads[0].alive? || !queue.empty?)
+            while(!queue.empty?)
               if(r_i = queue.pop(true))
                 beginning_time = Time.now
-                r = r_i[1]
+                rid = r_i[1]
+                r = Result(rid)
                 i = r_i[0]
                 Rails.logger.debug "#{self.class.task_type_name}: Processing #{i} of #{total}"
                 begin
@@ -146,10 +149,10 @@ class ScumblrTask::Async < ScumblrTask::Base
                 end
               else
                 #wait for a bit to let the other thread fill the queue
-                while(threads[0].alive? && queue.empty?)
-                  sleep 0.01
-                  Rails.logger.debug "in sleep waiting of queue to be filled"
-                end
+               # while(threads[0].alive? && queue.empty?)
+               #   sleep 0.01
+               #   Rails.logger.debug "in sleep waiting of queue to be filled"
+               # end
               end
             end
           end
