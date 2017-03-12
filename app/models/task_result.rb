@@ -16,8 +16,6 @@
 class TaskResult < ActiveRecord::Base
   belongs_to :result
   belongs_to :task
-  # attr_accessible :title, :body
-
 
   validates :result_id, uniqueness: { scope: :task_id }
 

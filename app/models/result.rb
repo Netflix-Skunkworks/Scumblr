@@ -101,6 +101,7 @@ class Result < ActiveRecord::Base
   after_create :create_task_event
 
   def create_task_event
+
     if(Thread.current[:current_task])
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
@@ -117,6 +118,7 @@ class Result < ActiveRecord::Base
   after_update :update_task_event
 
   def update_task_event
+
     if(Thread.current[:current_task])
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
@@ -522,24 +524,24 @@ class Result < ActiveRecord::Base
     # +v+:: Should contain the current element of the array we're testing
     # +values+:: The values which are valid and should cause the element to be included in the filtered array
     select_function = Proc.new { |keys,v, values|
-        value = v
-        Array(keys).each do |k|
-          begin
-            value = value.try(:[], k)
-          rescue
-            value = nil
-          end
+      value = v
+      Array(keys).each do |k|
+        begin
+          value = value.try(:[], k)
+        rescue
+          value = nil
         end
+      end
 
-        if(value.class == Array)
-          (values & value).present?
-        elsif(value.present?)
-          Array(values).include?(value)
-        else
-          value.present?
-        end
+      if(value.class == Array)
+        (values & value).present?
+      elsif(value.present?)
+        Array(values).include?(value)
+      else
+        value.present?
+      end
 
-      }
+    }
 
     # Call the above proc
     if(filter_data.class==Hash)
@@ -548,7 +550,7 @@ class Result < ActiveRecord::Base
       }
     else
       filter_data.select!{|v|
-       select_function.call(keys,v, values)
+        select_function.call(keys,v, values)
 
       }
     end
@@ -559,12 +561,12 @@ class Result < ActiveRecord::Base
 
     return data
   end
- # filter_metadata({a:{b:{c:[{a:1},{a:2},3,4,5]}}},[:a],1,[:a,:b,:c])
- #Result.first.filter_metadata(Result.find(39145).metadata,["severity"],["Critical","Medium"],["vulnerabilities"])["vulnerabilities"].count
- #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1]=severity&filter_values[1][1][]=Critical&filter_on[1][1]=vulnerabilities
- #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1][]=reporter&filter[1][1][]=username&filter_values[1][1][]=mongo&filter_on[1][1]=vulnerabilities
+  # filter_metadata({a:{b:{c:[{a:1},{a:2},3,4,5]}}},[:a],1,[:a,:b,:c])
+  #Result.first.filter_metadata(Result.find(39145).metadata,["severity"],["Critical","Medium"],["vulnerabilities"])["vulnerabilities"].count
+  #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1]=severity&filter_values[1][1][]=Critical&filter_on[1][1]=vulnerabilities
+  #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1][]=reporter&filter[1][1][]=username&filter_values[1][1][]=mongo&filter_on[1][1]=vulnerabilities
 
- private
+  private
 
 
   # Walk through the metadata and update the key(s) requested to new value
@@ -584,7 +586,7 @@ class Result < ActiveRecord::Base
       elsif(k[0]=="[")
         if(k.length > 2)
 
-           k2 = k[1..k.length-2].split(':')
+          k2 = k[1..k.length-2].split(':')
           if(k2.length > 1)
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)

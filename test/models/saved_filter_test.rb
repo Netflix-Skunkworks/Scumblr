@@ -33,6 +33,6 @@ class SavedFilterTest < ActiveSupport::TestCase
 
   test "should perform_search" do
     ransack, results = fixture_saved_filter.perform_search()
-    assert_equal(results.length, 1)
+    assert_equal(1, results.length)
   end
 end

@@ -29,3 +29,42 @@ saved_filter_1:
   saved_filter_type: Event
   store_index_columns: 
   index_columns: 'null'
+
+saved_filter_49:
+  id: 49
+  name: Netflix Site Filter
+  query: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      url_cont: ''
+      url_not_cont: ''
+      title_cont: ''
+      title_not_cont: ''
+      tags_id_in: &1
+      - ''
+      - '43'
+      user_id_in: &2
+      - ''
+      status_id_in:
+      - ''
+      tasks_id_in:
+      - ''
+      id_in_saved_event_filter: ''
+      metadata_search: ''
+      flags_id_in:
+      - ''
+      stages_id_in:
+      - ''
+      status_id_includes_closed: '0'
+    ivars:
+      :@permitted: false
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          *1: true
+          *2: true
+  user_id: 8
+  public: true
+  created_at: 2017-02-21 16:59:39.928028000 Z
+  updated_at: 2017-02-21 16:59:39.928028000 Z
+  saved_filter_type: Result
+  store_index_columns: false
+  index_columns: 'null'
