@@ -101,10 +101,10 @@ class ScumblrTask::Async < ScumblrTask::Base
     @parent_tracker["current_results"]["updated"] ||= []
 
     #lets get some stuff in the queue (or not if there are no results to add to the queue)
-    while(threads[0].alive? && queue.empty?)
-      sleep 0.01
+    #while(threads[0].alive? && queue.empty?)
+    #  sleep 0.01
       #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
-    end
+    #end
 
     @workers.times do |i|
       threads << Thread.new do
@@ -116,43 +116,47 @@ class ScumblrTask::Async < ScumblrTask::Base
             #run while the queue loading thread is still loading items
             #or if that finished loading, until the queue is empty
             while(!queue.empty?)
-              if(r_i = queue.pop(true))
-                beginning_time = Time.now
-                rid = r_i[1]
-                r = Result(rid)
-                i = r_i[0]
-                Rails.logger.debug "#{self.class.task_type_name}: Processing #{i} of #{total}"
-                begin
-                  perform_work(r)
-                    @semaphore.synchronize {
-                      if Thread.current[:current_task]
-                        unless Thread.current["current_events"].nil?
-                          @parent_tracker["current_events"]["Error"].push(*Thread.current["current_events"].try(:[], "Error"))
-                          @parent_tracker["current_events"]["Error"].uniq!
-                          @parent_tracker["current_events"]["Warning"].push(*Thread.current["current_events"].try(:[], "Warning"))
-                          @parent_tracker["current_events"]["Warning"].uniq!
+              begin
+                if(r_i = queue.pop(true))
+                  beginning_time = Time.now
+                  rid = r_i[1]
+                  r = Result.find(rid)
+                  i = r_i[0]
+                  Rails.logger.debug "#{self.class.task_type_name}: Processing #{i} of #{total}"
+                  begin
+                    perform_work(r)
+                      @semaphore.synchronize {
+                        if Thread.current[:current_task]
+                          unless Thread.current["current_events"].nil?
+                            @parent_tracker["current_events"]["Error"].push(*Thread.current["current_events"].try(:[], "Error"))
+                            @parent_tracker["current_events"]["Error"].uniq!
+                            @parent_tracker["current_events"]["Warning"].push(*Thread.current["current_events"].try(:[], "Warning"))
+                            @parent_tracker["current_events"]["Warning"].uniq!
+                          end
+                          unless Thread.current["current_results"].nil?
+                            @parent_tracker["current_results"]["created"].push(*Thread.current["current_results"].try(:[], "created"))
+                            @parent_tracker["current_results"]["created"].uniq!
+                            @parent_tracker["current_results"]["updated"].push(*Thread.current["current_results"].try(:[], "updated"))
+                            @parent_tracker["current_results"]["updated"].uniq!
+                          end
                         end
-                        unless Thread.current["current_results"].nil?
-                          @parent_tracker["current_results"]["created"].push(*Thread.current["current_results"].try(:[], "created"))
-                          @parent_tracker["current_results"]["created"].uniq!
-                          @parent_tracker["current_results"]["updated"].push(*Thread.current["current_results"].try(:[], "updated"))
-                          @parent_tracker["current_results"]["updated"].uniq!
-                        end
-                      end
-                    }
-                  end_time = Time.now
-                  #pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
-                  Rails.logger.debug "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
-                  r_i = nil
-                rescue => e
-                  create_error(e)
+                      }
+                    end_time = Time.now
+                    #pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
+                    Rails.logger.debug "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
+                    r_i = nil
+                  rescue => e
+                    create_error(e)
+                  end
+                else
+                  #wait for a bit to let the other thread fill the queue
+                 # while(threads[0].alive? && queue.empty?)
+                 #   sleep 0.01
+                 #   Rails.logger.debug "in sleep waiting of queue to be filled"
+                 # end
                 end
-              else
-                #wait for a bit to let the other thread fill the queue
-               # while(threads[0].alive? && queue.empty?)
-               #   sleep 0.01
-               #   Rails.logger.debug "in sleep waiting of queue to be filled"
-               # end
+              rescue ThreadError => e
+                Rails.logger.debug e.inspect
               end
             end
           end
@@ -166,9 +170,6 @@ class ScumblrTask::Async < ScumblrTask::Base
           end
           sleep(@database_backoff_time)
           retry
-
-        rescue ThreadError => e
-          Rails.logger.debug e.inspect
         rescue=>e
           create_error(e)
         ensure
