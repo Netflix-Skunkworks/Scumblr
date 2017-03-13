@@ -2,7 +2,15 @@
 tag_1:
   id: 1
   name: Foo
+  color:
+  value: 'Bar'
+  created_at: 2014-10-02 23:37:00.751180000 Z
+  updated_at: 2014-10-02 23:37:00.751180000 Z
+
+tag_44:
+  id: 44
+  name: Google Search Tag
   color: 
-  value: ''
-  created_at: 2017-01-12 17:12:27.478039000 Z
-  updated_at: 2017-01-12 17:12:27.478039000 Z
+  value: 
+  created_at: 2017-02-22 17:43:13.714992000 Z
+  updated_at: 2017-02-22 17:43:13.714992000 Z

@@ -70,7 +70,6 @@ class Task < ActiveRecord::Base
     true
   end
 
-
   def task_type_name
     begin
       type = self.task_type.to_s.constantize
@@ -114,27 +113,6 @@ class Task < ActiveRecord::Base
       self.subscribers.where(:email=>email.downcase.strip).first_or_initialize
     end
   end
-
-  # this will create metadata for CRUD on results for tasks
-  #after_save :create_task_event
-
-  # def create_task_event
-  #   if(Thread.current[:current_task])
-  #     #create an event linking the updated/new result to the task
-  #     calling_task = Task.where(id: Thread.current[:current_task]).first
-  #     calling_task.metadata["current_results"] ||={}
-  #     puts calling_task.metadata
-  #     calling_task.metadata["current_results"]["created"] ||=[]
-  #     calling_task.metadata["current_results"]["updated"] ||=[]
-
-  #     if self.new_record?
-  #       calling_task.metadata["current_results"]["created"] << self.id
-  #     else
-  #       calling_task.metadata["current_results"]["updated"] << self.id
-  #     end
-  #     calling_task.save!
-  #   end
-  # end
 
   def perform_task
     t = Time.now
@@ -193,6 +171,7 @@ class Task < ActiveRecord::Base
     end
 
     if(results.blank?)
+
       # puts Thread.current["current_events"]
       unless Thread.current["current_events"].nil?
         task.metadata.merge!({"current_events": Thread.current["current_events"]})
