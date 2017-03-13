@@ -229,6 +229,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
       Rails.logger.info "Cloning and scanning #{git_url}"
       findings = []
       begin
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
           #download the repo so we can scan it
           #local_repo_path = download_repo(stash_git_url, r.url)
@@ -240,8 +241,10 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
           dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
         end
+        }
         #Brakeman hangs when scanning some repos, normally a scan takes less than 5 seconds
         #We'll give it a minute before we kill it
+        @semaphore.synchronize {
         status = Timeout::timeout(100) do
           scan_with_brakeman(repo_local_path).each do |scan_result|
             scan_result["warnings"].each do |warning|
@@ -276,7 +279,9 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
             end
           end
         end
+        }
 
+        @semaphore.synchronize {
         status = Timeout::timeout(10) do
           scan_with_bundler_audit(repo_local_path).each do |scan_result|
             criticality_levels = []
@@ -314,6 +319,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
             end
           end
         end
+        }
       rescue Exception => e
         create_event("#{e.message} \n#{e.backtrace}", "Warn")
       ensure

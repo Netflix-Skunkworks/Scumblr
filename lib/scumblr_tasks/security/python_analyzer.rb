@@ -142,6 +142,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
         elsif r.metadata.try(:[], "depot_analyzer").present?
           git_url = r.metadata["depot_analyzer"]["git_clone_url"]
         end
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
           Rails.logger.info "Cloning and scanning #{git_url}"
           
@@ -152,7 +153,9 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
           dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
         end
+        }
 
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
           scan_with_bandit(repo_local_path).each do |scan_result|
             scan_result["results"].each do |issue|
@@ -172,6 +175,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
             end
           end
         end
+        }
         r.metadata["python_analyzer"] = true
         r.metadata["python_results"] ||= {}
         r.metadata["python_results"]["latest"] ||= {}
