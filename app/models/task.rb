@@ -136,7 +136,7 @@ class Task < ActiveRecord::Base
   #   end
   # end
 
-  def perform_task
+  def perform_task(task_params=nil)
     t = Time.now
     task = self
     task.metadata ||= {}
@@ -148,9 +148,7 @@ class Task < ActiveRecord::Base
     end
 
     task_type = task.task_type.constantize
-
-    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task})
-
+    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task, _params:task_params})
 
     results = nil
     begin

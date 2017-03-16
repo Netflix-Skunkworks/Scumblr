@@ -22,7 +22,7 @@ class ScreenshotRunner
     Sidekiq.logger.warn "*Result id: #{result_id.inspect}"
     total 100
     at 0, "t:Preparing to generate"
-    result_ids = Array(result_id.blank? ? Result.all.map{|r| r.id} : result_id)
+    result_ids = Array(result_id.blank? ? Result.all.select(:id).map{|r| r.id} : result_id)
     count = 0
     total_tasks = result_ids.count
     total total_tasks

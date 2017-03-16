@@ -15,7 +15,7 @@
 class Event < ActiveRecord::Base
   belongs_to :user
   belongs_to :eventable, polymorphic: true
-  has_many :event_changes
+  has_many :event_changes, :dependent => :delete_all
 
   before_save :update_fields
 

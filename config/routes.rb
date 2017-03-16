@@ -122,6 +122,7 @@ Scumblr::Application.routes.draw do
 
     member do
       get 'run', to: 'tasks#run'
+      post 'run', to: 'tasks#run'
       get 'get_metadata'
       post 'enable', to: 'tasks#enable'
       post 'disable', to: 'tasks#disable'

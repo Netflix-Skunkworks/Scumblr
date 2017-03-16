@@ -12,7 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
 class ScumblrTask::Sketchy < ScumblrTask::Base
   def self.task_type_name
     "Sketchy Task"
@@ -78,14 +77,17 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
 
   def initialize(options={})
     # Do setup
+
+    @return_batched_results = false
     super
   end
 
   def run
+
     @options.each do |k,v|
       puts "Option #{k}: #{v}"
     end
-
+    
     status_code_only = @options[:status_code_only] == 1 || @options[:status_code_only] == '1' || @options[:status_code_only] == true
 
     if(@options[:limit_to_results_without_attachments] == 1 || @options[:limit_to_results_without_attachments] == '1' || @options[:limit_to_results_without_attachments] == true)
@@ -93,11 +95,12 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
       @results = @results.includes(:result_attachments).where('result_attachments.id is null').references(:result_attachments)
     end
 
+    @results = @results.find_each(batch_size:10)
+
     result_ids = []
-    @results.find_each do |r|
+    @results.each do |r|
       result_ids << r.id
     end
-
 
     # puts "Result ids: #{result_ids}"
     ScreenshotSyncTaskRunner.perform_async(result_ids, status_code_only)

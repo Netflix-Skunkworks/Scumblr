@@ -18,27 +18,28 @@ class TaskRunner
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
 
-  def perform(task_ids=nil)
+  def perform(task_ids=nil, task_params=nil)
     
     at 0, "A:Preparing to run tasks"
     task_groups = Array(task_ids.blank? ? Task.where(enabled:true).group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
     count = 0
     total_count = task_groups.map{|k,v| v.count}.sum
     total total_count
-
+    group_index = 1
     task_groups.each do |group, tasks|
       Rails.logger.warn "Running group #{group}"
-      at count, "A:Running group #{group}"
+      at count, "A:Running group #{group}/#{task_groups.count}"
 
       workers = []
       tasks.each do |t|
         Rails.logger.warn "Running #{t.name}"
-        at count, "A:Running: #{t.name}"
-        workers << TaskWorker.perform_async(t.id)
+        # at count, "A:Queuing: #{t.name}"
+        workers << TaskWorker.perform_async(t.id, task_params)
       end
 
       while(!workers.empty?)
-        at count, "A:#{workers.count}/#{total_count} tasks complete"
+        at count, "A:Running group #{group_index}/#{task_groups.count}. Tasks complete: #{count}/#{total_count}."
+        
         Rails.logger.warn "#{workers.count} tasks remaining"
         workers.delete_if do |worker_id|
           status = Sidekiq::Status::status(worker_id)
@@ -48,6 +49,7 @@ class TaskRunner
       
         sleep(0.2)
       end
+      group_index += 1
     end
  
   end
