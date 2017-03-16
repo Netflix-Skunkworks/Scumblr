@@ -11,7 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-require 'byebug'
+
 class SystemMetadata < ActiveRecord::Base
   validates :key, uniqueness: true
   validates :key, presence: true
@@ -21,7 +21,6 @@ class SystemMetadata < ActiveRecord::Base
   attr_accessor :metadata_raw
 
   def metadata_raw
-  	byebug
     self.metadata.to_s
   end
 

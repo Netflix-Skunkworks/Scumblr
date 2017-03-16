@@ -59,7 +59,8 @@ class ScumblrTask::Async < ScumblrTask::Base
     #threads << Thread.new do
       #other_workers_running = false
       i = 1
-      @results.find_each(batch_size: 10) do |r|
+
+      @results.each do |r|
         #we only want to check if the other threads have had a chance to start up
         #threads_alive = 0
         #if threads.size > 2

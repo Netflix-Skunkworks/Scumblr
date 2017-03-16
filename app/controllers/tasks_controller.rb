@@ -15,7 +15,7 @@
 class TasksController < ApplicationController
   before_filter :load_task, only: [:show, :edit, :update, :destroy, :enable, :disable, :get_metadata]
   authorize_resource
-
+  skip_before_action :verify_authenticity_token, only: [:run]
 
 
   # GET /tasks
@@ -155,10 +155,15 @@ class TasksController < ApplicationController
 
   def run
     if(params[:id].present?)
+      if(request.method == "POST")
+        task_params = request.body.read
+      else
+        task_params = nil
+      end
       load_task
 
       #@task.perform_task
-      TaskRunner.perform_async(@task.id)
+      TaskRunner.perform_async(@task.id, task_params)
       @task.events << Event.create(field: "Task", action: "Run", user_id: current_user.id)
       respond_to do |format|
         format.html {redirect_to task_url(@task), :notice=>"Running task..."}
