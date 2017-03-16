@@ -17,7 +17,7 @@ class FlagTest < ActiveSupport::TestCase
 
   # Instance Method Tests
   test "executes subscriber_list correctly" do
-    assert_equal(flag_result.subscriber_list, "test_email@example.com")
+    assert_equal(flag_result.subscriber_list, "testscumblr@netflix.com")
   end
 
   test "executes setter subscriber_list correctly" do

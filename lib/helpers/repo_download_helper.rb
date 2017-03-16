@@ -48,7 +48,7 @@ class RepoDownloader
 
     github_token = Rails.configuration.try(:github_oauth_token).to_s.strip
     repo_url_parts = URI.parse(repo)
-    if github_token == ""
+    if github_token == "" || repo !~ /github.com/
       if has_ssh_key
         repo = repo.gsub(/^#{repo_url_parts.scheme}:\/\//, "ssh://")
       else

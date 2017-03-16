@@ -18,11 +18,21 @@ class SavedFilterTest < ActiveSupport::TestCase
   should serialize(:query)
 
   # # Load Fixture
-  # fixture_result_flag = ResultFlag.first
+  fixture_saved_filter = SavedFilter.first
 
-  # # Instance Method Tests
-  # test "should execute set_workflow" do
-  #   fixture_result_flag.set_workflow
-  #   assert_equal(fixture_result_flag.workflow_id, 1)
-  # end
+  # Instance Method Tests
+  test "should return a subscriber_list" do
+    emails = fixture_saved_filter.subscriber_list
+    assert_equal("testscumblr@netflix.com", emails)
+  end
+
+  test "should set a subscriber_list" do
+    fixture_saved_filter.subscriber_list="testscumblr@netflix.com"
+    assert_equal("testscumblr@netflix.com", fixture_saved_filter.subscriber_list)
+  end
+
+  test "should perform_search" do
+    ransack, results = fixture_saved_filter.perform_search()
+    assert_equal(results.length, 1)
+  end
 end

@@ -1,4 +1,4 @@
-#     Copyright 2014 Netflix, Inc.
+#     Copyright 2016 Netflix, Inc.
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
 #     you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
   end
 
   def self.task_category
-    "Generic"
+    "Security"
   end
 
   def self.options
@@ -33,25 +33,20 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
                               required: true,
                               type: :saved_result_filter
                               },
-      #:saved_event_filter => { name: "Event Filter",
-      #  description: "Only @results with events matching the event filter",
-      #  required: false,
-      #  type: :saved_event_filter
-      #  },
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out expirmental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regularz expressions",
                       required: false,
                       type: :string
                       },
-      :confidence_level => {name: "Confindance Level",
-                            description: "Confindance level to include in results",
+      :confidence_level => {name: "Confidence Level",
+                            description: "Confidence level to include in results",
                             required: false,
                             type: :choice,
                             default: :High,
                             choices: [:High, :Medium, :Low]
                             },
-      :severity_level => {name: "Confindance Level",
-                          description: "Confindance level to include in results",
+      :severity_level => {name: "Severity Level",
+                          description: "Severity level to include in results",
                           required: false,
                           type: :choice,
                           default: :High,
@@ -60,11 +55,27 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
     }
   end
 
+  def self.description
+    "Downloads python projects and runs Bandit. Creates vulnerabilities for findings"
+  end
+
+  def self.config_options
+    {:downloads_tmp_dir =>{ name: "Repo Download Location",
+      description: "Location to download repos. Defaults to /tmp/python_analyzer",
+      required: false
+      }
+    }
+  end
+
   def initialize(options={})
     # Do setup
     super
 
-    @temp_path = '/mnt/data/scumblr/python_analyzer/'
+    @temp_path = Rails.configuration.try(:downloads_tmp_dir).to_s.strip
+    if @temp_path == ""
+      @temp_path = "/tmp"
+    end
+    @temp_path += "/python_analyzer/"
 
     unless File.directory?(@temp_path)
       FileUtils.mkdir_p(@temp_path)
@@ -81,7 +92,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
 
   def scan_with_bandit(local_repo_path)
     results = []
-    #Dir.chdir(local_repo_path) do
+    
     conf_str = ""
     if @options[:confidence_level].to_s.downcase == "low"
       conf_str = "-i"
@@ -118,24 +129,33 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
   def perform_work(r)
     repo_local_path = ""
     findings = []
-    stash_git_url = ""
     begin
-      if r.metadata["depot_analyzer"].nil? || r.metadata["depot_analyzer"]["stash_git_url"].nil?
-        create_event("No URL for result: #{r.id.to_s}", "Warn")
+      unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
+        create_error("No  URL for result: #{r.id.to_s}")
       else
+        if r.metadata.try(:[], "github_analyzer").present?
+          if r.metadata["github_analyzer"]["git_clone_url"].nil?
+            git_url = r.url + ".git"
+          else
+            git_url = r.metadata["github_analyzer"]["git_clone_url"]
+          end
+        elsif r.metadata.try(:[], "depot_analyzer").present?
+          git_url = r.metadata["depot_analyzer"]["git_clone_url"]
+        end
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
-          stash_git_url = r.metadata["depot_analyzer"]["stash_git_url"]
-          puts "Cloning and scanning #{stash_git_url}"
-
+          Rails.logger.info "Cloning and scanning #{git_url}"
+          
           #download the repo so we can scan it
-          #local_repo_path = download_repo(stash_git_url, r.url)
-          repo_local_path = "#{@temp_path}#{stash_git_url.split('/').last.gsub(/\.git$/,"")}"
-          url_parts = r.url.split("/")
-          project_base_url = "http://depotsearch.netflix.com/source/xref/stash/#{url_parts[4]}/#{url_parts[6]}"
-          dsd = RepoDownloader.new(project_base_url, stash_git_url, repo_local_path)
+          #byebug
+          
+          repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
+          dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
         end
+        }
 
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
           scan_with_bandit(repo_local_path).each do |scan_result|
             scan_result["results"].each do |issue|
@@ -146,7 +166,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
               if(@options[:key_suffix].present?)
                 vuln.key_suffix = @options[:key_suffix]
               end
-              vuln.source_code_file = issue["filename"].to_s
+              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "")
               vuln.source_code_line = issue["line_number"].to_s
               vuln.confidence_level = issue["issue_confidence"].to_s
               vuln.severity = issue["issue_severity"].to_s
@@ -155,17 +175,18 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
             end
           end
         end
+        }
         r.metadata["python_analyzer"] = true
         r.metadata["python_results"] ||= {}
         r.metadata["python_results"]["latest"] ||= {}
-        r.metadata["python_results"]["git_repo"] = stash_git_url
+        r.metadata["python_results"]["git_repo"] = git_url
         r.metadata["python_results"]["results_date"] = Time.now.to_s
         if !findings.empty?
           r.update_vulnerabilities(findings)
         end
-        if r.changed?
+        #if r.changed?
           r.save!
-        end
+        #end
       end
       #now that we're done with it, delete the cloned repo
     ensure
@@ -173,7 +194,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
         FileUtils.rm_rf(repo_local_path)
       end
     end
-
+    
   end
 
   def run
