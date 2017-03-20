@@ -70,7 +70,6 @@ class Task < ActiveRecord::Base
     true
   end
 
-
   def task_type_name
     begin
       type = self.task_type.to_s.constantize
@@ -191,6 +190,7 @@ class Task < ActiveRecord::Base
     end
 
     if(results.blank?)
+
       # puts Thread.current["current_events"]
       unless Thread.current["current_events"].nil?
         task.metadata.merge!({"current_events": Thread.current["current_events"]})

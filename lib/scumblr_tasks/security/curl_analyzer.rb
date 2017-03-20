@@ -306,7 +306,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         # puts "----Got Match!----\n"
         # puts searched_code.to_s
         vuln = Vulnerability.new
-        
+
         if(@options[:key_suffix].present?)
           vuln.key_suffix = @options[:key_suffix]
         end
@@ -528,9 +528,6 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         end
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
 
-        # puts "[*] #{data.inspect}"
-
-
         match_update = false
         # vulnerabilities = []
         if exit_status.to_i != 0
@@ -593,8 +590,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
               upload_s3(r, data)
             end
             # If status_code matches, create a vulnerability
-          elsif @response_string.nil? and @status_code.present? and @status_code.to_i == status_code.to_i
-
+          elsif @response_string.to_s == "" and @status_code.present? and @status_code.to_i == status_code.to_i
 
             match_update = true
             vuln = Vulnerability.new
@@ -632,7 +628,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
               upload_s3(r, data)
             end
             # If the response string matches expected, create metadata
-          elsif @status_code.nil? and @response_string.present?
+          elsif @status_code.to_s == "" and @response_string.present?
 
             *headers, response_body = data.split("\r\n")
             response_body = response_body.split("\n")

@@ -12,6 +12,6 @@ class ResultFlagTest < ActiveSupport::TestCase
   # Instance Method Tests
   test "should execute set_workflow" do
     fixture_result_flag.set_workflow
-    assert_equal(fixture_result_flag.workflow_id, 1)
+    assert_equal(1,fixture_result_flag.workflow_id)
   end
 end
