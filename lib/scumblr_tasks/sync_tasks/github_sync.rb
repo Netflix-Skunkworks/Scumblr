@@ -175,6 +175,13 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         res.metadata["github_analyzer"]["language"] = repo["language"]
         res.metadata["github_analyzer"]["private"] = repo["private"]
         res.metadata["github_analyzer"]["account_type"] = repo.owner.type
+
+        if repo.private
+          res.metadata["github_analyzer"]["git_clone_url"] = repo["ssh_url"]
+        else
+          res.metadata["github_analyzer"]["git_clone_url"] = repo["clone_url"]
+	end
+
         res.save
       end
     end
