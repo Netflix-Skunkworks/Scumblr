@@ -144,6 +144,7 @@ class ResultTest < ActiveSupport::TestCase
   if Rails.configuration.try(:sketchy_url).present?
     test "create attachment from sketchy" do
       fixture_result.create_attachment_from_sketchy("https://www.google.com/")
+
       assert_equal(Fixnum, fixture_result.metadata["sketchy_ids"].first.class)
       fixture_result.metadata["sketchy_ids"] = nil
     end

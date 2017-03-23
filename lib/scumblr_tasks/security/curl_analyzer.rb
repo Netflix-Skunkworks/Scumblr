@@ -290,15 +290,16 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             matched_expression = searched_code[1].to_s
           end
           if r.metadata[:curl_metadata].key?(request_metadata.keys[line_no])
-            curl_metadata[request_metadata.keys[line_no] + "-" + duplicate_keys.to_s] = matched_expression.strip.trucate(300)
+            curl_metadata[request_metadata.keys[line_no] + "-" + duplicate_keys.to_s] = matched_expression.strip.truncate(300)
             duplicate_keys += 1
           else
-            curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip.trucate(300)
+            curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip.truncate(300)
           end
         end
       end
         r.metadata[:curl_metadata].merge!(curl_metadata)
     end
+
   end
 
   def match_environment(r, type, response_data, response_string, request_url, status_code=nil, include_status=false, payload=nil)

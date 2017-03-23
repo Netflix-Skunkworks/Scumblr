@@ -486,6 +486,62 @@ task_57:
     _last_status_message: Task completed in 1.046229 seconds
     _last_successful_run: '2017-02-22T09:37:50.608-08:00'
 
+task_60:
+  id: 60
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix:
+      max_results: '200'
+      search_terms: ""
+      saved_terms: '2'
+      json_terms: ''
+      user:
+      saved_users: '3'
+      repo:
+      saved_repos: ''
+      scope: both
+      members: '0'
+    ivars:
+      :@permitted: true
+  name: Github Code Search - Saved Users
+  description: ''
+  created_at: 2017-02-23 21:45:17.906273000 Z
+  updated_at: 2017-02-24 00:34:06.470663000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_61:
+  id: 61
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix:
+      max_results: '200'
+      search_terms: ""
+      saved_terms: '2'
+      json_terms: ''
+      user:
+      saved_users: ''
+      repo:
+      saved_repos: '4'
+      scope: both
+      members: '0'
+    ivars:
+      :@permitted: true
+  name: Github Code Search - Bad Repos
+  description: ''
+  created_at: 2017-02-23 21:45:17.906273000 Z
+  updated_at: 2017-02-24 00:34:06.470663000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
 task_58:
   id: 58
   task_type: ScumblrTask::GithubAnalyzer
@@ -522,12 +578,40 @@ task_59:
       severity: high
       key_suffix: test
       max_results: '200'
-      search_terms: fsafasljfssfa
+      search_terms: kjsflkjsadf
       saved_terms: ''
       json_terms: ''
       user: ''
       saved_users: ''
       repo: scumblrtest2/test_repo
+      saved_repos: ''
+      scope: both
+      members: '0'
+    ivars:
+      :@permitted: true
+  name: Github Repo Search Test
+  description: " Copied from Task 58"
+  created_at: 2017-02-24 00:52:04.421295000 Z
+  updated_at: 2017-02-24 00:52:04.421295000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_62:
+  id: 62
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix: test
+      max_results: '200'
+      search_terms: "netflix\r\nbar\r\nslksalajfslksjfkafs\r\nblah12345\r\nlkjlkjlk"
+      saved_terms: ''
+      json_terms: ''
+      user: 'Netflix'
+      saved_users: ''
+      repo: ''
       saved_repos: ''
       scope: both
       members: '0'

@@ -42,7 +42,6 @@ module ScumblrTask
     end
 
     def initialize(options={})
-      require 'byebug'
       @options = options
       thread_tracker = ThreadTracker.new()
       thread_tracker.create_tracking_thread(@options[:_self])
