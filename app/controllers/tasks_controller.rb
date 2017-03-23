@@ -81,7 +81,7 @@ class TasksController < ApplicationController
       end
     end
 
-    
+
 
 
     respond_to do |format|
@@ -317,6 +317,7 @@ class TasksController < ApplicationController
 
   def task_params
     all_options = params.require(:task).fetch(:options, nil).try(:permit!)
+
     params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled).merge(:options =>all_options)
   end
 
