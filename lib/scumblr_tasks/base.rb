@@ -52,9 +52,9 @@ module ScumblrTask
       # previous events key.
 
       if(@options[:_self].present?)
-        tags = []
         begin
           self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
+            tags = []
             @options[k].split(",").each do |tag_name|
               tags << Tag.where(name: tag_name.strip).first_or_create
             end
