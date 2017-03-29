@@ -13,11 +13,11 @@ class ResultAttachmentTest < ActiveSupport::TestCase
 
   # Instance Method Tests
   test "should execute get_expiring_url" do
-    assert_equal(fixture_attachment.get_expiring_url.gsub(/\?.*/, ''), "/system/result_attachments/attachments/000/000/001/original/test.png")
+    assert_equal("/system/result_attachments/attachments/000/000/001/original/test.png", fixture_attachment.get_expiring_url.gsub(/\?.*/, ''))
   end
   test "should execute pretty_filesize" do
     test_attachment = ResultAttachment.new
     test_attachment.attachment = File.new('test/fixtures/files/happy.jpg')
-    assert_equal(test_attachment.pretty_filesize, "206.85 KiB")
+    assert_equal("206.85 KiB", test_attachment.pretty_filesize)
   end
 end

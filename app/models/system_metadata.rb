@@ -15,9 +15,8 @@
 class SystemMetadata < ActiveRecord::Base
   validates :key, uniqueness: true
   validates :key, presence: true
-  validates :metadata, :presence => { :message => "bad json " }
+  validates :metadata, :presence => { :message => "bad json" }
   # set custom emtadata presence message and check if nil using prescence
-  #validates :metadata, presence: true
   attr_accessor :metadata_raw
 
   def metadata_raw
@@ -27,6 +26,7 @@ class SystemMetadata < ActiveRecord::Base
   def metadata_raw=(value)
     begin
       self.metadata = JSON(value)
+
     rescue
       self.metadata = ""
     end

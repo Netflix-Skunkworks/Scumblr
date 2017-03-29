@@ -6,3 +6,12 @@ flag_1:
   description: ''
   created_at: 2017-01-20 18:45:47.837104000 Z
   updated_at: 2017-01-20 18:45:47.837104000 Z
+
+flag_3:
+  id: 3
+  name: Vulnerability
+  color: 
+  workflow_id: 2
+  description: ''
+  created_at: 2015-10-15 21:54:34.084883000 Z
+  updated_at: 2016-08-31 23:06:16.721779000 Z
