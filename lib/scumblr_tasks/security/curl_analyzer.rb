@@ -507,8 +507,6 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     @semaphore.synchronize{
       urls.each_with_index do |url, index|
         if @visited_urls.include? url
-          require 'byebug'
-          byebug
           urls.delete_at(index)
         else
           @visited_urls << url
