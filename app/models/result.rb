@@ -69,15 +69,11 @@ class Result < ActiveRecord::Base
   end
 
   def add_tags(tags)
-    begin
       tags.each do |the_tag|
         unless self.tags.include? the_tag
           self.tags << the_tag
         end
       end
-    rescue => e
-      puts e
-    end
   end
 
   def self.to_csv
