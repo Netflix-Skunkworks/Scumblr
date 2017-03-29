@@ -13,6 +13,13 @@
 #     limitations under the License.
 #
 #This task will download a repo via git or scraping depotsearch then run a scanner (or scanners) on it
+
+# Prioritize Brakeman Pro if available.
+begin
+  gem 'brakeman-pro'
+rescue Gem::LoadError
+end
+
 require 'brakeman'
 require 'bundler/audit/scanner'
 require 'shellwords'
@@ -36,7 +43,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                               type: :saved_result_filter
                               },
       :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out experimental regularz expressions",
+                      description: "Provide a key suffix for testing out experimental regular expressions",
                       required: false,
                       type: :string
                       },
@@ -45,7 +52,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                             required: false,
                             type: :choice,
                             default: :High,
-                            choices: [:High, :Medium, :Weak]
+                            choices: [:High, :Medium, :Weak, :Informational]
                             },
       :severity => {name: "Severity",
                     description: "Severity to include in results",
@@ -222,6 +229,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
       Rails.logger.info "Cloning and scanning #{git_url}"
       findings = []
       begin
+        @semaphore.synchronize {
         status = Timeout::timeout(600) do
           #download the repo so we can scan it
           #local_repo_path = download_repo(stash_git_url, r.url)
@@ -233,25 +241,31 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
           dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
         end
+        }
         #Brakeman hangs when scanning some repos, normally a scan takes less than 5 seconds
         #We'll give it a minute before we kill it
+        @semaphore.synchronize {
         status = Timeout::timeout(100) do
           scan_with_brakeman(repo_local_path).each do |scan_result|
             scan_result["warnings"].each do |warning|
               #Only worry about the confidence level and above that was
               #chosen by the user
-              confidence_levels = []
-              if @options[:confidence_level].to_s == "High"
-                confidence_levels = ["High"]
-              elsif @options[:confidence_level].to_s == "Medium"
-                confidence_levels = ["High", "Medium"]
+              confidence_levels = case @options[:confidence_level].to_s
+              when "High"
+                ["High"]
+              when "Medium"
+                ["High", "Medium"]
+              when "Weak"
+                ["High", "Medium", "Weak"]
               else
-                confidence_levels = ["High", "Medium", "Weak"]
+                ["High", "Medium", "Weak", "Info"]
               end
 
               if confidence_levels.include?(warning["confidence"].to_s.strip)
                 vuln = Vulnerability.new
+                vuln.match_location = "fingerprint"
                 vuln.type = warning["warning_type"].to_s
+                vuln.fingerprint = warning["fingerprint"]
                 vuln.source_code_file = warning["file"].to_s
                 vuln.source_code_line = warning["line"].to_s
                 vuln.source_code = get_relevant_source(scan_result["railspath"] + "/" + warning["file"].to_s, warning["line"].to_i)
@@ -261,15 +275,23 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
                 end
 
                 vuln.details = warning["message"].to_s
-                vuln.confidence_level = warning["confidence"].to_s
-                vuln.severity = warning["confidence"].to_s
+
+                if warning["confidence"] == "Info"
+                  confidence = "Informational"
+                else
+                  confidence = warning["confidence"]
+                end
+
+                vuln.confidence_level = vuln.severity = confidence
                 vuln.source = "Brakeman"
                 findings.push vuln
               end
             end
           end
         end
+        }
 
+        @semaphore.synchronize {
         status = Timeout::timeout(10) do
           scan_with_bundler_audit(repo_local_path).each do |scan_result|
             criticality_levels = []
@@ -307,6 +329,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
             end
           end
         end
+        }
       rescue Exception => e
         create_event("#{e.message} \n#{e.backtrace}", "Warn")
       ensure

@@ -42,6 +42,8 @@ module ScumblrTask
     end
 
     def initialize(options={})
+      @return_batched_results = true unless defined?(@return_batched_results)
+
       @options = options
       thread_tracker = ThreadTracker.new()
       thread_tracker.create_tracking_thread(@options[:_self])
@@ -135,6 +137,11 @@ module ScumblrTask
       if(@results == Result)
         @results = Result.all
       end
+
+      if(@return_batched_results != false)
+        @results = @results.find_each(batch_size: 10)
+      end
+      
     end
 
     def run

@@ -114,7 +114,28 @@ class Task < ActiveRecord::Base
     end
   end
 
-  def perform_task
+  # this will create metadata for CRUD on results for tasks
+  #after_save :create_task_event
+
+  # def create_task_event
+  #   if(Thread.current[:current_task])
+  #     #create an event linking the updated/new result to the task
+  #     calling_task = Task.where(id: Thread.current[:current_task]).first
+  #     calling_task.metadata["current_results"] ||={}
+  #     puts calling_task.metadata
+  #     calling_task.metadata["current_results"]["created"] ||=[]
+  #     calling_task.metadata["current_results"]["updated"] ||=[]
+
+  #     if self.new_record?
+  #       calling_task.metadata["current_results"]["created"] << self.id
+  #     else
+  #       calling_task.metadata["current_results"]["updated"] << self.id
+  #     end
+  #     calling_task.save!
+  #   end
+  # end
+
+  def perform_task(task_params=nil)
     t = Time.now
     task = self
     task.metadata ||= {}
@@ -126,9 +147,7 @@ class Task < ActiveRecord::Base
     end
 
     task_type = task.task_type.constantize
-
-    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task})
-
+    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task, _params:task_params})
 
     results = nil
     begin
