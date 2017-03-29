@@ -180,7 +180,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
       fixedPath = railspath.gsub(/app$/, "")
       #Brakeman throws an error if the app folder doesn't exist, checking for it first
       if Dir.exists?(fixedPath + "/app")
-        tracker = Brakeman.run fixedPath
+        tracker = Brakeman.run({app_path: fixedPath, :ignore_ifs => true})
         results.push JSON.parse(tracker.report.to_json).merge({"railspath" => fixedPath})
       else
         create_event("There is no app folder in #{railspath}.", "Warn")

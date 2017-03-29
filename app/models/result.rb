@@ -321,7 +321,18 @@ class Result < ActiveRecord::Base
     options[:saved_event_filter_id] = q[:id_in_saved_event_filter]
     options[:saved_event_filter_id] = nil if options[:saved_event_filter_id] == 0
 
-    ransack_search = Result.includes(:status, :result_attachments).search(q.except(:metadata_search,:id_in_saved_event_filter))
+    ransack_search = Result
+
+    if(options.include?(:includes))
+      if(options[:includes].present?)
+        # Include the associations requested
+        ransack_search = ransack_search.includes(options[:includes])
+      end
+    else
+      ransack_search = ransack_search.includes(:status, :result_attachments)
+    end
+
+    ransack_search = ransack_search.search(q.except(:metadata_search,:id_in_saved_event_filter))
 
 
 
