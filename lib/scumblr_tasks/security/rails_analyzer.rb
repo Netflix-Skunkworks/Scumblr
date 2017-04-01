@@ -15,12 +15,12 @@
 #This task will download a repo via git or scraping depotsearch then run a scanner (or scanners) on it
 
 # Prioritize Brakeman Pro if available.
-begin
-  gem 'brakeman-pro'
-rescue Gem::LoadError
-end
+# begin
+#   require 'brakeman-pro'
+# rescue Gem::LoadError
+#   require 'brakeman'
+# end
 
-require 'brakeman'
 require 'bundler/audit/scanner'
 require 'shellwords'
 require 'find'
@@ -82,7 +82,9 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
 
       Rails.logger.info("[*] Running brakeman on #{r.id}")
       Rails.logger.info("[*] Memory: #{before_memory}")
+
       perform_work(r)
+      
 
       after_memory = mem.mb
       @options[:_self].metadata["memory"]["result"][r.id]["after"] = after_memory
@@ -200,8 +202,43 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
       fixedPath = railspath.gsub(/app$/, "")
       #Brakeman throws an error if the app folder doesn't exist, checking for it first
       if Dir.exists?(fixedPath + "/app")
-        tracker = Brakeman.run({app_path: fixedPath, :ignore_ifs => true})
-        results.push JSON.parse(tracker.report.to_json).merge({"railspath" => fixedPath})
+        # Try to run brakeman pro first, if the command doesn't exist we'll run regular brakeman
+
+        begin
+          pid, stdin, stdout, stderr = popen4("brakeman-pro", "#{fixedPath}", "-o", "#{fixedPath}/output.json")
+        rescue
+          status_code = 127
+        else
+          pid, status = Process::waitpid2(pid)
+          status_code = status.exitstatus
+        ensure
+          [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+        end
+          
+          
+
+        if(status_code == 127)
+          begin
+            pid, stdin, stdout, stderr = popen4("brakeman", "#{fixedPath}", "-o", "#{fixedPath}/output.json")
+          rescue
+            status_code = 127
+          else
+            pid, status = Process::waitpid2(pid)
+            status_code = status.exitstatus
+          ensure
+            [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+          end
+
+          if(status_code == 127)
+            @no_brakeman_installation ||= false
+            create_error("[-] No Brakeman executable found. Make sure brakeman or brakeman-pro is in Scumblr's path. Will continue trying to run bundler audit") unless @no_brakeman_installation
+            @no_brakeman_installation = true
+          end
+        end
+        
+        report = File.read("#{fixedPath}/output.json")
+        report = JSON.parse(report).merge({"railspath"=>fixedPath})
+        results.push report
       else
         create_event("There is no app folder in #{railspath}.", "Warn")
 
