@@ -215,7 +215,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
   def perform_work(r)
     repo_local_path = ""
     unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
-      create_error("No  URL for result: #{r.id.to_s}")
+      create_error("No URL for result: #{r.id.to_s}")
     else
       if r.metadata.try(:[], "github_analyzer").present?
         if r.metadata["github_analyzer"]["git_clone_url"].nil?
