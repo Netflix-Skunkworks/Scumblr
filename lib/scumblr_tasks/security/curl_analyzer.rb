@@ -258,6 +258,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
   def request_metadata_parser(r, response, request_url, request_metadata, metadata_checks)
     curl_metadata ||= {}
+    r.metadata ||= {}
     r.metadata[:curl_metadata] ||= {}
 
     response.each do |line|
