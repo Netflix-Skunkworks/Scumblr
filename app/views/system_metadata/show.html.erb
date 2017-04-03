@@ -17,5 +17,7 @@
   </tbody>
 </table>
 <br>
+<% if can? :edit, SystemMetadata %>
 <%= link_to "Edit", edit_system_metadatum_path(@system_metadata), class: "button" %>
+<% end %>
 <%= link_to 'Back', system_metadata_path, class: "button" %>
