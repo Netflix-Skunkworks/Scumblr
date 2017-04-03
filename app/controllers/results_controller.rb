@@ -272,7 +272,7 @@ class ResultsController < ApplicationController
 
   def update_status
     @status = Status.find(params[:status_id])
-    @old_status = Status.where(@result.status_id).first.try(:name)
+    @old_status = Status.where(id: @result.status_id).first.try(:name)
 
     @result.status_id= @status.id
 
