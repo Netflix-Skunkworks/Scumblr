@@ -68,7 +68,13 @@ class Result < ActiveRecord::Base
     Rails.cache.fetch([name, id]) { find(id) }
   end
 
-
+  def add_tags(tags)
+      tags.each do |the_tag|
+        unless self.tags.include? the_tag
+          self.tags << the_tag
+        end
+      end
+  end
 
   def self.to_csv
     CSV.generate do |csv|
@@ -120,6 +126,7 @@ class Result < ActiveRecord::Base
   def update_task_event
 
     if(Thread.current[:current_task])
+
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
       Thread.current["current_results"] ||={}

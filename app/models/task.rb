@@ -158,7 +158,12 @@ class Task < ActiveRecord::Base
         results = task_type.new(task_options).run
       end
     rescue StandardError=>e
-      event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      if e.class == ScumblrTask::TaskException
+
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: e.message, eventable_type: "Task", eventable_id: task.id )
+      else
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      end
       Rails.logger.error "#{e.message}"
 
       Thread.current["current_events"] ||= {}
@@ -174,6 +179,7 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
+
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id
