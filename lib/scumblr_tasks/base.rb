@@ -82,6 +82,7 @@ module ScumblrTask
         get_saved_results
       end
       
+
       begin
         self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
           tags = []
@@ -93,6 +94,7 @@ module ScumblrTask
       rescue => e
         create_error("Error parsing tag options. Options: #{@options.inspect}")
       end
+
 
 
       config_options = self.class.config_options
@@ -113,7 +115,7 @@ module ScumblrTask
     def get_saved_results
       if(@options[:saved_result_filter].present?)
         filter = SavedFilter.where(saved_filter_type:"Result", id: @options[:saved_result_filter]).try(:first)
-        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true})[1].readonly(false)
+        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true, includes:nil})[1].readonly(false)
         #@results = @results.per(@result.total_count)
 
       end
@@ -136,6 +138,12 @@ module ScumblrTask
 
       if(@results == Result)
         @results = Result.all
+      end
+
+      if @results.respond_to?(:total_count)
+        @total_result_count = @results.total_count
+      else
+        @total_result_count = @results.count
       end
 
       if(@return_batched_results != false)
@@ -165,7 +173,8 @@ module ScumblrTask
       else
         Rails.logger.debug details
       end
-      event_details = Event.create(action: level, eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
+      
+      event_details = Event.create(action: level, eventable_id: @options.try(:[],:_self).try(:id), eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
 
       @event_metadata[level] ||= []
       @event_metadata[level] << event_details.id

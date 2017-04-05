@@ -330,7 +330,18 @@ class Result < ActiveRecord::Base
     options[:saved_event_filter_id] = q[:id_in_saved_event_filter]
     options[:saved_event_filter_id] = nil if options[:saved_event_filter_id] == 0
 
-    ransack_search = Result.includes(:status, :result_attachments).search(q.except(:metadata_search,:id_in_saved_event_filter))
+    ransack_search = Result
+
+    if(options.include?(:includes))
+      if(options[:includes].present?)
+        # Include the associations requested
+        ransack_search = ransack_search.includes(options[:includes])
+      end
+    else
+      ransack_search = ransack_search.includes(:status, :result_attachments)
+    end
+
+    ransack_search = ransack_search.search(q.except(:metadata_search,:id_in_saved_event_filter))
 
 
 
@@ -584,12 +595,18 @@ class Result < ActiveRecord::Base
 
     k=keys.shift
     parent = data
-
+    
     begin
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
+
+
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
+        if(data.nil?)
+          parent[k] = {}
+          data[k] = nil
+        end
       elsif(k[0]=="[")
         if(k.length > 2)
 
@@ -617,7 +634,10 @@ class Result < ActiveRecord::Base
 
       else
         data = data.try(:[],k)
-
+        if(data.nil?)
+          parent[k] = {}
+          data = parent[k]
+        end
       end
     rescue
 
@@ -631,7 +651,6 @@ class Result < ActiveRecord::Base
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
     else
-
       if(value[0] == "{" && value[value.length-1] == "}")
         begin
           value = JSON.parse(value)
@@ -640,6 +659,10 @@ class Result < ActiveRecord::Base
         end
       elsif(value.class == Hash)
         value = value.to_json
+      elsif(value == "true")
+        value = true
+      elsif(value == "false")
+        value = false
       end
 
       if(k == "[]")

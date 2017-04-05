@@ -50,6 +50,7 @@ class Ability
     else
       can :status, :about
       can [:show, :index], Event
+      can [:show, :index], SystemMetadata
       can :manage, Result
       cannot :destroy, Result
       can [:index, :show, :events], Task

@@ -47,7 +47,7 @@ class TaskRunner
           status == :complete && count += 1
         end
       
-        sleep(0.2)
+        sleep(2)
       end
       group_index += 1
     end

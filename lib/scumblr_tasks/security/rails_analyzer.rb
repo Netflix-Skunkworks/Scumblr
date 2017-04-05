@@ -15,17 +15,17 @@
 #This task will download a repo via git or scraping depotsearch then run a scanner (or scanners) on it
 
 # Prioritize Brakeman Pro if available.
-begin
-  gem 'brakeman-pro'
-rescue Gem::LoadError
-end
+# begin
+#   require 'brakeman-pro'
+# rescue Gem::LoadError
+#   require 'brakeman'
+# end
 
-require 'brakeman'
 require 'bundler/audit/scanner'
 require 'shellwords'
 require 'find'
 
-class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
+class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
   include POSIX::Spawn
   def self.task_type_name
     "Rails Analyzer"
@@ -64,6 +64,42 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
     }
   end
 
+  def run 
+    @semaphore = Mutex.new
+    require 'get_process_mem'
+    mem = GetProcessMem.new
+    start_memory = mem.mb
+    @options[:_self].metadata["memory"] = {}
+    @options[:_self].metadata["memory"]["start"] = start_memory
+    @options[:_self].metadata["memory"]["result"] = {}
+
+
+    @results.each do |r|
+      before_memory = mem.mb
+      @options[:_self].metadata["memory"]["result"][r.id] = {}
+      @options[:_self].metadata["memory"]["result"][r.id]["before"] = before_memory
+
+
+      Rails.logger.info("[*] Running brakeman on #{r.id}")
+      Rails.logger.info("[*] Memory: #{before_memory}")
+
+      perform_work(r)
+      
+
+      after_memory = mem.mb
+      @options[:_self].metadata["memory"]["result"][r.id]["after"] = after_memory
+      @options[:_self].metadata["memory"]["result"][r.id]["used"] = after_memory - before_memory
+      Rails.logger.info("[*] Done running brakeman on #{r.id}")
+      Rails.logger.info("[*] Memory: #{after_memory}")
+    end
+
+    end_memory = mem.mb
+    @options[:_self].metadata["memory"]["end"] = end_memory
+    @options[:_self].metadata["memory"]["used"] = end_memory - start_memory
+    @options[:_self].save
+
+    return []
+  end
 
   def self.description
     "Downloads Rails projects and runs Brakeman. Creates vulnerabilities for findings"
@@ -96,52 +132,38 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
     the_hits = {}
     before = {}
     after ={}
+    matched_line={}
     contents = []
     Rails.logger.info file_path
     if line_no.to_i <= 0 || file_path.strip == ""
       return the_hits
     end
+
     File.open(file_path) do |file|
-      file.each do |line|
-        #puts line
-        contents << line.chomp
+      file.each_with_index do |line, index|
+        line_index = index + 1
+        if(line_index >= (line_no - 3) &&  line_index < (line_no))
+          before[line_index] = line.chomp.truncate(255)
+        
+        elsif(line_index == line_no)
+          matched_line = line.chomp.truncate(255)
+        
+        elsif(line_index > (line_no) &&  line_index <= (line_no + 3))
+          after[line_index] = line.chomp.truncate(255)
+        end
+        if(line_index >= line_no+3)
+          break
+        end
+        
       end
-    end
-    line_no = line_no.to_i - 1
-
-    # Def the ugliest code i've ever wrote (S.B. 2015)
-
-    case line_no
-    when 0
-      before = []
-      after = {line_no + 2 => contents[line_no + 1], line_no + 3 => contents[line_no + 2], line_no + 4 => contents[line_no + 3]}
-    when 1
-      before = {line_no => contents[line_no - 1]}
-      after = {line_no + 2 => contents[line_no + 1], line_no + 3 => contents[line_no + 2], line_no + 4 => contents[line_no + 3]}
-    when 2
-      before = {line_no => contents[line_no - 1], line_no - 1 => contents[line_no - 2]}
-      after = {line_no + 2 => contents[line_no + 1], line_no + 3 => contents[line_no + 2], line_no + 4 => contents[line_no + 3]}
-    when contents.length
-      after = []
-      before = {line_no => contents[line_no - 1], line_no - 1 => contents[line_no - 2], line_no - 2 => contents[line_no - 3]}
-    when contents.length - 1
-      after = {line_no + 2 => contents[line_no + 1]}
-      before = {line_no => contents[line_no - 1], line_no - 1 => contents[line_no - 2], line_no - 2 => contents[line_no - 3]}
-    when contents.length - 2
-      after = {line_no + 2 => contents[line_no + 1], line_no + 3 => contents[line_no + 2]}
-      before = {line_no => contents[line_no - 1], line_no - 1 => contents[line_no - 2], line_no - 2 => contents[line_no - 3]}
-    else
-      before = {line_no => contents[line_no - 1], line_no - 1 => contents[line_no - 2], line_no - 2 => contents[line_no - 3]}
-      after = {line_no + 2 => contents[line_no + 1], line_no + 3 => contents[line_no + 2], line_no + 4 => contents[line_no + 3]}
     end
 
     the_hits = {
-      :hit_line_number => line_no + 1,
-      :hit_source_line => contents[line_no].chomp,
-      :before => before,
-      :after => after
-    }
-    return the_hits
+        :hit_line_number => line_no,
+        :hit_source_line => matched_line,
+        :before => before,
+        :after => after
+      }
   end
 
   def tokenize_command(cmd)
@@ -180,8 +202,43 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
       fixedPath = railspath.gsub(/app$/, "")
       #Brakeman throws an error if the app folder doesn't exist, checking for it first
       if Dir.exists?(fixedPath + "/app")
-        tracker = Brakeman.run fixedPath
-        results.push JSON.parse(tracker.report.to_json).merge({"railspath" => fixedPath})
+        # Try to run brakeman pro first, if the command doesn't exist we'll run regular brakeman
+
+        begin
+          pid, stdin, stdout, stderr = popen4("brakeman-pro", "#{fixedPath}", "-o", "#{fixedPath}/output.json")
+        rescue
+          status_code = 127
+        else
+          pid, status = Process::waitpid2(pid)
+          status_code = status.exitstatus
+        ensure
+          [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+        end
+          
+          
+
+        if(status_code == 127)
+          begin
+            pid, stdin, stdout, stderr = popen4("brakeman", "#{fixedPath}", "-o", "#{fixedPath}/output.json")
+          rescue
+            status_code = 127
+          else
+            pid, status = Process::waitpid2(pid)
+            status_code = status.exitstatus
+          ensure
+            [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+          end
+
+          if(status_code == 127)
+            @no_brakeman_installation ||= false
+            create_error("[-] No Brakeman executable found. Make sure brakeman or brakeman-pro is in Scumblr's path. Will continue trying to run bundler audit") unless @no_brakeman_installation
+            @no_brakeman_installation = true
+          end
+        end
+        
+        report = File.read("#{fixedPath}/output.json")
+        report = JSON.parse(report).merge({"railspath"=>fixedPath})
+        results.push report
       else
         create_event("There is no app folder in #{railspath}.", "Warn")
 
@@ -213,9 +270,12 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
   end
 
   def perform_work(r)
+    if(r.metadata.try(:[],"configuration").try(:[],"brakeman").try(:[],"disabled") == true)
+      return nil
+    end
     repo_local_path = ""
     unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
-      create_error("No  URL for result: #{r.id.to_s}")
+      create_error("No URL for result: #{r.id.to_s}")
     else
       if r.metadata.try(:[], "github_analyzer").present?
         if r.metadata["github_analyzer"]["git_clone_url"].nil?
@@ -236,7 +296,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
           if git_url != ""
             tmp_download_folder = r.url.split("/")[3]
           end
-        
+
           repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
           dsd = RepoDownloader.new(git_url, repo_local_path)
           dsd.download
@@ -356,8 +416,6 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Async
     end
   end
 
-  def run
-    super
-  end
+  
 
 end
