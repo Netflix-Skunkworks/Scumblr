@@ -47,25 +47,30 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   def self.options
     {
       :sync_type => {name: "Sync Type (Organization/User)",
-                 description: "Should this task retrieve repos for an organization or for a user?",
-                 required: false,
-                 type: :choice,
-                 default: :both,
-                 choices: [:org, :user]},
+                     description: "Should this task retrieve repos for an organization or for a user?",
+                     required: false,
+                     type: :choice,
+                     default: :both,
+                     choices: [:org, :user]},
       :owner => {name: "Organization/User",
-                  description: "Specify the organization or user.",
-                  required: true,
-                  type: :string},
+                 description: "Specify the organization or user.",
+                 required: true,
+                 type: :string},
+      :tags => {name: "Tag Results",
+                description: "Provide a tag for newly created results",
+                required: false,
+                type: :tag
+                },
       :members => {name: "Import Organization Members' Repos",
-                  description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
-                  required: false,
-                  type: :boolean},
+                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
+                   required: false,
+                   type: :boolean},
       :scope_visibility => {name: "Repo Visibility",
-                  description: "Should the task sync public repos, private repos, or both.",
-                  required: true,
-                  type: :choice,
-                  default: :both,
-                  choices: [:both, :public, :private]}
+                            description: "Should the task sync public repos, private repos, or both.",
+                            required: true,
+                            type: :choice,
+                            default: :both,
+                            choices: [:both, :public, :private]}
     }
   end
 
@@ -175,6 +180,9 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         res.metadata["github_analyzer"]["language"] = repo["language"]
         res.metadata["github_analyzer"]["private"] = repo["private"]
         res.metadata["github_analyzer"]["account_type"] = repo.owner.type
+        if @options[:tags].present?
+          res.add_tags(@options[:tags])
+        end
         res.save
       end
     end
