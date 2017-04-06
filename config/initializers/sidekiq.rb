@@ -29,7 +29,7 @@ Sidekiq.configure_server do |config|
   Sidekiq::Logging.logger.level = Logger::INFO
 
   config.server_middleware do |chain|
-    chain.add Sidekiq::Status::ServerMiddleware, expiration: 30.minutes # default
+    chain.add Sidekiq::Status::ServerMiddleware, expiration: 1.days # default
   end
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware

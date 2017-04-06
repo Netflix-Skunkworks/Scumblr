@@ -29,7 +29,7 @@ task :run_tasks => :environment do
 
     job = TaskRunner.perform_async(tasks.map{|t| t.id})
 
-    while(Sidekiq::Status::status(job) != :complete)
+    while(Sidekiq::Status::status(job) && Sidekiq::Status::status(job) != :complete && Sidekiq::Status::status(job) != :failed && Sidekiq::Status::status(job) != :interrupted)
       puts "Group #{group}: running (#{job})"      
       puts
       sleep(0.5)

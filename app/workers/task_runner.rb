@@ -44,7 +44,7 @@ class TaskRunner
         workers.delete_if do |worker_id|
           status = Sidekiq::Status::status(worker_id)
           Rails.logger.warn "Task #{worker_id} #{status}"
-          status == :complete && count += 1
+          (status != :queued && status != :working) && count += 1
         end
       
         sleep(2)
