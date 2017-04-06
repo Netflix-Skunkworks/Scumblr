@@ -17,10 +17,10 @@ class TaskTest < ActiveSupport::TestCase
   should have_many(:events)
 
   fixture_task = Task.first
-  curl_task = Task.last(4).first
-  bad_curl_task = Task.last(3).first
-  github_sync = Task.last(2).first
-  google_search = Task.last
+  curl_task = Task.where(id: 54).first
+  bad_curl_task = Task.where(id: 55).first
+  github_sync = Task.where(id: 56).first
+  google_search = Task.where(id: 57).first
     # github_result = Result.last
 
   # Class Tests
@@ -62,6 +62,7 @@ class TaskTest < ActiveSupport::TestCase
     assert_equal(1, github_sync.metadata[:current_results].count)
   end
   test "should execute google search task" do
+
     google_search.perform_task
 
     assert_equal(1, google_search.metadata[:current_results].count)

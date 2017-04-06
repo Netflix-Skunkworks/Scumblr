@@ -17,8 +17,12 @@ Curl Security Task and Github Security Task expect JSON arrays.</p>
         <td><%= system_metadatum.metadata.to_json %></td>
         <td>
           <%= link_to link_to 'Show', system_metadatum, class: "button tiny" %>
-          <%= link_to "Edit", edit_system_metadatum_path(system_metadatum), class: "button tiny" %>
-          <%= link_to 'Destroy', system_metadatum, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
+          <% if can? :edit, SystemMetadata %>
+            <%= link_to "Edit", edit_system_metadatum_path(system_metadatum), class: "button tiny" %>
+          <% end %>
+          <% if can? :destroy, SystemMetadata %>
+            <%= link_to 'Destroy', system_metadatum, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" %>
+          <% end %>
         </td>
       </tr>
     <% end %>
@@ -26,4 +30,6 @@ Curl Security Task and Github Security Task expect JSON arrays.</p>
 </table>
 
 <br>
-<%= link_to 'New System Metadata', new_system_metadatum_path, class: "button" %>
+<% if can? :new, SystemMetadata %>
+  <%= link_to 'New System Metadata', new_system_metadatum_path, class: "button" %>
+<% end %>

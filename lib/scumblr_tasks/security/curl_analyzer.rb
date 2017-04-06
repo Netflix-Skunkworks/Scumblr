@@ -14,6 +14,7 @@
 #
 require 'shellwords'
 require 'posix/spawn'
+require 'uri/http'
 
 class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   include ActionView::Helpers::TextHelper
@@ -100,13 +101,20 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                            description: "Toggle to strip last path element in URL or sitemap (exp. http://netflix.com/movie/1234 becomes http://netflix.com/movie/",
                            required: false,
                            type: :boolean
-                           }
+                           },
+      :strip_to_hostname => {name: "Strip To Hostname",
+                             description: "Toggle to strip strip to hostname only (exp. http://netflix.com/movie/1234 becomes http://netflix.com",
+                             required: false,
+                             type: :boolean
+                             }
+
     }
   end
 
   def initialize(options={})
     # Do setup
     super
+    @visited_urls = []
 
     @task_type = Task.where(id: @options[:_self].id).first.name
 
@@ -233,6 +241,12 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       @strip_last_path = false
     end
 
+    if(@options[:strip_to_hostname].to_i == 1)
+      @strip_to_hostname = true
+    else
+      @strip_to_hostname = false
+    end
+
     if(@options[:saved_payloads].present?)
       begin
         saved_payloads = SystemMetadata.where(id: @options[:saved_payloads]).try(:first).metadata
@@ -259,10 +273,9 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   def request_metadata_parser(r, response, request_url, request_metadata, metadata_checks)
     curl_metadata ||= {}
     r.metadata[:curl_metadata] ||= {}
-
+    duplicate_keys = 0
     response.each do |line|
       metadata_checks.each_with_index do |check, line_no|
-
         begin
           searched_code = check.match(line.encode("UTF-8", invalid: :replace, undef: :replace))
         rescue => e
@@ -276,11 +289,17 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
           else
             matched_expression = searched_code[1].to_s
           end
-          curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip
+          if r.metadata[:curl_metadata].key?(request_metadata.keys[line_no])
+            curl_metadata[request_metadata.keys[line_no] + "-" + duplicate_keys.to_s] = matched_expression.strip.truncate(300)
+            duplicate_keys += 1
+          else
+            curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip.truncate(300)
+          end
         end
       end
-      r.metadata[:curl_metadata].merge!(curl_metadata)
+        r.metadata[:curl_metadata].merge!(curl_metadata)
     end
+
   end
 
   def match_environment(r, type, response_data, response_string, request_url, status_code=nil, include_status=false, payload=nil)
@@ -455,6 +474,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   end
 
   def curl_runner(r, sitemap_url=nil)
+
     urls = []
     vulnerabilities = []
 
@@ -463,6 +483,9 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         urls = r.metadata["sitemap"].map{ |entry|
           if(@strip_last_path)
             entry["url"].match(/(.+\/\/.+)\/.*/).try(:[], 1) || entry["url"].to_s
+          elsif(@strip_to_hostname)
+            uri = URI.parse(entry["url"])
+            entry["url"].gsub(uri.path, "")
           else
             entry["url"].to_s
           end
@@ -471,13 +494,31 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     else
       if(@strip_last_path)
         urls << r.url.to_s.match(/(.+\/\/.+)\/.*/).try(:[], 1) || r.url.to_s
+      elsif(@strip_to_hostname)
+        uri = URI.parse(r.url.to_s)
+        urls << r.url.to_s.gsub(uri.path, "")
       else
         urls << r.url.to_s
       end
     end
 
+    # sort by unique
+    urls.uniq!
+
+    @semaphore.synchronize{
+      urls.each_with_index do |url, index|
+        if @visited_urls.include? url
+          urls.delete_at(index)
+        else
+          @visited_urls << url
+        end
+      end
+    }
+    if urls.count == 0
+      return
+    end
     urls.each do |url|
-      # puts "[*] Testing url #{url}"
+      puts "[*] Testing url #{url}"
       @payloads.each do |payload|
         request_url = URI.parse(url)
 
