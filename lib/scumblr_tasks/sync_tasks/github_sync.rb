@@ -59,6 +59,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       :tags => {name: "Tag Results",
                 description: "Provide a tag for newly created results",
                 required: false,
+                default: "",
                 type: :tag
                 },
       :members => {name: "Import Organization Members' Repos",
@@ -77,7 +78,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   def initialize(options={})
     super
-
+    puts  @options[:tags]
     @github_oauth_token = @github_oauth_token.to_s.strip
     @github_api_endpoint = @github_api_endpoint.to_s.strip.empty? ? "https://api.github.com" : @github_api_endpoint
 
