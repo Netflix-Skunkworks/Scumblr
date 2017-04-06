@@ -52,38 +52,39 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
 
 
 
-    # client = AWS::Route53::Client.new
+    client = AWS::Route53::Client.new
 
-    # zones = client.list_hosted_zones
-    # @results = []
+    zones = client.list_hosted_zones
+    @results = []
 
-    # zones[:hosted_zones].each do |zone|
-    #   zone_id = zone[:id]
-    #   zone_name = zone[:name]
-    #   zone_private = zone.try(:[],:config).try(:[],:private_zone) == "true"
-    #   record_count = zone[:resource_record_set_count]
+    zones[:hosted_zones].each do |zone|
+      zone_id = zone[:id]
+      zone_name = zone[:name]
+      zone_private = zone.try(:[],:config).try(:[],:private_zone) == "true"
+      record_count = zone[:resource_record_set_count]
 
-    #   puts "Syncing #{zone_id}"
-    #   records = client.list_resource_record_sets(:hosted_zone_id=>zone_id)
+      puts "Syncing #{zone_id}"
+      records = client.list_resource_record_sets(:hosted_zone_id=>zone_id)
 
-    #   parse_records(records, zone_id, zone_name, zone_private)
+      parse_records(records, zone_id, zone_name, zone_private)
 
-    #   while(records[:next_record_identifier].present?)
+      while(records[:next_record_identifier].present?)
 
-    #     records = client.list_resource_record_sets(:hosted_zone_id=>zone_id,
-    #                                                start_record_identifier:records[:next_record_identifier],
-    #                                                start_record_type:records[:next_record_type],
-    #                                                start_record_name:records[:next_record_name]
-    #                                                )
-    #     parse_records(records,zone_id, zone_name, zone_private)
+        records = client.list_resource_record_sets(:hosted_zone_id=>zone_id,
+                                                   start_record_identifier:records[:next_record_identifier],
+                                                   start_record_type:records[:next_record_type],
+                                                   start_record_name:records[:next_record_name]
+                                                   )
+        parse_records(records,zone_id, zone_name, zone_private)
 
-    #   end
-
-
-      @results << {url: "http://foo.com", title: "foo.com", domain: "foo.com"}
+      end
 
 
-    # end
+
+
+
+
+    end
 
     return @results
 
