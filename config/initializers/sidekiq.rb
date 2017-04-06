@@ -35,3 +35,17 @@ Sidekiq.configure_server do |config|
     chain.add Sidekiq::Status::ClientMiddleware
   end
 end
+
+module Sidekiq::Status
+  class << self
+    def broadcast jid, status_updates
+        Sidekiq.redis do |conn|
+          conn.multi do
+            conn.hmset  "sidekiq:status:#{jid}", 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
+            conn.expire "sidekiq:status:#{jid}", Sidekiq::Status::DEFAULT_EXPIRY
+            conn.publish "status_updates", jid
+          end[0]
+        end
+    end
+  end
+end
