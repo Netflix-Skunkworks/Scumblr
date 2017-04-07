@@ -66,37 +66,37 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
 
   def run 
     @semaphore = Mutex.new
-    require 'get_process_mem'
-    mem = GetProcessMem.new
-    start_memory = mem.mb
-    @options[:_self].metadata["memory"] = {}
-    @options[:_self].metadata["memory"]["start"] = start_memory
-    @options[:_self].metadata["memory"]["result"] = {}
+    # require 'get_process_mem'
+    # mem = GetProcessMem.new
+    # start_memory = mem.mb
+    # @options[:_self].metadata["memory"] = {}
+    # @options[:_self].metadata["memory"]["start"] = start_memory
+    # @options[:_self].metadata["memory"]["result"] = {}
 
 
-    @results.each do |r|
-      before_memory = mem.mb
-      @options[:_self].metadata["memory"]["result"][r.id] = {}
-      @options[:_self].metadata["memory"]["result"][r.id]["before"] = before_memory
+    @results.each_with_index do |r, index|
+      # before_memory = mem.mb
+      # @options[:_self].metadata["memory"]["result"][r.id] = {}
+      # @options[:_self].metadata["memory"]["result"][r.id]["before"] = before_memory
 
 
       Rails.logger.info("[*] Running brakeman on #{r.id}")
-      Rails.logger.info("[*] Memory: #{before_memory}")
-
+      # Rails.logger.info("[*] Memory: #{before_memory}")
+      update_sidekiq_status("Processing result: #{r.id}.  (#{index}/#{@total_result_count})", index, @total_result_count)
       perform_work(r)
       
 
-      after_memory = mem.mb
-      @options[:_self].metadata["memory"]["result"][r.id]["after"] = after_memory
-      @options[:_self].metadata["memory"]["result"][r.id]["used"] = after_memory - before_memory
-      Rails.logger.info("[*] Done running brakeman on #{r.id}")
-      Rails.logger.info("[*] Memory: #{after_memory}")
+      # after_memory = mem.mb
+      # @options[:_self].metadata["memory"]["result"][r.id]["after"] = after_memory
+      # @options[:_self].metadata["memory"]["result"][r.id]["used"] = after_memory - before_memory
+      # Rails.logger.info("[*] Done running brakeman on #{r.id}")
+      # Rails.logger.info("[*] Memory: #{after_memory}")
     end
 
-    end_memory = mem.mb
-    @options[:_self].metadata["memory"]["end"] = end_memory
-    @options[:_self].metadata["memory"]["used"] = end_memory - start_memory
-    @options[:_self].save
+    # end_memory = mem.mb
+    # @options[:_self].metadata["memory"]["end"] = end_memory
+    # @options[:_self].metadata["memory"]["used"] = end_memory - start_memory
+    # @options[:_self].save
 
     return []
   end

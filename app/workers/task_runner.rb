@@ -19,37 +19,42 @@ class TaskRunner
   include Sidekiq::Status::Worker
 
   def perform(task_ids=nil, task_params=nil)
-    
-    at 0, "A:Preparing to run tasks"
-    task_groups = Array(task_ids.blank? ? Task.where(enabled:true).group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
-    count = 0
-    total_count = task_groups.map{|k,v| v.count}.sum
-    total total_count
-    group_index = 1
-    task_groups.each do |group, tasks|
-      Rails.logger.warn "Running group #{group}"
-      at count, "A:Running group #{group}/#{task_groups.count}"
+    begin
+      at 0, "A:Preparing to run tasks"
+      task_groups = Array(task_ids.blank? ? Task.where(enabled:true).group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
+      count = 0
+      total_count = task_groups.map{|k,v| v.count}.sum
+      total total_count
+      group_index = 1
+      task_groups.each do |group, tasks|
+        Rails.logger.warn "Running group #{group}"
+        at count, "A:Running group #{group}/#{task_groups.count}"
 
-      workers = []
-      tasks.each do |t|
-        Rails.logger.warn "Running #{t.name}"
-        # at count, "A:Queuing: #{t.name}"
-        workers << TaskWorker.perform_async(t.id, task_params)
-      end
-
-      while(!workers.empty?)
-        at count, "A:Running group #{group_index}/#{task_groups.count}. Tasks complete: #{count}/#{total_count}."
-        
-        Rails.logger.warn "#{workers.count} tasks remaining"
-        workers.delete_if do |worker_id|
-          status = Sidekiq::Status::status(worker_id)
-          Rails.logger.warn "Task #{worker_id} #{status}"
-          (status != :queued && status != :working) && count += 1
+        workers = []
+        tasks.each do |t|
+          Rails.logger.warn "Running #{t.name}"
+          # at count, "A:Queuing: #{t.name}"
+          workers << TaskWorker.perform_async(t.id, task_params)
         end
-      
-        sleep(2)
+
+        while(!workers.empty?)
+          at count, "A:Running group #{group_index}/#{task_groups.count}. Tasks complete: #{count}/#{total_count}."
+          
+          Rails.logger.warn "#{workers.count} tasks remaining"
+          workers.delete_if do |worker_id|
+            status = Sidekiq::Status::status(worker_id)
+            Rails.logger.warn "Task #{worker_id} #{status}"
+            (status != :queued && status != :working) && count += 1
+          end
+        
+          sleep(2)
+        end
+        group_index += 1
       end
-      group_index += 1
+    rescue=>e
+      msg = "Fatal error in TaskRunner. Task ids#{task_ids}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
+      Event.create(action: "Fatal", source: "TaskRunner", details: msg)
+      Rails.logger.error msg
     end
  
   end
