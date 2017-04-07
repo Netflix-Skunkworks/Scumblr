@@ -159,6 +159,16 @@ module ScumblrTask
 
     private
 
+    def update_sidekiq_status(message, num=nil, total=nil)
+
+      status_updates = {submessage: "#{message}"}
+      status_updates.merge!({at: num.to_i}) if num
+      status_updates.merge!({total: total.to_i}) if total
+      if(@options.try(:[],:_params).try(:[],:_jid).present?)
+        Sidekiq::Status.broadcast(@options[:_params][:_jid], status_updates)
+      end
+    end
+
     def create_event(event, level="Error")
       if(event.respond_to?(:message))
         details = "An error occurred in #{self.class.task_type_name}. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"

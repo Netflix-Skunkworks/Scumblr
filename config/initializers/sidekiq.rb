@@ -29,9 +29,23 @@ Sidekiq.configure_server do |config|
   Sidekiq::Logging.logger.level = Logger::INFO
 
   config.server_middleware do |chain|
-    chain.add Sidekiq::Status::ServerMiddleware, expiration: 30.minutes # default
+    chain.add Sidekiq::Status::ServerMiddleware, expiration: 1.days # default
   end
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware
+  end
+end
+
+module Sidekiq::Status
+  class << self
+    def broadcast jid, status_updates
+        Sidekiq.redis do |conn|
+          conn.multi do
+            conn.hmset  "sidekiq:status:#{jid}", 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
+            conn.expire "sidekiq:status:#{jid}", Sidekiq::Status::DEFAULT_EXPIRY
+            conn.publish "status_updates", jid
+          end[0]
+        end
+    end
   end
 end

@@ -45,7 +45,7 @@ class RepoDownloader
     if res =~ /Permission denied/
       has_ssh_key = false
     end
-
+    pid, status = Process::waitpid2(pid)
     [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
 
     github_token = Rails.configuration.try(:github_oauth_token).to_s.strip

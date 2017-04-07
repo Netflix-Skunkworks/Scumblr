@@ -477,6 +477,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
     urls = []
     vulnerabilities = []
+
     if(@sitemap)
       unless r.metadata.try(:[], "sitemap").nil?
         urls = r.metadata["sitemap"].map{ |entry|
@@ -538,23 +539,26 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         timeout_cmd = Rails.configuration.try(:timeout_cmd).to_s
         # Leverage timeout wrapper for curl command to ensure timeouts
         if timeout_cmd != ""
-          cmd = timeout_cmd + " 8 " + cmd
+          cmd = timeout_cmd + " 12 " + cmd
         end
-
         pid = 0
         counter = 0
         begin
           # Calls popen4 to run curl command
           pid, stdin, stdout, stderr = popen4(*(tokenize_command(cmd)))
-          data += stdout.read
 
-          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
+          data += stdout.read
+          
           process, exit_status_wrapper = Process::waitpid2(pid)
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
+
+          
           exit_status = exit_status_wrapper.exitstatus.to_i
           if exit_status == 124
             raise Timeout::Error, "Command #{cmd} timed out"
           end
         rescue Timeout::Error => e
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # If we timeout, try up to 2 times before skipping
           counter += 1
           if counter < 2
@@ -564,8 +568,10 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             exit_status = -1
           end
         rescue
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # Something else happened, so set exit_status to error
           exit_status = -1
+          
         end
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
 
@@ -576,12 +582,18 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
           # r.auto_remediate(@options['_self'].id.to_s, request_url.to_s, @response_string, payload)
           # return
         else
+          
           begin
-            status_code = data.split(' ')[1]
+            if(data[8..12].match(/\s\d{3}\s/))
+              status_code = data[9..11]
+            else
+              status_code = 0
+            end
           rescue => e
             create_event("Could not parse status_code\n Exception: #{e.message}\n#{e.backtrace}", "Warn")
             status_code = 0
           end
+
 
           if @request_metadata
             response = data.split("\n")
@@ -701,6 +713,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
       end
     end
+
     # Track not-vulnerable results too.
     counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@task_type}", @options[:_self].id, true, {isolate_vulnerabilities: true})
     open_count = ["new", "existing", "regression", "reopened"].sum{|type| counts[type].to_i }
@@ -716,14 +729,18 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"} )
 
     if r.changed?
+
       upload_s3(r, data)
     end
   end
 
   def perform_work(r)
     # Ensure metadata is defined before iterating results
+    r.metadata ||= {}
+
     curl_runner(r)
 
+    
 
 
   end
@@ -733,10 +750,6 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     super
     @options[:_self].metadata["latest_results_link"] = {text: "#{@trends.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
     save_trends
-
-
-
-
 
     return
   end

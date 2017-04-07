@@ -102,8 +102,9 @@ class ScumblrTask::Async < ScumblrTask::Base
                   beginning_time = Time.now
                   rid = r_i[1]
                   r = Result.find(rid)
-                  i = r_i[0]
-                  Rails.logger.debug "#{self.class.task_type_name}: Processing #{i} of #{@total_result_count}"
+                  result_index = r_i[0]
+                  Rails.logger.debug "#{self.class.task_type_name}: Processing #{result_index} of #{@total_result_count}"
+                  update_sidekiq_status("Processing result: #{r.id}.  (#{result_index}/#{@total_result_count})", result_index, @total_result_count)
                   begin
                     perform_work(r)
                       @semaphore.synchronize {
@@ -124,7 +125,7 @@ class ScumblrTask::Async < ScumblrTask::Base
                       }
                     end_time = Time.now
                     #pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
-                    Rails.logger.debug "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
+                    Rails.logger.debug "Record # #{result_index} - time: #{(end_time - beginning_time)*1000} milliseconds"
                     r_i = nil
                   rescue => e
                     create_error(e)
