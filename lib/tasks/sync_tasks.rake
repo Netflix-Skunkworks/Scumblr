@@ -25,11 +25,11 @@ task :run_tasks_and_email_updates => :environment do
 
   # If sidekiq has elected a leader, see if we are the leader. If not, exit
   if(leader.present? && leader.to_s.split(":")[0] != Socket.gethostname.to_s)
-    puts "Not the leader. Exiting."
+    abort "Not the leader. Exiting."
   else
     puts "I am the leader. Continuing."
   end
-  
+
   Rake::Task["run_tasks"].invoke
   Rake::Task["send_email_updates"].invoke
 end
