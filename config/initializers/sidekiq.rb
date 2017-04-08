@@ -17,13 +17,14 @@ require 'sidekiq'
 require 'sidekiq-status'
 
 Sidekiq.configure_client do |config|
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware
   end
 end
 
 Sidekiq.configure_server do |config|
-
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
   Rails.logger = Sidekiq::Logging.logger
   ActiveRecord::Base.logger = Sidekiq::Logging.logger
   Sidekiq::Logging.logger.level = Logger::INFO
