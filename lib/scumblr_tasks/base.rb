@@ -160,7 +160,6 @@ module ScumblrTask
     private
 
     def update_sidekiq_status(message, num=nil, total=nil)
-
       status_updates = {submessage: "#{message}"}
       status_updates.merge!({at: num.to_i}) if num
       status_updates.merge!({total: total.to_i}) if total

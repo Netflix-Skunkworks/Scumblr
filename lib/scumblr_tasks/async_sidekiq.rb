@@ -115,27 +115,26 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     trends = nil
     trend_options = nil
     Sidekiq.redis do |redis|
-      redis.lock("#{_jid}:trends") do |lock|
-        trends = redis.get("#{_jid}:trends")
+      trends = redis.get("#{_jid}:trends")
 
-        if(trends.present?)
-          trends = JSON.parse(trends)
-        else
-          trends = {}
-        end
-
-        trend_options = redis.get("#{_jid}:trend_options")
-        redis.del("#{_jid}:trends")
-        redis.del("#{_jid}:trend_options")
-        if(trend_options.present?)
-          trend_options = JSON.parse(trend_options)
-        else
-          trend_options = {}
-        end
+      if(trends.present?)
+        trends = JSON.parse(trends)
+      else
+        trends = {}
       end
+
+      trend_options = redis.get("#{_jid}:trend_options")
+
+      if(trend_options.present?)
+        trend_options = JSON.parse(trend_options)
+      else
+        trend_options = {}
+      end   
+      redis.del("#{_jid}:trends")
+      redis.del("#{_jid}:trend_options")
     end
     
-
+    
 
     if trends.present? && trends.count > 0 && @options[:_self].present?
 
@@ -212,7 +211,7 @@ module ScumblrWorkers
       _jid = @options.try(:[],"_params").try(:[],"_jid")
       if(_jid.present?)
         Sidekiq.redis do |redis|
-          redis.lock("#{_jid}:trends") do |lock|
+          redis.lock("#{_jid}:trends", {acquire: 30, life: 10, owner: SecureRandom.hex}) do |lock|
             trends = redis.get("#{_jid}:trends")
             if(trends.present?)
               trends = JSON.parse(trends)
@@ -220,24 +219,30 @@ module ScumblrWorkers
               trends = {}
             end
 
+            
+
+            
+            trends[key] ||= Hash.new(0)
+            trends[key] = [trends[key], count].inject(Hash.new(0)) { |memo, subhash| subhash.each { |prod, value| memo[prod] += value.to_f } ; memo }
+
+            redis.set("#{_jid}:trends", trends.to_json)
+            
+
+          
+          end
+          redis.lock("#{_jid}:trend_options", {acquire: 30, life: 10, owner: SecureRandom.hex}) do |lock|
             trend_options = redis.get("#{_jid}:trend_options")
             if(trend_options.present?)
               trend_options = JSON.parse(trend_options)
             else
               trend_options = {}
             end
-
             trend_options[key] ||= {}
             trend_options[key]["chart_options"] = chart_options
             trend_options[key]["series_options"] = series_options
             trend_options[key]["options"] = options
-            trends[key] ||= Hash.new(0)
-            trends[key] = [trends[key], count].inject(Hash.new(0)) { |memo, subhash| subhash.each { |prod, value| memo[prod] += value.to_f } ; memo }
-
-            redis.set("#{_jid}:trends", trends.to_json)
             redis.set("#{_jid}:trend_options", trend_options.to_json)
 
-          
           end
         end
       end
