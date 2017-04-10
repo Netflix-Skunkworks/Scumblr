@@ -20,6 +20,10 @@
 # @workers to be the number of worker threads
 class ScumblrTask::Async < ScumblrTask::Base
 
+  def initialize(options={})
+    @return_batched_results = false
+    super(options)
+  end
 
   def run
     if(!self.respond_to?(:perform_work))
@@ -40,7 +44,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     @database_backoff_time ||= 30
 
     # Default to empty array of results to iterate
-    @results ||= []
+    @results ||= Result.none
 
     # Final results will be returned at the end of the task
     @final_results = []
@@ -50,47 +54,23 @@ class ScumblrTask::Async < ScumblrTask::Base
     queue = Queue.new
 
     #total_count is only available for Kaminari paged objects
-    if @results.respond_to?(:total_count)
-      total = @results.total_count
-    else
-      total = @results.count
-    end
+    # if @results.respond_to?(:total_count)
+    #   total = @results.total_count
+    # else
+    #   total = @results.count
+    # end
     
     #threads << Thread.new do
-      #other_workers_running = false
-      i = 1
+    #other_workers_running = false
+    i = 1
 
-      @results.each do |r|
-        #we only want to check if the other threads have had a chance to start up
-        #threads_alive = 0
-        #if threads.size > 2
-        #  threads.each_with_index do |check_thread, index|
-        #    if check_thread.alive? && index != 0
-        #      other_workers_running = true
-        #      threads_alive += 1
-        #    end
-        #  end
-        #end
+    @results.reorder('').limit(nil).pluck(:id).each do |r|
+      queue.push([i, r])
+      i += 1
+    end
 
-        #if it's less than 2 (this and one other) time to end this thread or we'll loop forever
-        #this is for cases when all the workers died for some reason (error)
-        #if other_workers_running && threads_alive == 0
-          #Rails.logger.debug "breaking out of queue thread"
-        #  break
-        #end
-        #we'll put 100 per worker in the queue
-        #while queue.size > @workers * 20
-        #  sleep 0.5
-          #Rails.logger.debug "in queue thread sleep"
-        #end
-        #Rails.logger.debug "pushing onto queue: #{r.title.inspect}"
-        #we have less than 1000, let's add one to the queue
-        queue.push([i, r.id])
-        i += 1
-      end
-
-      @results = nil
-      #Rails.logger.debug "queue thread finished all results"
+    @results = nil
+    #Rails.logger.debug "queue thread finished all results"
     #end
     @parent_tracker ||= {}
     @parent_tracker["current_events"] ||= {}
@@ -122,8 +102,9 @@ class ScumblrTask::Async < ScumblrTask::Base
                   beginning_time = Time.now
                   rid = r_i[1]
                   r = Result.find(rid)
-                  i = r_i[0]
-                  Rails.logger.debug "#{self.class.task_type_name}: Processing #{i} of #{total}"
+                  result_index = r_i[0]
+                  Rails.logger.debug "#{self.class.task_type_name}: Processing #{result_index} of #{@total_result_count}"
+                  update_sidekiq_status("Processing result: #{r.id}.  (#{result_index}/#{@total_result_count})", result_index, @total_result_count)
                   begin
                     perform_work(r)
                       @semaphore.synchronize {
@@ -144,7 +125,7 @@ class ScumblrTask::Async < ScumblrTask::Base
                       }
                     end_time = Time.now
                     #pid, size = `ps ax -o pid,rss | grep -E "^[[:space:]]*#{$$}"`.strip.split.map(&:to_i)
-                    Rails.logger.debug "Record # #{i} - time: #{(end_time - beginning_time)*1000} milliseconds"
+                    Rails.logger.debug "Record # #{result_index} - time: #{(end_time - beginning_time)*1000} milliseconds"
                     r_i = nil
                   rescue => e
                     create_error(e)

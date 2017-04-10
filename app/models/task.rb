@@ -70,7 +70,6 @@ class Task < ActiveRecord::Base
     true
   end
 
-
   def task_type_name
     begin
       type = self.task_type.to_s.constantize
@@ -146,7 +145,7 @@ class Task < ActiveRecord::Base
       Rails.logger.error "Invalid task type #{task.task_type}"
       return
     end
-
+    
     task_type = task.task_type.constantize
     task_options = task.options.merge({_metadata:task.metadata||{}, _self:task, _params:task_params})
 
@@ -159,7 +158,12 @@ class Task < ActiveRecord::Base
         results = task_type.new(task_options).run
       end
     rescue StandardError=>e
-      event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      if e.class == ScumblrTask::TaskException
+
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: e.message, eventable_type: "Task", eventable_id: task.id )
+      else
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      end
       Rails.logger.error "#{e.message}"
 
       Thread.current["current_events"] ||= {}
@@ -175,6 +179,7 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
+
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id
@@ -191,6 +196,7 @@ class Task < ActiveRecord::Base
     end
 
     if(results.blank?)
+
       # puts Thread.current["current_events"]
       unless Thread.current["current_events"].nil?
         task.metadata.merge!({"current_events": Thread.current["current_events"]})

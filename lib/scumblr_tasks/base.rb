@@ -13,6 +13,13 @@
 #     limitations under the License.
 
 module ScumblrTask
+  class TaskException < StandardError
+    def initialize(data)
+      super
+      @data = data
+    end
+  end
+
   class Base
     def self.task_type_name
       nil
@@ -36,8 +43,8 @@ module ScumblrTask
 
     def initialize(options={})
       @return_batched_results = true unless defined?(@return_batched_results)
-      
-      @options = options
+
+      @options = options.with_indifferent_access
       thread_tracker = ThreadTracker.new()
       thread_tracker.create_tracking_thread(@options[:_self])
       @event_metadata = {}
@@ -45,6 +52,7 @@ module ScumblrTask
       # Setup event hash for storing event types and IDs with tasks
       # Each time the task runs, all event data is moved into the
       # previous events key.
+
       if(@options[:_self].present?)
         @options[:_self].metadata ||={}
 
@@ -67,12 +75,27 @@ module ScumblrTask
 
       # build out results filter
       @results = nil
-      
+
       #if there are options for saved_results or saved_events we'll get results
       #if these are blank they'll get all results
       if(@options.key?(:saved_result_filter) || @options.key?(:saved_event_filter))
         get_saved_results
       end
+      
+
+      begin
+        self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
+          tags = []
+          @options[k].split(",").each do |tag_name|
+            tags << Tag.where(name: tag_name.strip).first_or_create
+          end
+          @options[k] = tags
+        end
+      rescue => e
+        create_error("Error parsing tag options. Options: #{@options.inspect}")
+      end
+
+
 
       config_options = self.class.config_options
       if(config_options.present? && config_options.class == Hash)
@@ -92,7 +115,7 @@ module ScumblrTask
     def get_saved_results
       if(@options[:saved_result_filter].present?)
         filter = SavedFilter.where(saved_filter_type:"Result", id: @options[:saved_result_filter]).try(:first)
-        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true})[1].readonly(false)
+        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true, includes:nil})[1].readonly(false)
         #@results = @results.per(@result.total_count)
 
       end
@@ -117,6 +140,12 @@ module ScumblrTask
         @results = Result.all
       end
 
+      if @results.respond_to?(:total_count)
+        @total_result_count = @results.total_count
+      else
+        @total_result_count = @results.count
+      end
+
       if(@return_batched_results != false)
         @results = @results.find_each(batch_size: 10)
       end
@@ -129,6 +158,16 @@ module ScumblrTask
 
 
     private
+
+    def update_sidekiq_status(message, num=nil, total=nil)
+
+      status_updates = {submessage: "#{message}"}
+      status_updates.merge!({at: num.to_i}) if num
+      status_updates.merge!({total: total.to_i}) if total
+      if(@options.try(:[],:_params).try(:[],:_jid).present?)
+        Sidekiq::Status.broadcast(@options[:_params][:_jid], status_updates)
+      end
+    end
 
     def create_event(event, level="Error")
       if(event.respond_to?(:message))
@@ -144,7 +183,8 @@ module ScumblrTask
       else
         Rails.logger.debug details
       end
-      event_details = Event.create(action: level, eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
+      
+      event_details = Event.create(action: level, eventable_id: @options.try(:[],:_self).try(:id), eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
 
       @event_metadata[level] ||= []
       @event_metadata[level] << event_details.id
@@ -152,6 +192,10 @@ module ScumblrTask
         #create an event linking the updated/new result to the task
         Thread.current["current_events"] ||={}
         Thread.current["current_events"].merge!(@event_metadata)
+      elsif(Thread.current["sidekiq_job_id"].present?)
+        Sidekiq.redis do |redis|
+          redis.sadd("#{Thread.current["sidekiq_job_id"]}:events:#{level}",event_details.id)
+        end
       end
     end
 
@@ -163,7 +207,7 @@ module ScumblrTask
     # Expects a key (which will be created or added to) and a hash
     # containing a list of key/values pairs t
     def save_trends(time_value=Time.now)
-      if defined? @trends && @trends.count > 0 && @options[:_self].present? 
+      if defined? @trends && @trends.count > 0 && @options[:_self].present?
         @trend_options ||= {}
         @options[:_self].metadata ||={}
         @options[:_self].metadata["trends"] ||={}
@@ -172,35 +216,33 @@ module ScumblrTask
           if @trend_options[key].try(:[],"chart_options").present?
             @options[:_self].metadata["trends"][key]["library"] = @trend_options[key]["chart_options"]
           end
-          
+
           if(@trend_options[key].try(:[],"options").try(:[],"date_format").present?)
             date_value = time_value.strftime(@trend_options[key].try(:[],"options").try(:[],"date_format"))
           else
             date_value = time_value.strftime("%b %d %Y %H:%M:%S")
           end
-          
+
           counts.each do |trend_name, trend_value|
             series = @options[:_self].metadata["trends"][key]["data"].select{|el| el["name"] == trend_name }.first
-            
-            if(series.blank?)            
-              
-                  
-              
+
+            if(series.blank?)
+
+
+
               series = {"name"=> trend_name, "data" =>{ date_value => trend_value}}
               if defined?(@trend_options) && @trend_options.try(:[],key).try(:[],"series_options").try(:[],trend_name)
-                series["library"] = @trend_options[key]["series_options"][trend_name] 
+                series["library"] = @trend_options[key]["series_options"][trend_name]
               end
-              
+
               @options[:_self].metadata["trends"][key]["data"] << series
             else
               series["data"][date_value] = trend_value
             end
           end
-          
+
         end
       end
     end
-
-
   end
 end

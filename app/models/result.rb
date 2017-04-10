@@ -12,8 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
-
 class Result < ActiveRecord::Base
   belongs_to :status
 
@@ -68,7 +66,13 @@ class Result < ActiveRecord::Base
     Rails.cache.fetch([name, id]) { find(id) }
   end
 
-
+  def add_tags(tags)
+      tags.each do |the_tag|
+        unless self.tags.include? the_tag
+          self.tags << the_tag
+        end
+      end
+  end
 
   def self.to_csv
     CSV.generate do |csv|
@@ -101,6 +105,7 @@ class Result < ActiveRecord::Base
   after_create :create_task_event
 
   def create_task_event
+
     if(Thread.current[:current_task])
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
@@ -111,6 +116,10 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["created"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"])
+      Sidekiq.redis do |redis|
+        r.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+      end
     end
   end
 
@@ -118,6 +127,7 @@ class Result < ActiveRecord::Base
 
   def update_task_event
     if(Thread.current[:current_task])
+
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
       Thread.current["current_results"] ||={}
@@ -126,26 +136,12 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["updated"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"].present?)
+      Sidekiq.redis do |redis|
+        redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
+      end
     end
   end
-
-  # def create_task_event
-  #  if(Thread.current[:current_task])
-  #     #create an event linking the updated/new result to the task
-  #       calling_task = Task.where(id: Thread.current[:current_task]).first
-  #       calling_task.metadata["current_results"] ||={}
-  #       puts calling_task.metadata
-  #       calling_task.metadata["current_results"]["created"] ||=[]
-  #       calling_task.metadata["current_results"]["updated"] ||=[]
-
-  #       if self.new_record?
-  #         calling_task.metadata["current_results"]["created"] << self.id
-  #       else
-  #         calling_task.metadata["current_results"]["updated"] << self.id
-  #       end
-  #       calling_task.save!
-  #  end
-  # end
 
   # Unused method, consider removing Janurary 12th (S.B.)
   # def create_events
@@ -321,7 +317,18 @@ class Result < ActiveRecord::Base
     options[:saved_event_filter_id] = q[:id_in_saved_event_filter]
     options[:saved_event_filter_id] = nil if options[:saved_event_filter_id] == 0
 
-    ransack_search = Result.includes(:status, :result_attachments).search(q.except(:metadata_search,:id_in_saved_event_filter))
+    ransack_search = Result
+
+    if(options.include?(:includes))
+      if(options[:includes].present?)
+        # Include the associations requested
+        ransack_search = ransack_search.includes(options[:includes])
+      end
+    else
+      ransack_search = ransack_search.includes(:status, :result_attachments)
+    end
+
+    ransack_search = ransack_search.search(q.except(:metadata_search,:id_in_saved_event_filter))
 
 
 
@@ -522,24 +529,24 @@ class Result < ActiveRecord::Base
     # +v+:: Should contain the current element of the array we're testing
     # +values+:: The values which are valid and should cause the element to be included in the filtered array
     select_function = Proc.new { |keys,v, values|
-        value = v
-        Array(keys).each do |k|
-          begin
-            value = value.try(:[], k)
-          rescue
-            value = nil
-          end
+      value = v
+      Array(keys).each do |k|
+        begin
+          value = value.try(:[], k)
+        rescue
+          value = nil
         end
+      end
 
-        if(value.class == Array)
-          (values & value).present?
-        elsif(value.present?)
-          Array(values).include?(value)
-        else
-          value.present?
-        end
+      if(value.class == Array)
+        (values & value).present?
+      elsif(value.present?)
+        Array(values).include?(value)
+      else
+        value.present?
+      end
 
-      }
+    }
 
     # Call the above proc
     if(filter_data.class==Hash)
@@ -548,7 +555,7 @@ class Result < ActiveRecord::Base
       }
     else
       filter_data.select!{|v|
-       select_function.call(keys,v, values)
+        select_function.call(keys,v, values)
 
       }
     end
@@ -559,12 +566,12 @@ class Result < ActiveRecord::Base
 
     return data
   end
- # filter_metadata({a:{b:{c:[{a:1},{a:2},3,4,5]}}},[:a],1,[:a,:b,:c])
- #Result.first.filter_metadata(Result.find(39145).metadata,["severity"],["Critical","Medium"],["vulnerabilities"])["vulnerabilities"].count
- #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1]=severity&filter_values[1][1][]=Critical&filter_on[1][1]=vulnerabilities
- #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1][]=reporter&filter[1][1][]=username&filter_values[1][1][]=mongo&filter_on[1][1]=vulnerabilities
+  # filter_metadata({a:{b:{c:[{a:1},{a:2},3,4,5]}}},[:a],1,[:a,:b,:c])
+  #Result.first.filter_metadata(Result.find(39145).metadata,["severity"],["Critical","Medium"],["vulnerabilities"])["vulnerabilities"].count
+  #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1]=severity&filter_values[1][1][]=Critical&filter_on[1][1]=vulnerabilities
+  #http://localhost:3000/results/39145/get_metadata.json?key[1]=vulnerabilities&filter[1][1][]=reporter&filter[1][1][]=username&filter_values[1][1][]=mongo&filter_on[1][1]=vulnerabilities
 
- private
+  private
 
 
   # Walk through the metadata and update the key(s) requested to new value
@@ -575,16 +582,22 @@ class Result < ActiveRecord::Base
 
     k=keys.shift
     parent = data
-
+    
     begin
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
+
+
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
+        if(data.nil?)
+          parent[k] = {}
+          data[k] = nil
+        end
       elsif(k[0]=="[")
         if(k.length > 2)
 
-           k2 = k[1..k.length-2].split(':')
+          k2 = k[1..k.length-2].split(':')
           if(k2.length > 1)
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
@@ -608,7 +621,10 @@ class Result < ActiveRecord::Base
 
       else
         data = data.try(:[],k)
-
+        if(data.nil?)
+          parent[k] = {}
+          data = parent[k]
+        end
       end
     rescue
 
@@ -622,7 +638,6 @@ class Result < ActiveRecord::Base
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
     else
-
       if(value[0] == "{" && value[value.length-1] == "}")
         begin
           value = JSON.parse(value)
@@ -631,6 +646,10 @@ class Result < ActiveRecord::Base
         end
       elsif(value.class == Hash)
         value = value.to_json
+      elsif(value == "true")
+        value = true
+      elsif(value == "false")
+        value = false
       end
 
       if(k == "[]")

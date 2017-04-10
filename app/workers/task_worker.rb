@@ -17,24 +17,26 @@
 class TaskWorker
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
+  sidekiq_options :queue => :worker
 
   def perform(task_id, task_params=nil)
     t= Time.now
-
+    task_params ||= {}
     begin
       @task = Task.find(task_id)
       
       if(@task)
         @task.events << Event.create(field: "Task", action: "Run", source: "Task Worker")
         at 0, "B:Running #{@task.name}"
-        @task.perform_task(task_params)
+        @task.perform_task(task_params.merge(:_jid=>@jid))
       else
         Event.create(action: "Error", source:"Task: #{@task.id}", details: "Unable to run task with id: #{task_id}. No such task.", eventable_type: "Task", eventable_id: task_id)
       end
 
     rescue StandardError=>e
-      event = Event.create(action: "Error", source:"Task: #{@task.name}", details: "Unable to run task, investigate: #{@task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: @task.id )
-      Rails.logger.error "#{e.message}"
+      msg = "Fatal error in TaskWorker. Task id#{task_id}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
+      Event.create(action: "Fatal", source: "TaskWorker", details: msg,eventable_type: "Task", eventable_id: task_id)
+      Rails.logger.error msg
     end
 
   end
