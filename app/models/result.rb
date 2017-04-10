@@ -12,8 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
-
 class Result < ActiveRecord::Base
   belongs_to :status
 
@@ -118,13 +116,16 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["created"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"])
+      Sidekiq.redis do |redis|
+        r.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+      end
     end
   end
 
   after_update :update_task_event
 
   def update_task_event
-
     if(Thread.current[:current_task])
 
       #create an event linking the updated/new result to the task
@@ -135,26 +136,12 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["updated"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"].present?)
+      Sidekiq.redis do |redis|
+        redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
+      end
     end
   end
-
-  # def create_task_event
-  #  if(Thread.current[:current_task])
-  #     #create an event linking the updated/new result to the task
-  #       calling_task = Task.where(id: Thread.current[:current_task]).first
-  #       calling_task.metadata["current_results"] ||={}
-  #       puts calling_task.metadata
-  #       calling_task.metadata["current_results"]["created"] ||=[]
-  #       calling_task.metadata["current_results"]["updated"] ||=[]
-
-  #       if self.new_record?
-  #         calling_task.metadata["current_results"]["created"] << self.id
-  #       else
-  #         calling_task.metadata["current_results"]["updated"] << self.id
-  #       end
-  #       calling_task.save!
-  #  end
-  # end
 
   # Unused method, consider removing Janurary 12th (S.B.)
   # def create_events

@@ -72,6 +72,8 @@ gem 'activerecord-import'
 #Used for task queueing
 gem 'sidekiq'
 gem 'sidekiq-status'
+gem 'sidekiq-limit_fetch'
+gem 'mlanett-redis-lock', require: 'redis-lock'
 
 #Pagination
 gem 'kaminari'

@@ -44,7 +44,7 @@ module ScumblrTask
     def initialize(options={})
       @return_batched_results = true unless defined?(@return_batched_results)
 
-      @options = options
+      @options = options.with_indifferent_access
       thread_tracker = ThreadTracker.new()
       thread_tracker.create_tracking_thread(@options[:_self])
       @event_metadata = {}
@@ -192,6 +192,10 @@ module ScumblrTask
         #create an event linking the updated/new result to the task
         Thread.current["current_events"] ||={}
         Thread.current["current_events"].merge!(@event_metadata)
+      elsif(Thread.current["sidekiq_job_id"].present?)
+        Sidekiq.redis do |redis|
+          redis.sadd("#{Thread.current["sidekiq_job_id"]}:events:#{level}",event_details.id)
+        end
       end
     end
 
@@ -240,7 +244,5 @@ module ScumblrTask
         end
       end
     end
-
-
   end
 end

@@ -17,6 +17,7 @@ require 'sidekiq'
 require 'sidekiq-status'
 
 Sidekiq.configure_client do |config|
+  # If user has specified a redis connection string, use it
   config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware
@@ -24,7 +25,26 @@ Sidekiq.configure_client do |config|
 end
 
 Sidekiq.configure_server do |config|
+  # If user has specified a redis connection string, use it
   config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
+  
+  # Setup sidekiq queues. 
+  # If a user has specified command line queues, use those
+  # otherwise if use has queues in config file, use those
+  # default to async_worker, worker, and runner queues 
+  if(config.options[:queues] == ["default"])
+    if(Rails.configuration.try(:sidekiq_queues))
+      config.options[:queues] = Rails.configuration.try(:sidekiq_queues)
+    else
+      config.options[:queues] = ["async_worker", "worker", "runner"] 
+    end
+  end
+
+  # Prevent runners and workers from taking all the workers 
+  Sidekiq::Queue['runner'].process_limit = 5
+  Sidekiq::Queue['worker'].process_limit = 10
+
+  
   Rails.logger = Sidekiq::Logging.logger
   ActiveRecord::Base.logger = Sidekiq::Logging.logger
   Sidekiq::Logging.logger.level = Logger::INFO
@@ -35,8 +55,13 @@ Sidekiq.configure_server do |config|
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware
   end
+
+  Sidekiq::Client.reliable_push! if !Rails.env.test? && Sidekiq::Client.respond_to?(:reliable_push!)
 end
 
+
+# Add a broadcast method that can be used to update the current status of running tasks
+# from outside the task
 module Sidekiq::Status
   class << self
     def broadcast jid, status_updates

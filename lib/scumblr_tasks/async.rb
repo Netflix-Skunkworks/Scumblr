@@ -61,16 +61,16 @@ class ScumblrTask::Async < ScumblrTask::Base
     # end
     
     #threads << Thread.new do
-      #other_workers_running = false
-      i = 1
+    #other_workers_running = false
+    i = 1
 
-      @results.reorder('').limit(nil).pluck(:id).each do |r|
-        queue.push([i, r])
-        i += 1
-      end
+    @results.reorder('').limit(nil).pluck(:id).each do |r|
+      queue.push([i, r])
+      i += 1
+    end
 
-      @results = nil
-      #Rails.logger.debug "queue thread finished all results"
+    @results = nil
+    #Rails.logger.debug "queue thread finished all results"
     #end
     @parent_tracker ||= {}
     @parent_tracker["current_events"] ||= {}

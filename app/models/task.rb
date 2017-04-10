@@ -145,7 +145,7 @@ class Task < ActiveRecord::Base
       Rails.logger.error "Invalid task type #{task.task_type}"
       return
     end
-
+    
     task_type = task.task_type.constantize
     task_options = task.options.merge({_metadata:task.metadata||{}, _self:task, _params:task_params})
 
