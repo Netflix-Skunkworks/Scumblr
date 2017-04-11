@@ -147,7 +147,7 @@ class Task < ActiveRecord::Base
     end
     
     task_type = task.task_type.constantize
-    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task, _params:task_params})
+    task_options = task.options.merge({_self:task, _params:task_params})
 
     results = nil
     begin

@@ -140,6 +140,8 @@ class Result < ActiveRecord::Base
       Sidekiq.redis do |redis|
         redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
       end
+    else
+      byebug
     end
   end
 

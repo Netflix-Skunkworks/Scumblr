@@ -76,18 +76,19 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
           # try to delete the status in redis.
           (status != :queued && status != :working) && (@completed_count += 1) && (true || Sidekiq::Status.delete(worker_id))
         end
-        sleep(1)
+        if(@done_queueing == false)          
+          sleep(5)
+        else
+          sleep(1)
+        end
       end
       Rails.logger.warn "[+] Ending monitor thread"
     }
 
     begin
+      queue = @options[:sidekiq_queue] || :async_worker
       @results.reorder('').limit(nil).pluck(:id).each do |r|
-        if(@options[:sidekiq_queue].present?)
-          @workers << self.class.worker_class.set(:queue => @options[:sidekiq_queue]).perform_async(r, @options)
-        else
-          @workers << self.class.worker_class.set(:queue => :async_worker).perform_async(r, @options)
-        end
+        @workers << self.class.worker_class.set(:queue => queue).perform_async(r, @options)
       end
     rescue=>e
       create_error(e)
