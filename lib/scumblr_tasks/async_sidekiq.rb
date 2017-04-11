@@ -36,6 +36,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
   def run
     @trends = []
+    @_jid = @options.try(:[],"_params").try(:[],"_jid")
     if(!self.class.respond_to? :worker_class)
       msg = "Incorrectly implemented Async Sidekiq Task. No \"worker_class\" method defined. #{self.inspect}"
       Rails.logger.error msg
@@ -58,6 +59,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     workers = []
     _self = @options[:_self]
     @options[:_self] = @options[:_self].id
+    
     @results.reorder('').limit(nil).pluck(:id).each do |r|
       if(@options[:sidekiq_queue].present?)
         workers << self.class.worker_class.set(:queue => @options[:sidekiq_queue]).perform_async(r, @options)
@@ -107,77 +109,79 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
   # containing a list of key/values pairs t
   def save_trends(time_value=Time.now)
     
-
-    _jid = @options.try(:[],"_params").try(:[],"_jid")
-    if(_jid.blank?)
+    if(@_jid.blank?)
       return
     end
-    trends = nil
-    trend_options = nil
-    Sidekiq.redis do |redis|
-      trends = redis.get("#{_jid}:trends")
-
-      if(trends.present?)
-        trends = JSON.parse(trends)
-      else
-        trends = {}
-      end
-
-      trend_options = redis.get("#{_jid}:trend_options")
-
-      if(trend_options.present?)
-        trend_options = JSON.parse(trend_options)
-      else
-        trend_options = {}
-      end   
-      redis.del("#{_jid}:trends")
-      redis.del("#{_jid}:trend_options")
-    end
     
+      # redis.set "@_jid:#{primary_key}:#{k}:value", 0
+      # @chart_options[primary_key] = chart_options
+      # @series_options[primary_key] = series_options
+      # @trend_options[primary_key] = options
+      # @trend_keys
+    trend_data = {}
     
+    @trend_keys.each do |primary_key, sub_keys|
+      trend_data[primary_key] = @options[:_self].metadata.try(:[],"trends").try(:[],primary_key) || {"data"=>[]}
 
-    if trends.present? && trends.count > 0 && @options[:_self].present?
+      trend_data[primary_key]["library"] = @chart_options[primary_key] || {}
 
-      trend_options ||= {}
-      @options[:_self].metadata ||={}
-      @options[:_self].metadata["trends"] ||={}
-      trends.each do |key, counts|
-        @options[:_self].metadata["trends"][key] ||= {"data"=>[]}
-        if trend_options[key].try(:[],"chart_options").present?
-          @options[:_self].metadata["trends"][key]["library"] = trend_options[key]["chart_options"]
+      date_value = @trend_options.try(:[],primary_key).try(:[],"date_format") ?
+        time_value.strftime(@trend_options[primary_key]["date_format"]) : time_value.strftime("%b %d %Y %H:%M:%S")
+
+      sub_keys.each do |trend_name|
+        series = trend_data[primary_key]["data"].select{|el| el["name"] == trend_name }.first
+        trend_value = 0
+        Sidekiq.redis do |redis|
+          trend_value = redis.get("#{@_jid}:trends:#{primary_key}:#{trend_name}:value")
+          redis.del("#{@_jid}:trends:#{primary_key}:#{trend_name}:value")
         end
 
-        if(trend_options[key].try(:[],"options").try(:[],"date_format").present?)
-          date_value = time_value.strftime(trend_options[key].try(:[],"options").try(:[],"date_format"))
-        else
-          date_value = time_value.strftime("%b %d %Y %H:%M:%S")
-        end
-
-        counts.each do |trend_name, trend_value|
-          series = @options[:_self].metadata["trends"][key]["data"].select{|el| el["name"] == trend_name }.first
-
-          if(series.blank?)
-
-
-
-            series = {"name"=> trend_name, "data" =>{ date_value => trend_value}}
-            if defined?(trend_options) && trend_options.try(:[],key).try(:[],"series_options").try(:[],trend_name)
-              series["library"] = trend_options[key]["series_options"][trend_name]
-            end
-
-            @options[:_self].metadata["trends"][key]["data"] << series
-          else
-            series["data"][date_value] = trend_value
+        if(series.blank?)
+          series = {"name"=> trend_name, "data" =>{ date_value => trend_value}}
+          if @series_options.try(:[],primary_key).try(:[], trend_name)
+            series["library"] = @series_options[primary_key][trend_name]
           end
+
+          trend_data[primary_key]["data"] << series
+        else
+          series["data"][date_value] = trend_value
         end
 
       end
-      if(trends.try(:[],"open_vulnerability_count").try(:[],"open"))
-        @options[:_self].metadata["latest_results_link"] = {text: "#{trends.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
+      # @options[:_self].metadata["trends"][primary_key] = trend_data
+    end
+    
+    @options[:_self].metadata ||= {}
+    @options[:_self].metadata["trends"] ||={}
+    @options[:_self].metadata["trends"].merge!(trend_data)
+
+
+    if(trend_data.try(:[],"open_vulnerability_count").try(:[],"open"))
+      @options[:_self].metadata["latest_results_link"] = {text: "#{trend_data.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
+    end
+    
+
+  end
+
+  # Initialize the trend objects to default values
+    def initialize_trends(primary_key, sub_keys, chart_options={}, series_options={}, options={})
+      @trend_keys ||= {}
+      @trend_keys[primary_key] ||= []
+      @trend_keys[primary_key] += sub_keys
+      @chart_options ||= {}
+      @series_options ||= {}
+      @trend_options ||={}
+      Sidekiq.redis do |redis|
+        Array(sub_keys).each do |k|      
+          redis.set "#{@_jid}:trends:#{primary_key}:#{k}:value", 0
+        end
       end
 
+      @chart_options[primary_key] = chart_options
+      @series_options[primary_key] = series_options
+      @trend_options[primary_key] = options
+
     end
-  end
 end
 
 
@@ -190,7 +194,8 @@ module ScumblrWorkers
       options ||={}
       @options = options.with_indifferent_access
       # Load based on id passed 
-      Thread.current["sidekiq_job_id"] = @options.try(:[],"_params").try(:[],"_jid")
+      @_jid = @options.try(:[],"_params").try(:[],"_jid")
+      Thread.current["sidekiq_job_id"] = @_jid
       begin
         self.perform_work(r)
       rescue=>e
@@ -202,51 +207,20 @@ module ScumblrWorkers
 
     private
 
+
+
     # This will at take a key and a hash with values and puts these values into the trends hash
     # if the key already exists in the trends hash it will sum the values together
     # example: @trends = {updated: {results: 1, tasks:10}},  key= :updated, count= {results: 5, tasks: 2}
     #   @trends will be updated to {updated: {results: 6, tasks: 12}}
     def update_trends(key, count, chart_options={}, series_options=[], options={})
-      
-      _jid = @options.try(:[],"_params").try(:[],"_jid")
-      if(_jid.present?)
+      if(@_jid.present?)
         Sidekiq.redis do |redis|
-          redis.lock("#{_jid}:trends", {acquire: 30, life: 10, owner: SecureRandom.hex}) do |lock|
-            trends = redis.get("#{_jid}:trends")
-            if(trends.present?)
-              trends = JSON.parse(trends)
-            else
-              trends = {}
-            end
-
-            
-
-            
-            trends[key] ||= Hash.new(0)
-            trends[key] = [trends[key], count].inject(Hash.new(0)) { |memo, subhash| subhash.each { |prod, value| memo[prod] += value.to_f } ; memo }
-
-            redis.set("#{_jid}:trends", trends.to_json)
-            
-
-          
-          end
-          redis.lock("#{_jid}:trend_options", {acquire: 30, life: 10, owner: SecureRandom.hex}) do |lock|
-            trend_options = redis.get("#{_jid}:trend_options")
-            if(trend_options.present?)
-              trend_options = JSON.parse(trend_options)
-            else
-              trend_options = {}
-            end
-            trend_options[key] ||= {}
-            trend_options[key]["chart_options"] = chart_options
-            trend_options[key]["series_options"] = series_options
-            trend_options[key]["options"] = options
-            redis.set("#{_jid}:trend_options", trend_options.to_json)
-
+          Array(count).each do |k,v|      
+            redis.incrbyfloat "#{@_jid}:trends:#{key}:#{k}:value", v
           end
         end
       end
-    
     end
   
 

@@ -268,13 +268,41 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
   
 
   def run
-    super
 
+
+
+    initialize_trends("open_vulnerability_count", ["open"], {legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
+    initialize_trends("scan_results", ["new", "existing", "regression", "reopened","closed"], {},  {
+                    "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
+                    "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
+                    "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
+                    "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
+                    "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
+    }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"})
+
+    super
+    
     return
   end
 
 end
 
+
+def initialize_trends(primary_key, sub_keys, chart_options={}, series_options=[], options={})
+  # @chart_options ||= {}
+  # @series_options ||= {}
+  # @trend_options ||={}
+  # Sidekiq.redis do |redis|
+  #   Array(sub_keys).each do |k|      
+  #     redis.set "#{primary_key}:#{k}:value", 0
+  #   end
+  # end
+
+  # @chart_options[primary_key] = chart_options
+  # @series_options[primary_key] = series_options
+  # @trend_options[primary_key] = options
+
+end
 
 class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
   include ActionView::Helpers::TextHelper
@@ -737,19 +765,15 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
       end
     end
 
+    
+
     # Track not-vulnerable results too.
     counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@options[:task_type]}", @options[:_self].id, true, {isolate_vulnerabilities: true})
     open_count = ["new", "existing", "regression", "reopened"].sum{|type| counts[type].to_i }
-    update_trends("open_vulnerability_count", {"open" =>open_count},{legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
+    update_trends("open_vulnerability_count", {"open" =>open_count})
 
     counts["closed"] *= -1
-    update_trends("scan_results", counts, {}, {
-                    "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
-                    "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
-                    "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
-                    "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
-                    "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
-    }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"} )
+    update_trends("scan_results", counts)
 
     if r.changed?
 
