@@ -625,6 +625,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           
         end
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
+        data = "" if data == nil
 
         match_update = false
         # vulnerabilities = []

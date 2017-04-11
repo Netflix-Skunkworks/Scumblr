@@ -56,31 +56,47 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
     i = 1
 
-    workers = []
+    @workers = []
     _self = @options[:_self]
     @options[:_self] = @options[:_self].id
     
-    @results.reorder('').limit(nil).pluck(:id).each do |r|
-      if(@options[:sidekiq_queue].present?)
-        workers << self.class.worker_class.set(:queue => @options[:sidekiq_queue]).perform_async(r, @options)
-      else
-        workers << self.class.worker_class.set(:queue => :async_worker).perform_async(r, @options)
+    # Setup a thread to update the job status while we're still queuing
+    @completed_count = 0
+    @done_queueing = false
+    monitor_thread = Thread.new {
+      Rails.logger.warn "[+] Starting monitor thread"
+      while(@done_queueing == false || !@workers.empty?)
+        update_sidekiq_status("Processing #{@total_result_count} results.  (#{@completed_count}/#{@total_result_count} completed)", @completed_count, @total_result_count)
+        @workers.delete_if do |worker_id|
+          status = Sidekiq::Status::status(worker_id)
+          # Rails.logger.warn "Task #{worker_id} #{status}"
+
+          # Next statement determins whether to delete the worker from the array. We deleted the worker
+          # if the status is not queued or working. In this case we also increment the count by one and
+          # try to delete the status in redis.
+          (status != :queued && status != :working) && (@completed_count += 1) && (true || Sidekiq::Status.delete(worker_id))
+        end
+        sleep(1)
       end
+      Rails.logger.warn "[+] Ending monitor thread"
+    }
+
+    begin
+      @results.reorder('').limit(nil).pluck(:id).each do |r|
+        if(@options[:sidekiq_queue].present?)
+          @workers << self.class.worker_class.set(:queue => @options[:sidekiq_queue]).perform_async(r, @options)
+        else
+          @workers << self.class.worker_class.set(:queue => :async_worker).perform_async(r, @options)
+        end
+      end
+    rescue=>e
+      create_error(e)
+    ensure
+      @done_queueing = true
     end
 
-    @results = nil
-    count = 0
-    while(!workers.empty?)
-      update_sidekiq_status("Processing #{@total_result_count} results.  (#{count}/#{@total_result_count} completed)", count, @total_result_count)
-      
-      Rails.logger.warn "#{workers.count} tasks remaining"
-      workers.delete_if do |worker_id|
-        status = Sidekiq::Status::status(worker_id)
-        Rails.logger.warn "Task #{worker_id} #{status}"
-        (status != :queued && status != :working) && count += 1
-      end
-      sleep(1)
-    end
+    monitor_thread.join
+
     @options[:_self] = _self
 
     _self.metadata["current_events"] ||= {}
