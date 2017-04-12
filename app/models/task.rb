@@ -153,9 +153,9 @@ class Task < ActiveRecord::Base
     begin
       task.metadata["_start_time"] = Time.now
       if(task.task_type.match(/\ASearchProvider::/))
-        results = task_type.new(task.query, task_options).run
+        results = task_type.new(task.query, task_options).start
       else
-        results = task_type.new(task_options).run
+        results = task_type.new(task_options).start
       end
     rescue StandardError=>e
       if e.class == ScumblrTask::TaskException

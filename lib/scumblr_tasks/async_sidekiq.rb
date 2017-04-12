@@ -226,7 +226,7 @@ module ScumblrWorkers
       rescue=>e
         create_error("An error occurred: #{e.message}\r\n#{e.backtrace}")
       ensure
-        Thread.current["sidekiq_job_id"] = nil
+        # Thread.current["sidekiq_job_id"] = nil
       end
     end
 
