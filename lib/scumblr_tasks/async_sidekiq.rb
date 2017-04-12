@@ -74,7 +74,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
           # Next statement determins whether to delete the worker from the array. We deleted the worker
           # if the status is not queued or working. In this case we also increment the count by one and
           # try to delete the status in redis.
-          (status != :queued && status != :working) && (@completed_count += 1) && (true || Sidekiq::Status.delete(worker_id))
+          (status != :queued && status != :working) && (@completed_count += 1) && (true || Sidekiq.redis{|r| r.del("sidekiq:status:#{worker_id}")})
         end
         if(@done_queueing == false)          
           sleep(5)
