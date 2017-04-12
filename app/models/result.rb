@@ -102,7 +102,7 @@ class Result < ActiveRecord::Base
     end
   end
 
-  after_create :create_task_event
+  before_create :create_task_event
 
   def create_task_event
 
@@ -123,7 +123,7 @@ class Result < ActiveRecord::Base
     end
   end
 
-  after_update :update_task_event
+  before_update :update_task_event
 
   def update_task_event
     if(Thread.current[:current_task])
@@ -137,11 +137,13 @@ class Result < ActiveRecord::Base
 
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"].present?)
+      self.metadata["sidekiq_job_id"] = Thread.current["sidekiq_job_id"]
       Sidekiq.redis do |redis|
+        redis.incr "#{Thread.current["sidekiq_job_id"]}:results:updated_count"
         redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
       end
     else
-      byebug
+      
     end
   end
 
