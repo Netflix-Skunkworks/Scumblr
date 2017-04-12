@@ -22,13 +22,15 @@ class TaskWorker
   def perform(task_id, task_params=nil)
     t= Time.now
     task_params ||= {}
+
     begin
       @task = Task.find(task_id)
+      task_params.merge!(:_jid=>@jid)
       
       if(@task)
         @task.events << Event.create(field: "Task", action: "Run", source: "Task Worker")
         at 0, "B:Running #{@task.name}"
-        @task.perform_task(task_params.merge(:_jid=>@jid))
+        @task.perform_task(task_params)
       else
         Event.create(action: "Error", source:"Task: #{@task.id}", details: "Unable to run task with id: #{task_id}. No such task.", eventable_type: "Task", eventable_id: task_id)
       end

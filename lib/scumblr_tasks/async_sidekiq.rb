@@ -20,9 +20,6 @@
 # @workers to be the number of worker threads
 class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
   
-  def initialize
-  end
-
   def initialize(options)
     @return_batched_results = false
     super(options)
@@ -60,6 +57,11 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     _self = @options[:_self]
     @options[:_self] = @options[:_self].id
     
+    # Store @options in redis once to be reused by all tasks
+    Sidekiq.redis do |r|
+      r.set "#{@_jid}:options", @options.to_json
+    end
+
     # Setup a thread to update the job status while we're still queuing
     @completed_count = 0
     @done_queueing = false
@@ -71,11 +73,13 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
           status = Sidekiq::Status::status(worker_id)
           # Rails.logger.warn "Task #{worker_id} #{status}"
 
-          # Next statement determins whether to delete the worker from the array. We deleted the worker
+          # Next statement determines whether to delete the worker from the array. We deleted the worker
           # if the status is not queued or working. In this case we also increment the count by one and
           # try to delete the status in redis.
-          (status != :queued && status != :working) && (@completed_count += 1) && (true || Sidekiq.redis{|r| r.del("sidekiq:status:#{worker_id}")})
+          (status != :queued && status != :working) && (@completed_count += 1) && (Sidekiq.redis{|r| r.del("sidekiq:status:#{worker_id}")} || true)
         end
+
+        # If the task is still adding to the queue, give it a little some extra time before
         if(@done_queueing == false)          
           sleep(5)
         else
@@ -88,7 +92,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     begin
       queue = @options[:sidekiq_queue] || :async_worker
       @results.reorder('').limit(nil).pluck(:id).each do |r|
-        @workers << self.class.worker_class.set(:queue => queue).perform_async(r, @options)
+        @workers << self.class.worker_class.set(:queue => queue).perform_async(r, @_jid)
       end
     rescue=>e
       create_error(e)
@@ -102,17 +106,18 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
     _self.metadata["current_events"] ||= {}
     _self.metadata["current_results"] ||= {}
-    _jid = @options.try(:[],"_params").try(:[],"_jid")
-    if(_jid)
+    
+    if(@_jid)
       Sidekiq.redis do |r|
-        _self.metadata["current_events"]["Error"] = r.smembers("#{_jid}:events:errors").to_a
-        _self.metadata["current_events"]["Warning"] = r.smembers("#{_jid}:events:warnings").to_a
-        _self.metadata["current_results"]["updated"] = r.smembers("#{_jid}:results:updated").to_a
-        _self.metadata["current_results"]["created"] = r.smembers("#{_jid}:results:created").to_a
-        r.del "#{_jid}:events:errors", 
-              "#{_jid}:events:warnings", 
-              "#{_jid}:results:updated", 
-              "#{_jid}:results:created"
+        _self.metadata["current_events"]["Error"] = r.smembers("#{@_jid}:events:errors").to_a
+        _self.metadata["current_events"]["Warning"] = r.smembers("#{@_jid}:events:warnings").to_a
+        _self.metadata["current_results"]["updated"] = r.smembers("#{@_jid}:results:updated").to_a
+        _self.metadata["current_results"]["created"] = r.smembers("#{@_jid}:results:created").to_a
+        r.del "#{@_jid}:events:errors", 
+              "#{@_jid}:events:warnings", 
+              "#{@_jid}:results:updated", 
+              "#{@_jid}:results:created",
+              "#{@_jid}:options"
       end
     end
 
@@ -207,12 +212,15 @@ module ScumblrWorkers
     include Sidekiq::Worker
     include Sidekiq::Status::Worker
 
-    def perform(r, options)
-      options ||={}
-      @options = options.with_indifferent_access
-      # Load based on id passed 
-      @_jid = @options.try(:[],"_params").try(:[],"_jid")
+    def perform(r, jid)
+      @_jid = jid
       Thread.current["sidekiq_job_id"] = @_jid
+      options = nil
+      Sidekiq.redis do |redis|
+        options = redis.get "#{jid}:options"
+      end
+      @options = JSON.parse(options).with_indifferent_access
+      
       begin
         self.perform_work(r)
       rescue=>e
