@@ -137,9 +137,7 @@ class Result < ActiveRecord::Base
 
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"].present?)
-      self.metadata["sidekiq_job_id"] = Thread.current["sidekiq_job_id"]
       Sidekiq.redis do |redis|
-        redis.incr "#{Thread.current["sidekiq_job_id"]}:results:updated_count"
         redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
       end
     else

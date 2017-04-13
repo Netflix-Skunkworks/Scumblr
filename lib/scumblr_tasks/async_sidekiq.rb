@@ -91,9 +91,14 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
     begin
       queue = @options[:sidekiq_queue] || :async_worker
-      @results.reorder('').limit(nil).pluck(:id).each do |r|
-        @workers << self.class.worker_class.set(:queue => queue).perform_async(r, @_jid)
+      limit = 10000
+      @results.reorder('').limit(nil).pluck(:id).each_slice(limit).each do |group|
+        @workers += Sidekiq::Client.push_bulk("queue"=> queue, "class"=>self.class.worker_class, "args"=>group.map{|rid| [rid, @_jid]})
       end
+
+      # @results.reorder('').limit(nil).pluck(:id).each do |r|
+      #   @workers << self.class.worker_class.set(:queue => queue).perform_async(r, @_jid)
+      # end
     rescue=>e
       create_error(e)
     ensure
