@@ -176,14 +176,18 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         res.title = repo.full_name
         res.domain = "github.com"
         res.metadata ||={}
+
         res.metadata["github_analyzer"] ||={}
         res.metadata["github_analyzer"]["owner"] = repo["owner"]["login"]
         res.metadata["github_analyzer"]["language"] = repo["language"]
         res.metadata["github_analyzer"]["private"] = repo["private"]
         res.metadata["github_analyzer"]["account_type"] = repo.owner.type
+        
         if @options[:tags].present?
           res.add_tags(@options[:tags])
         end
+
+        res.metadata["github_analyzer"]["git_clone_url"] = repo.clone_url
         res.save
       end
     end

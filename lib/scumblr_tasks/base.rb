@@ -25,6 +25,12 @@ module ScumblrTask
       nil
     end
 
+    def start
+      Thread.current["sidekiq_job_id"] = nil
+      Thread.current["current_task"] = nil
+      run
+    end
+
     def self.task_category
       nil
     end
@@ -42,7 +48,9 @@ module ScumblrTask
     end
 
     def initialize(options={})
-      @options = options
+      @return_batched_results = true unless defined?(@return_batched_results)
+
+      @options = options.with_indifferent_access
       thread_tracker = ThreadTracker.new()
       thread_tracker.create_tracking_thread(@options[:_self])
       @event_metadata = {}
@@ -94,6 +102,20 @@ module ScumblrTask
       if(@options.key?(:saved_result_filter) || @options.key?(:saved_event_filter))
         get_saved_results
       end
+      
+
+      begin
+        self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
+          tags = []
+          @options[k].split(",").each do |tag_name|
+            tags << Tag.where(name: tag_name.strip).first_or_create
+          end
+          @options[k] = tags
+        end
+      rescue => e
+        create_error("Error parsing tag options. Options: #{@options.inspect}")
+      end
+
 
 
       config_options = self.class.config_options
@@ -114,7 +136,7 @@ module ScumblrTask
     def get_saved_results
       if(@options[:saved_result_filter].present?)
         filter = SavedFilter.where(saved_filter_type:"Result", id: @options[:saved_result_filter]).try(:first)
-        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true})[1].readonly(false)
+        @results = filter.perform_search({}, 1, 25, {include_metadata_column: true, includes:nil})[1].readonly(false)
         #@results = @results.per(@result.total_count)
 
       end
@@ -138,6 +160,17 @@ module ScumblrTask
       if(@results == Result)
         @results = Result.all
       end
+
+      if @results.respond_to?(:total_count)
+        @total_result_count = @results.total_count
+      else
+        @total_result_count = @results.count
+      end
+
+      if(@return_batched_results != false)
+        @results = @results.find_each(batch_size: 10)
+      end
+      
     end
 
     def run
@@ -146,6 +179,15 @@ module ScumblrTask
 
 
     private
+
+    def update_sidekiq_status(message, num=nil, total=nil)
+      status_updates = {submessage: "#{message}"}
+      status_updates.merge!({at: num.to_i}) if num
+      status_updates.merge!({total: total.to_i}) if total
+      if(@options.try(:[],:_params).try(:[],:_jid).present?)
+        Sidekiq::Status.broadcast(@options[:_params][:_jid], status_updates)
+      end
+    end
 
     def create_event(event, level="Error")
       if(event.respond_to?(:message))
@@ -161,7 +203,8 @@ module ScumblrTask
       else
         Rails.logger.debug details
       end
-      event_details = Event.create(action: level, eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
+      
+      event_details = Event.create(action: level, eventable_id: @options.try(:[],:_self).try(:id), eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
 
       @event_metadata[level] ||= []
       @event_metadata[level] << event_details.id
@@ -169,6 +212,10 @@ module ScumblrTask
         #create an event linking the updated/new result to the task
         Thread.current["current_events"] ||={}
         Thread.current["current_events"].merge!(@event_metadata)
+      elsif(Thread.current["sidekiq_job_id"].present?)
+        Sidekiq.redis do |redis|
+          redis.sadd("#{Thread.current["sidekiq_job_id"]}:events:#{level}",event_details.id)
+        end
       end
     end
 
@@ -217,7 +264,5 @@ module ScumblrTask
         end
       end
     end
-
-
   end
 end

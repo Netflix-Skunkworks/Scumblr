@@ -22,6 +22,7 @@ Dir[Rails.root + "../custom/lib/search_providers/*.rb"].each {|file| require fil
 
 require 'scumblr_tasks/base.rb'
 require 'scumblr_tasks/async.rb'
+require 'scumblr_tasks/async_sidekiq.rb'
 
 Dir[Rails.root + "lib/scumblr_tasks/**/*.rb"].each {|file| require file }
 Dir[Rails.root + "custom/lib/scumblr_tasks/**/*.rb"].each {|file| require file }

@@ -12,8 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
-
 class Result < ActiveRecord::Base
   belongs_to :status
 
@@ -69,15 +67,11 @@ class Result < ActiveRecord::Base
   end
 
   def add_tags(tags)
-    begin
       tags.each do |the_tag|
         unless self.tags.include? the_tag
           self.tags << the_tag
         end
       end
-    rescue => e
-      puts e
-    end
   end
 
   def self.to_csv
@@ -108,7 +102,7 @@ class Result < ActiveRecord::Base
     end
   end
 
-  after_create :create_task_event
+  before_create :create_task_event
 
   def create_task_event
 
@@ -122,13 +116,16 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["created"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"])
+      Sidekiq.redis do |redis|
+        r.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+      end
     end
   end
 
-  after_update :update_task_event
+  before_update :update_task_event
 
   def update_task_event
-
     if(Thread.current[:current_task])
 
       #create an event linking the updated/new result to the task
@@ -139,26 +136,14 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"]["updated"].uniq!
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"].present?)
+      Sidekiq.redis do |redis|
+        redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
+      end
+    else
+      
     end
   end
-
-  # def create_task_event
-  #  if(Thread.current[:current_task])
-  #     #create an event linking the updated/new result to the task
-  #       calling_task = Task.where(id: Thread.current[:current_task]).first
-  #       calling_task.metadata["current_results"] ||={}
-  #       puts calling_task.metadata
-  #       calling_task.metadata["current_results"]["created"] ||=[]
-  #       calling_task.metadata["current_results"]["updated"] ||=[]
-
-  #       if self.new_record?
-  #         calling_task.metadata["current_results"]["created"] << self.id
-  #       else
-  #         calling_task.metadata["current_results"]["updated"] << self.id
-  #       end
-  #       calling_task.save!
-  #  end
-  # end
 
   # Unused method, consider removing Janurary 12th (S.B.)
   # def create_events
@@ -334,7 +319,18 @@ class Result < ActiveRecord::Base
     options[:saved_event_filter_id] = q[:id_in_saved_event_filter]
     options[:saved_event_filter_id] = nil if options[:saved_event_filter_id] == 0
 
-    ransack_search = Result.includes(:status, :result_attachments).search(q.except(:metadata_search,:id_in_saved_event_filter))
+    ransack_search = Result
+
+    if(options.include?(:includes))
+      if(options[:includes].present?)
+        # Include the associations requested
+        ransack_search = ransack_search.includes(options[:includes])
+      end
+    else
+      ransack_search = ransack_search.includes(:status, :result_attachments)
+    end
+
+    ransack_search = ransack_search.search(q.except(:metadata_search,:id_in_saved_event_filter))
 
 
 
@@ -588,12 +584,18 @@ class Result < ActiveRecord::Base
 
     k=keys.shift
     parent = data
-
+    
     begin
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
+
+
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
+        if(data.nil?)
+          parent[k] = {}
+          data[k] = nil
+        end
       elsif(k[0]=="[")
         if(k.length > 2)
 
@@ -621,7 +623,10 @@ class Result < ActiveRecord::Base
 
       else
         data = data.try(:[],k)
-
+        if(data.nil?)
+          parent[k] = {}
+          data = parent[k]
+        end
       end
     rescue
 
@@ -635,7 +640,6 @@ class Result < ActiveRecord::Base
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
     else
-
       if(value[0] == "{" && value[value.length-1] == "}")
         begin
           value = JSON.parse(value)
@@ -644,6 +648,10 @@ class Result < ActiveRecord::Base
         end
       elsif(value.class == Hash)
         value = value.to_json
+      elsif(value == "true")
+        value = true
+      elsif(value == "false")
+        value = false
       end
 
       if(k == "[]")
