@@ -102,7 +102,7 @@ class Result < ActiveRecord::Base
     end
   end
 
-  before_create :create_task_event
+  after_create :create_task_event
 
   def create_task_event
 
@@ -123,7 +123,7 @@ class Result < ActiveRecord::Base
     end
   end
 
-  before_update :update_task_event
+  after_update :update_task_event
 
   def update_task_event
     if(Thread.current[:current_task])

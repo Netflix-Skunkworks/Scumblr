@@ -62,33 +62,8 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       r.set "#{@_jid}:options", @options.to_json
     end
 
-    # Setup a thread to update the job status while we're still queuing
-    @completed_count = 0
-    @done_queueing = false
-    monitor_thread = Thread.new {
-      Rails.logger.warn "[+] Starting monitor thread"
-      while(@done_queueing == false || !@workers.empty?)
-        update_sidekiq_status("Processing #{@total_result_count} results.  (#{@completed_count}/#{@total_result_count} completed)", @completed_count, @total_result_count)
-        @workers.delete_if do |worker_id|
-          status = Sidekiq::Status::status(worker_id)
-          # Rails.logger.warn "Task #{worker_id} #{status}"
-
-          # Next statement determines whether to delete the worker from the array. We deleted the worker
-          # if the status is not queued or working. In this case we also increment the count by one and
-          # try to delete the status in redis.
-          (status != :queued && status != :working) && (@completed_count += 1) && (Sidekiq.redis{|r| r.del("sidekiq:status:#{worker_id}")} || true)
-        end
-
-        # If the task is still adding to the queue, give it a little some extra time before
-        if(@done_queueing == false)          
-          sleep(5)
-        else
-          sleep(1)
-        end
-      end
-      Rails.logger.warn "[+] Ending monitor thread"
-    }
-
+    
+      
     begin
       queue = @options[:sidekiq_queue] || :async_worker
       limit = 10000
@@ -101,11 +76,25 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       # end
     rescue=>e
       create_error(e)
-    ensure
-      @done_queueing = true
     end
 
-    monitor_thread.join
+    # Update job status as tasks are completed
+    @completed_count = 0
+    while(!@workers.empty?)
+      update_sidekiq_status("Processing #{@total_result_count} results.  (#{@completed_count}/#{@total_result_count} completed)", @completed_count, @total_result_count)
+      @workers.delete_if do |worker_id|
+        status = Sidekiq::Status::status(worker_id)
+        # Rails.logger.warn "Task #{worker_id} #{status}"
+
+        # Next statement determines whether to delete the worker from the array. We deleted the worker
+        # if the status is not queued or working. In this case we also increment the count by one and
+        # try to delete the status in redis.
+        (status != :queued && status != :working) && (@completed_count += 1) && (Sidekiq.redis{|r| r.del("sidekiq:status:#{worker_id}")} || true)
+      end
+
+      sleep(1)
+      
+    end
 
     @options[:_self] = _self
 
@@ -216,16 +205,23 @@ module ScumblrWorkers
   class AsyncSidekiqWorker
     include Sidekiq::Worker
     include Sidekiq::Status::Worker
+    sidekiq_options :retry => false
 
     def perform(r, jid)
       @_jid = jid
-      Thread.current["sidekiq_job_id"] = @_jid
-      options = nil
-      Sidekiq.redis do |redis|
-        options = redis.get "#{jid}:options"
+      @options =""
+      begin
+        Thread.current["sidekiq_job_id"] = @_jid
+        options = nil
+        Sidekiq.redis do |redis|
+          options = redis.get "#{jid}:options"
+        end
+        @options = JSON.parse(options).with_indifferent_access
+      rescue=>e
+        create_error("Error parsing options from redis, can not continue. Options retrieved: #{options}. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
+        return []
       end
-      @options = JSON.parse(options).with_indifferent_access
-      
+
       begin
         self.perform_work(r)
       rescue=>e
