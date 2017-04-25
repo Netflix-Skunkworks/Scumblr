@@ -147,8 +147,6 @@ class ResultTest < ActiveSupport::TestCase
       assert_equal(Fixnum, fixture_result.metadata["sketchy_ids"].first.class)
       fixture_result.metadata["sketchy_ids"] = nil
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
   end
 
   if Rails.configuration.try(:sketchy_url).present?
@@ -161,8 +159,6 @@ class ResultTest < ActiveSupport::TestCase
       foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(nil, fixture_result.metadata["sketchy_ids"])
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
   end
 
 end
