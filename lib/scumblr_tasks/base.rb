@@ -59,6 +59,21 @@ module ScumblrTask
       # previous events key.
 
       if(@options[:_self].present?)
+        tags = []
+        begin
+          self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
+            @options[k].split(",").each do |tag_name|
+              tags << Tag.where(name: tag_name.strip).first_or_create
+            end
+
+            @options[k] = tags
+            tags = []
+          end
+        rescue => e
+          puts e
+        end
+        # do stuff with taggs
+
         @options[:_self].metadata ||={}
 
         if @options[:_self].metadata["current_events"].present?
