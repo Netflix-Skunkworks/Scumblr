@@ -79,6 +79,7 @@ Scumblr::Application.configure do
 
   #config.assets.prefix = "/assets_dev"
 
+
 end
 
 silence_warnings do

@@ -53,9 +53,8 @@ gem 'cancan'
 gem 'ransack'
 
 #Image processing/attachments
-gem 'paperclip'
-gem 'aws-sdk', '< 2.0'
-
+gem 'paperclip', ">= 5.0"
+gem 'aws-sdk'
 
 # Time period parsing
 gem 'chronic'

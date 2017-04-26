@@ -27,7 +27,6 @@ class ApplicationController < ActionController::Base
 
   before_filter :authenticate_user!
   before_filter :require_enabled
-  
   force_ssl if: :ssl_configured?
 
   def require_enabled
