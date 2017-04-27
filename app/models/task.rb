@@ -229,8 +229,6 @@ class Task < ActiveRecord::Base
       result.domain = r[:domain]
       result.metadata = (result.metadata || {}).deep_merge(r[:metadata] || {})
       result.status_id = new_status if !result.status_id && new_status
-      require 'byebug'
-      byebug
 
       if result.changed?
         result.save
