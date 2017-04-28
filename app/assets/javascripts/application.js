@@ -234,7 +234,7 @@ $(function(){
 
 // Prevents refresh buttons in accordion headers from
 // closing the accordion. Registered outside of ready
-// to prevent binding/executing multiple times
+// to prevent binding/executing multiple times 
 $(function(){
   $(document).on('click', "a > form > input.refresh", function(event) {
     event.stopPropagation();
@@ -248,8 +248,8 @@ $(document).on("change select2:change select2:select select2:unselect", "form.fa
 
 var ready = function(){
 
-
-
+  
+  
 
   $('.datepicker').fdatepicker()
   $('.datetimepicker').datetimepicker({
@@ -347,7 +347,7 @@ var ready = function(){
   //Load default select2 boxes
   $(".select2").select2();
 
-
+  
 
   $(".select2").removeClass("select2");
   $(".select2-tags").each(function() {
@@ -495,7 +495,7 @@ var ready = function(){
   $(".remote_select2").removeClass("remote_select2");
   $(".remote_select2").css("display", "")
 
-
+  
 
 
   //Actions for hidden fields
@@ -709,7 +709,7 @@ var ready = function(){
   });
 
 
-
+  
 
 
   betterTooltips();

@@ -14,7 +14,7 @@ Curl Security Task and Github Security Task expect JSON arrays.</p>
     <% @system_metadata.each do |system_metadatum| %>
       <tr>
         <td><%= system_metadatum.key %></td>
-        <td><%= system_metadatum.metadata.to_s.truncate(255) %></td>
+        <td><%= system_metadatum.metadata.to_json %></td>
         <td>
           <%= link_to link_to 'Show', system_metadatum, class: "button tiny" %>
           <% if can? :edit, SystemMetadata %>
