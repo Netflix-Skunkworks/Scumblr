@@ -15,7 +15,7 @@
 
 class SummaryMailer < ActionMailer::Base
 
-  default from: "scumblr@scumblr.com"
+  default from: Rails.configuration.try(:email_source_address) || "scumblr@localhost"
 
 
   def notification(recipients, filter, results)
@@ -24,7 +24,7 @@ class SummaryMailer < ActionMailer::Base
     @results = results
     @filter = filter
     subject = "Scumblr: Daily update for: #{@filter.name}"
-    mail(:to=> "scumblr@scumblr.com", :bcc=> recipients, :subject=>subject)
+    mail(:to=> "", :bcc=> recipients, :subject=>subject)
 
   end
 
