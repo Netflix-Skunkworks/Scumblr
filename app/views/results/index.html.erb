@@ -43,7 +43,7 @@ $(function(){
                  Examples: 'status_code'<br/>
                 'scan:latest:timestamp'<br/>
                  Note: The same value can be used in the metadata search field to filter to only results containing a value for this field. Displaying fields containing large amounts of data could significantly impact performance."><i class="fi-info"></i></span>
-              <%= hidden_field_tag "columns[metadata_fields]", @index_columns.select{|c| c.to_s.starts_with("metadata:")}.map{|c| c.gsub("metadata:", "")}.join(", ") , {class: "select2-tags", multiple: true} %>
+              <%= hidden_field_tag "columns[metadata_fields]", @index_columns.select{|c| c.to_s.starts_with("metadata:")}.map{|c| c.gsub(/\Ametadata:/, "")}.join(", ") , {class: "select2-tags", multiple: true} %>
             <% end %>
             <%= submit_tag "Update", class: "button tiny" %> <%= submit_tag "Update and Set Default", class: "button tiny" %>
           <% end %>

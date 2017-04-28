@@ -60,12 +60,19 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
                   required: false,
                   type: :boolean},
+      :tags => {name: "Tag Results",
+                description: "Provide a tag for newly created results",
+                required: false,
+                default: "",
+                type: :tag
+                },
       :scope_visibility => {name: "Repo Visibility",
                   description: "Should the task sync public repos, private repos, or both.",
                   required: true,
                   type: :choice,
                   default: :both,
-                  choices: [:both, :public, :private]}
+                  choices: [:both, :public, :private]},
+
     }
   end
 
@@ -177,6 +184,11 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         res.metadata["github_analyzer"]["private"] = repo["private"]
         res.metadata["github_analyzer"]["account_type"] = repo.owner.type
         res.metadata["github_analyzer"]["git_clone_url"] = repo.clone_url
+
+        if @options[:tags].present?
+          res.add_tags(@options[:tags])
+        end
+
         res.save
       end
     end

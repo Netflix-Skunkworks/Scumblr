@@ -17,7 +17,7 @@
 class TaskWorker
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
-  sidekiq_options :queue => :worker
+  sidekiq_options :queue => :worker, :retry => false
 
   def perform(task_id, task_params=nil)
     t= Time.now

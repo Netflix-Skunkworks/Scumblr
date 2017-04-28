@@ -17,7 +17,7 @@
 class TaskRunner
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
-  sidekiq_options :queue => :runner
+  sidekiq_options :queue => :runner, :retry => false 
 
   def perform(task_ids=nil, task_params=nil)
     begin
