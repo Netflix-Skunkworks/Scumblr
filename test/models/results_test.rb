@@ -140,19 +140,18 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal(fixture_result.metadata["sketchy_ids"], foo)
   end
 
-
-  if Rails.configuration.try(:sketchy_url).present?
-    test "create attachment from sketchy" do
+  test "create attachment from sketchy" do
+    if Rails.configuration.try(:sketchy_url).present?
       fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(Fixnum, fixture_result.metadata["sketchy_ids"].first.class)
       fixture_result.metadata["sketchy_ids"] = nil
+    else
+      skip("no sketchy_url configured...skiping test.")
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
   end
 
-  if Rails.configuration.try(:sketchy_url).present?
-    test "runtime error for attachment from sketchy" do
+  test "runtime error for attachment from sketchy" do
+    if Rails.configuration.try(:sketchy_url).present?
       Scumblr::Application.configure do
         config.sketchy_url = "https://google.com"
         config.sketchy_access_token = ""
@@ -160,9 +159,8 @@ class ResultTest < ActiveSupport::TestCase
 
       foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(nil, fixture_result.metadata["sketchy_ids"])
+    else
+      skip("no sketchy_url configured...skiping test.")
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
   end
-
 end
