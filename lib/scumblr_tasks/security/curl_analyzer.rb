@@ -494,7 +494,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     File.write(full_file_path, response)
 
     if(previous_versions.present?)
-      digest = Digest::MD5.file (full_file_path)
+      digest = Digest::SHA256.file (full_file_path)
       previous_versions.each do |v|
         if(v.attachment.fingerprint != digest.to_s)
           previous_versions.delete(v)
@@ -691,9 +691,6 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
             # Update all vulnerablities
             # r.update_vulnerabilities(vulnerabilities)
 
-            if r.changed?
-              upload_s3(r, data)
-            end
             # If status_code matches, create a vulnerability
           elsif @options[:response_string].to_s == "" and @options[:status_code].present? and @options[:status_code].to_i == status_code.to_i
 
@@ -728,10 +725,6 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
             vuln.status_code = status_code.to_s
             vulnerabilities << vuln
             # r.update_vulnerabilities([vuln])
-
-            if r.changed?
-              upload_s3(r, data)
-            end
             # If the response string matches expected, create metadata
           elsif @options[:status_code].to_s == "" and @options[:response_string].present?
 
@@ -758,7 +751,13 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
                 vulnerabilities.push(*header_matches)
               end
             end
-
+          end
+          if r.changed?
+            begin
+              upload_s3(r, data)
+            rescue=>e
+              create_error("Could not create S3 attachment for Result #{r.id} #{e.message} #{e.backtrace}")
+            end
           end
 
         end
@@ -776,10 +775,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     counts["closed"] *= -1
     update_trends("scan_results", counts)
 
-    if r.changed?
-
-      upload_s3(r, data)
-    end
+    
   end
 
 end
