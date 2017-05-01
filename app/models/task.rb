@@ -145,7 +145,7 @@ class Task < ActiveRecord::Base
       Rails.logger.error "Invalid task type #{task.task_type}"
       return
     end
-    
+
     task_type = task.task_type.constantize
     task_options = task.options.merge({_self:task, _params:task_params})
 
@@ -229,8 +229,8 @@ class Task < ActiveRecord::Base
       result.domain = r[:domain]
       result.metadata = (result.metadata || {}).deep_merge(r[:metadata] || {})
       result.status_id = new_status if !result.status_id && new_status
-      require 'byebug'
-      byebug
+      # require 'byebug'
+      # byebug
 
       if result.changed?
         result.save
