@@ -1,9 +1,5 @@
+
 $('#task_type_options').html("<%= escape_javascript(render :partial=>"options_fields", :locals => {:task_options=>@task.try(:options), task_type_options: @task_type_options, }) %>");
-<% if @task_type.to_s.match(/\ASearchProvider::/) %>
-  $('.search_type_field').show();
-<% else%>
-  $('.search_type_field').hide();
-<% end %>
 <% if @task_type_description.present? || @task_type_config_options.present? %>
   $("#task_description").html("<%= escape_javascript(render :partial=>"task_configuration", :locals => {:task_options=>@task.try(:options), task_type_options: @task_type_options, task_type_description: @task_type_description, task_type_configuration: @task_type_configuration }) %>")
 <% else %>
@@ -12,3 +8,9 @@ $('#task_type_options').html("<%= escape_javascript(render :partial=>"options_fi
 
 // $(function(){ $(document).foundation(); });
 ready();
+
+<% if @task_type.to_s.match(/\ASearchProvider::/) %>
+  $('.search_type_field').show();
+<% else%>
+  $('.search_type_field').hide();
+<% end %> 
