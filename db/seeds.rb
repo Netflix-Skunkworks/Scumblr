@@ -1,0 +1,1 @@
+User.new(email: 'admin@sample.com', password: 'scumblr123', password_confirmation: 'scumblr123', admin: true).save!
