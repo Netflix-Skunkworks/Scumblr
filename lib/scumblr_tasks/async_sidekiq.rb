@@ -209,6 +209,20 @@ module ScumblrWorkers
 
     def perform(r, jid)
 
+      @_jid = jid
+      @options =""
+      begin
+        Thread.current["sidekiq_job_id"] = @_jid
+        options = nil
+        Sidekiq.redis do |redis|
+          options = redis.get "#{jid}:options"
+        end
+        @options = JSON.parse(options).with_indifferent_access
+      rescue=>e
+        create_error("Error parsing options in #{self.class} from redis, can not continue. Options retrieved: #{options}. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
+        return []
+      end
+
       begin
         config_options = self.class.try(:config_options)
         if(config_options.present? && config_options.class == Hash)
@@ -224,20 +238,6 @@ module ScumblrWorkers
         end
       rescue=>e
         create_error("Error parsing config options in #{self.class}, can not continue. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
-        return []
-      end
-      
-      @_jid = jid
-      @options =""
-      begin
-        Thread.current["sidekiq_job_id"] = @_jid
-        options = nil
-        Sidekiq.redis do |redis|
-          options = redis.get "#{jid}:options"
-        end
-        @options = JSON.parse(options).with_indifferent_access
-      rescue=>e
-        create_error("Error parsing options in #{self.class} from redis, can not continue. Options retrieved: #{options}. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
         return []
       end
 
@@ -287,8 +287,12 @@ module ScumblrWorkers
       end
       
       eventable_id = nil
-      if(@options.try(:[],:_self).present?)
-        eventable_id = @options.try(:[],:_self).class == Fixnum ? @options.try(:[],:_self) : @options.try(:[],:_self).try(:[],:id)
+      begin
+        if(@options.try(:[],:_self).present?)
+          eventable_id = @options.try(:[],:_self).class == Fixnum ? @options.try(:[],:_self) : @options.try(:[],:_self).try(:[],:id)
+        end
+      rescue
+
       end
 
       event_details = Event.create(action: level, eventable_id: eventable_id, eventable_type: "Task", source: "Task: #{self.class.to_s}", details: details)
