@@ -205,7 +205,7 @@ module ScumblrWorkers
   class AsyncSidekiqWorker
     include Sidekiq::Worker
     include Sidekiq::Status::Worker
-    sidekiq_options :retry => false, :backtrace => true
+    sidekiq_options :retry => 0, :backtrace => true
 
     def perform(r, jid)
 
