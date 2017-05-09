@@ -205,9 +205,23 @@ module ScumblrWorkers
   class AsyncSidekiqWorker
     include Sidekiq::Worker
     include Sidekiq::Status::Worker
-    sidekiq_options :retry => false
+    sidekiq_options :retry => false, :backtrace => true
 
     def perform(r, jid)
+
+      config_options = self.class.config_options
+      if(config_options.present? && config_options.class == Hash)
+        config_options.each do |k,v|
+          value = Rails.configuration.try(k)
+          if(value.blank? && v[:required] == true)
+            create_error("A required configuration setting is not set for #{self.class.task_type_name}. Setting: #{k}")
+            raise "A required configuration setting is not set for #{self.class.task_type_name}. Setting: #{k}"
+          end
+
+          instance_variable_set("@#{k}",value)
+        end
+      end
+      
       @_jid = jid
       @options =""
       begin
