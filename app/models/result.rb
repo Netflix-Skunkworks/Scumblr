@@ -105,15 +105,14 @@ class Result < ActiveRecord::Base
   after_create :create_task_event
 
   def create_task_event
-
     if(Thread.current[:current_task])
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
 
       Thread.current["current_results"] ||={}
       Thread.current["current_results"]["created"] ||=[]
-      Thread.current["current_results"]["created"] << self.id
-      Thread.current["current_results"]["created"].uniq!
+      Thread.current["current_results"]["created"] |= [self.id]
+      
 
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"])
@@ -132,8 +131,7 @@ class Result < ActiveRecord::Base
       #calling_task = Task.where(id: Thread.current[:current_task]).first
       Thread.current["current_results"] ||={}
       Thread.current["current_results"]["updated"] ||=[]
-      Thread.current["current_results"]["updated"] << self.id
-      Thread.current["current_results"]["updated"].uniq!
+      Thread.current["current_results"]["updated"] |= [self.id]
 
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"].present?)
