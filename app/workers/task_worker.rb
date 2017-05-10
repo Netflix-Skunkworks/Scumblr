@@ -17,7 +17,7 @@
 class TaskWorker
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
-  sidekiq_options :queue => :worker, :retry => false
+  sidekiq_options :queue => :worker, :retry => 0, :backtrace => true
 
   def perform(task_id, task_params=nil)
     t= Time.now
@@ -35,10 +35,15 @@ class TaskWorker
         Event.create(action: "Error", source:"Task: #{@task.id}", details: "Unable to run task with id: #{task_id}. No such task.", eventable_type: "Task", eventable_id: task_id)
       end
 
+    rescue Exception=>e
+      msg = "Fatal low level exception in TaskWorker. Task id#{task_id}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
+      Event.create(action: "Fatal", source: "TaskWorker", details: msg,eventable_type: "Task", eventable_id: task_id)
+      return
     rescue StandardError=>e
       msg = "Fatal error in TaskWorker. Task id#{task_id}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
       Event.create(action: "Fatal", source: "TaskWorker", details: msg,eventable_type: "Task", eventable_id: task_id)
       Rails.logger.error msg
+      return
     end
 
   end

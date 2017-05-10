@@ -268,9 +268,6 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
   
 
   def run
-
-
-
     initialize_trends("open_vulnerability_count", ["open"], {legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
     initialize_trends("scan_results", ["new", "existing", "regression", "reopened","closed"], {},  {
                     "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},

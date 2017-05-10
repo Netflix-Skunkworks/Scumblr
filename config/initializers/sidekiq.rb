@@ -16,6 +16,16 @@
 require 'sidekiq'
 require 'sidekiq-status'
 
+
+
+Sidekiq::BasicFetch.class_eval do
+  # We do not want jobs to be pushed back onto the queue if sidekiq is terminated.
+  def self.bulk_requeue(inprogress, options)
+    return
+  end
+
+end
+
 Sidekiq.configure_client do |config|
   # If user has specified a redis connection string, use it
   config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
@@ -56,7 +66,7 @@ Sidekiq.configure_server do |config|
     chain.add Sidekiq::Status::ClientMiddleware
   end
 
-  Sidekiq::Client.reliable_push! if !Rails.env.test? && Sidekiq::Client.respond_to?(:reliable_push!)
+  # Sidekiq::Client.reliable_push! if !Rails.env.test? && Sidekiq::Client.respond_to?(:reliable_push!)
 end
 
 

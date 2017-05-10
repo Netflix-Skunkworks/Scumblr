@@ -205,9 +205,10 @@ module ScumblrWorkers
   class AsyncSidekiqWorker
     include Sidekiq::Worker
     include Sidekiq::Status::Worker
-    sidekiq_options :retry => false
+    sidekiq_options :retry => 0, :backtrace => true
 
     def perform(r, jid)
+
       @_jid = jid
       @options =""
       begin
@@ -218,14 +219,34 @@ module ScumblrWorkers
         end
         @options = JSON.parse(options).with_indifferent_access
       rescue=>e
-        create_error("Error parsing options from redis, can not continue. Options retrieved: #{options}. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
+        create_error("Error parsing options in #{self.class} from redis, can not continue. Options retrieved: #{options}. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
+        return []
+      end
+
+      begin
+        config_options = self.class.try(:config_options)
+        if(config_options.present? && config_options.class == Hash)
+          config_options.each do |k,v|
+            value = Rails.configuration.try(k)
+            if(value.blank? && v[:required] == true)
+              create_error("A required configuration setting is not set for #{self.class.task_type_name}. Setting: #{k}")
+              raise "A required configuration setting is not set for #{self.class.task_type_name}. Setting: #{k}"
+            end
+
+            instance_variable_set("@#{k}",value)
+          end
+        end
+      rescue=>e
+        create_error("Error parsing config options in #{self.class}, can not continue. Parent_JID: #{jid}. JobID: #{@jid}. Result: #{r}. Error: #{e.message}. Backtrace: #{e.backtrace}")
         return []
       end
 
       begin
         self.perform_work(r)
+      rescue Exception=>e
+        create_error("An low level error occurred running perform_work in #{self.class} : #{e.message}\r\n#{e.backtrace}")
       rescue=>e
-        create_error("An error occurred: #{e.message}\r\n#{e.backtrace}")
+        create_error("An error occurred running perform_work in #{self.class} : #{e.message}\r\n#{e.backtrace}")
       ensure
         # Thread.current["sidekiq_job_id"] = nil
       end
@@ -266,8 +287,12 @@ module ScumblrWorkers
       end
       
       eventable_id = nil
-      if(@options.try(:[],:_self).present?)
-        eventable_id = @options.try(:[],:_self).class == Fixnum ? @options.try(:[],:_self) : @options.try(:[],:_self).try(:[],:id)
+      begin
+        if(@options.try(:[],:_self).present?)
+          eventable_id = @options.try(:[],:_self).class == Fixnum ? @options.try(:[],:_self) : @options.try(:[],:_self).try(:[],:id)
+        end
+      rescue
+
       end
 
       event_details = Event.create(action: level, eventable_id: eventable_id, eventable_type: "Task", source: "Task: #{self.class.to_s}", details: details)

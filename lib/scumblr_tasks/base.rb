@@ -27,8 +27,12 @@ module ScumblrTask
 
     def start
       Thread.current["sidekiq_job_id"] = nil
-      Thread.current["current_task"] = nil
-      run
+      # Thread.current["current_task"] = nil
+      begin
+        run
+      rescue=>e
+        create_error(e)
+      end
     end
 
     def self.task_category
