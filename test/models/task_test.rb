@@ -21,7 +21,7 @@ class TaskTest < ActiveSupport::TestCase
   bad_curl_task = Task.where(id: 55).first
   github_sync = Task.where(id: 56).first
   google_search = Task.where(id: 57).first
-    # github_result = Result.last
+  # github_result = Result.last
 
   # Class Tests
   test "should return to_s" do
@@ -59,6 +59,7 @@ class TaskTest < ActiveSupport::TestCase
 
   test "should execute github sync task" do
     github_sync.perform_task
+
     assert_equal(1, github_sync.metadata[:current_results].count)
   end
   test "should execute google search task" do
