@@ -439,6 +439,7 @@ task_56:
       owner: scumblrtest2
       members: '0'
       scope_visibility: public
+      tags: github
     ivars:
       :@permitted: true
   name: Github Sync Task
