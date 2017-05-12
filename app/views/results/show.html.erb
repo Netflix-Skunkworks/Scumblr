@@ -104,10 +104,15 @@
             <%= submit_tag 'Submit', :class=>"button tiny"  %>
           <% end -%>
         </dd>
+
         <% @result.tags.select{|t| t.value.present? }.each do |tag| %>
           <dt><%= tag.name %></dt>
           <dd><%= tag.value %> <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %></dd>
         <% end %>
+      </dd>
+      <dt>Metadata</dt>
+      <dd><%= link_to "Show", get_metadata_result_path(@result, format: :json) %>
+
       </dd>
     </dl>
     <% if can? :destroy, @result %>

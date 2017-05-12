@@ -633,7 +633,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
         else
           
           begin
-            if(data[8..12].match(/\s\d{3}\s/))
+            if(data[8..12].to_s.match(/\s\d{3}\s/))
               status_code = data[9..11]
             else
               status_code = 0
