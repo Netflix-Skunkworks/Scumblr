@@ -63,7 +63,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       :tags => {name: "Tag Results",
                 description: "Provide a tag for newly created results",
                 required: false,
-                default: "",
+                default: "github",
                 type: :tag
                 },
       :scope_visibility => {name: "Repo Visibility",
