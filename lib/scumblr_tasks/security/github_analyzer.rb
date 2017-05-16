@@ -54,9 +54,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       :key_suffix => {name: "Key Suffix",
                       description: "Provide a key suffix for testing out experimental regular expressions",
                       required: false,
-                      type: :choice,
-                      default: :observation,
-                      choices: [:observation, :high, :medium, :low]},
+                      type: :string},
       :tags => {name: "Tag Results",
                 description: "Provide a tag for newly created results",
                 required: false,
@@ -421,15 +419,18 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       # For each hash in the json_response, parse out important fields
       search_metadata ||= {}
       #search_metadata[:github_analyzer] = true
-      search_metadata[:github_analyzer] ||= {}
-      search_metadata[:github_analyzer][:owner] = search["repository"]["owner"]["login"]
-      search_metadata[:github_analyzer][:language] = search["repository"]["language"]
-      search_metadata[:github_analyzer][:private] = search["repository"]["private"]
-      search_metadata[:github_analyzer][:account_type] = user_type
-      search_metadata[:github_analyzer][:git_clone_url] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
-
-      # Define data for vulnerability object
-      search_metadata[:github_analyzer_vulnerabilities] ||= {}
+      search_metadata["repository_data"] ||= {}
+      search_metadata["repository_data"]["name"] = search["repository"]["name"]
+      search_metadata["repository_data"]["slug"] = search["repository"]["name"]
+      search_metadata["repository_data"]["project"] = search["repository"]["owner"]["login"]
+      search_metadata["repository_data"]["project_name"] = search["repository"]["owner"]["login"]
+      search_metadata["repository_data"]["project_type"] = search["repository"]["owner"]["type"] == "User" ? "User" : "Project"
+      search_metadata["repository_data"]["private"] = search["repository"]["private"]
+      search_metadata["repository_data"]["source"] = "github"
+      search_metadata["repository_data"]["ssh_clone_url"] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
+      search_metadata["repository_data"]["https_clone_url"] = search["repository"]["html_url"].to_s + ".git"
+      search_metadata["repository_data"]["link"] = search["repository"]["html_url"]
+      search_metadata["repository_data"]["repository_host"] = @github_api_endpoint.gsub(/\Ahttps?:\/\//,"").gsub(/\/.+/,"")
 
       # Parse out text matches if there are any
       vulnerabilities = []
@@ -484,7 +485,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
       if res.present?
         res.update_vulnerabilities(vulnerabilities)
-        res.metadata.merge!({"github_analyzer" => search_metadata[:github_analyzer]})
+        res.metadata.merge!({"repository_data" => search_metadata["repository_data"]})
         if @options[:tags].present?
         	res.add_tags(@options[:tags])
         end
@@ -492,7 +493,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         @results << res
         # Do not create new result simply append vulns to results
       else
-        github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"], domain: "github.com", metadata: {"github_analyzer" => search_metadata[:github_analyzer]})
+        github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"].to_s + " (Github)", domain: "github.com", metadata: {"repository_data" => search_metadata["repository_data"]})
         if @options[:tags].present?
         	github_result.add_tags(@options[:tags])
         end
