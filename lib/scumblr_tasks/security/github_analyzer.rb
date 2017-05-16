@@ -104,6 +104,11 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
                    required: false,
+                   type: :boolean},
+      :only_members => {name: "Only Scan Members Public Code of an Organization",
+                   description: "Do not scan the orgs, just their member's repos",
+                   required: false,
+                   default: false,
                    type: :boolean}
     }
   end
@@ -486,7 +491,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         res.update_vulnerabilities(vulnerabilities)
         res.metadata.merge!({"github_analyzer" => search_metadata[:github_analyzer]})
         if @options[:tags].present?
-        	res.add_tags(@options[:tags])
+          res.add_tags(@options[:tags])
         end
         res.save!
         @results << res
@@ -494,7 +499,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       else
         github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"], domain: "github.com", metadata: {"github_analyzer" => search_metadata[:github_analyzer]})
         if @options[:tags].present?
-        	github_result.add_tags(@options[:tags])
+          github_result.add_tags(@options[:tags])
         end
         github_result.save!
         github_result.update_vulnerabilities(vulnerabilities)
@@ -511,6 +516,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     puts "Checking #{@terms.length.to_s} search terms on #{@search_scope.length.to_s} scopes"
 
     @search_scope.each do |scope, type|
+      # If we are only looking for members, skip any orgs
+      if @options[:only_members].present? and type == "Organization"
+        next
+      end
       # For each scope (user, org, repo) check if the search terms match anything
       puts "Checking #{scope}"
       @retry_interval = 0
