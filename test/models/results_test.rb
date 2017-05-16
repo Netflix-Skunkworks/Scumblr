@@ -97,6 +97,28 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal("High", fixture_result.metadata["vulnerabilities"].first["severity"])
   end
 
+  test "executes traverse and update metadata on result and creates a new key" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test"], "1")
+    assert_equal("1", fixture_result.metadata["test"])
+  end
+
+  test "executes traverse and update metadata on result and creates a nested key" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test","testing"], "2")
+    assert_equal("2", fixture_result.metadata["test"]["testing"])
+  end
+
+  test "executes traverse and update metadata on result and creates/updates a new array" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test","testing","[]"], "2")
+    assert_equal("2", fixture_result.metadata["test"]["testing"].first)
+    fixture_result.traverse_and_update_metadata(["test","testing","[]"], "3")
+    assert_equal(2, fixture_result.metadata["test"]["testing"].count)
+    assert_equal("2", fixture_result.metadata["test"]["testing"].first)
+    assert_equal("3", fixture_result.metadata["test"]["testing"].last)
+  end
+
   test "executes traverse metadata on array nested object" do
     assert_equal({{:a=>{:b=>1, :c=>2}}=>nil}, fixture_result.traverse_metadata([{:a=>{b:1,c:2}},[:a,:b]]))
   end

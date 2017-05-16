@@ -499,7 +499,7 @@ class Result < ActiveRecord::Base
   end
 
   def traverse_and_update_metadata(keys, value)
-    _traverse_and_update_metadata(self.metadata, keys, value, nil)
+    _traverse_and_update_metadata(self.metadata, keys.clone, value, nil)
   end
 
   # Allows filtering an array inside a JSON object based on a
@@ -578,26 +578,37 @@ class Result < ActiveRecord::Base
   #
 
   def _traverse_and_update_metadata(data, keys, value, r=nil)
+    # Initialize the results to an empty hash if not initialized
     r ||={}
 
+    # Grab the next key
     k=keys.shift
+
+
     parent = data
-    
+
+    # Try to grab the data referenced by the key from the current position in the data
     begin
+      
+      # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
 
-
+      # If the key starts with ":" treat data like a hash and get the value referenced by the
+      # key
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
         if(data.nil?)
           parent[k] = {}
           data[k] = nil
         end
+      # If the key is in the form of an array (ex. [1,2,3]) get a list of elements requested
       elsif(k[0]=="[")
+        # If there is more that "[]" in the key...
         if(k.length > 2)
 
           k2 = k[1..k.length-2].split(':')
+          # If the key can be split by ":" (i.e. [id:1,2] we want to select elements from a hash based on an attribute 
           if(k2.length > 1)
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
@@ -613,16 +624,21 @@ class Result < ActiveRecord::Base
 
           k2.each do |k3|
             # data = data[k.to_i]
-
+            # For each of the subvalues identified, traverse and update
             r = _traverse_and_update_metadata(data, [k3]+keys,value, r)
           end
           return r
         end
-
+      # Otherwise assume data is a hash
       else
         data = data.try(:[],k)
+        # If data[k] is blank, make it a hash
         if(data.nil?)
-          parent[k] = {}
+          if(keys.count == 1 && keys[0] == "[]")
+            parent[k] = []
+          else
+            parent[k] = {}
+          end
           data = parent[k]
         end
       end
@@ -632,29 +648,39 @@ class Result < ActiveRecord::Base
       return r
     end
 
-
+    # If we haven't parsed all the keys, parse the remaining keys. Pass in the results we have so far to
+    # be appended to (r[k])
     if(!keys.empty?)
+      
       r[k] ||= {}
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
+    # Otherwise we need to update
     else
+      # Treat value as JSON if it starts and ends with brackets ("{" and  "}")
       if(value[0] == "{" && value[value.length-1] == "}")
         begin
           value = JSON.parse(value)
         rescue
 
         end
+      # If the value is a hash, convert to json
       elsif(value.class == Hash)
         value = value.to_json
+      # Convert "true"/"false" to booleans
       elsif(value == "true")
         value = true
       elsif(value == "false")
         value = false
       end
 
+      # If the last key is "[]" then treat as an array
       if(k == "[]")
+        
         parent ||= []
-        parent << value
+        # Only add the value if it's not already in the array.
+        parent << value if(!parent.include?(value))
+
         r =[]
         r << value
       else
