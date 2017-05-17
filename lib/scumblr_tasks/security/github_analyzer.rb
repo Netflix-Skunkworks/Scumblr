@@ -103,13 +103,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                  choices: [:file, :path, :both]},
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
-                   required: false,
-                   type: :boolean},
-      :only_members => {name: "Only Scan Members Public Code of an Organization",
-                   description: "Do not scan the orgs, just their member's repos",
-                   required: false,
-                   default: false,
-                   type: :boolean}
+                   required: true,
+                   default: :both,
+                   choices: [:members_only, :both, :organization_only]}
     }
   end
 
@@ -140,11 +136,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     @total_matches = 0
 
     # End of remove
-    if @options[:members] == "0"
-      @options[:members] = false
-    else
-      @options[:members] = true
-    end
 
     if(@options[:key_suffix].present?)
       @key_suffix = "_" + @options[:key_suffix].to_s.strip
@@ -351,7 +342,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         while true
           more_pages = false
           pages = 1
-          if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
+          if ["members_only", "both"].include? @options[:members] and @scope_type == "Organization" and core_rate_limit >= 0
 
             response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
@@ -517,7 +508,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     @search_scope.each do |scope, type|
       # If we are only looking for members, skip any orgs
-      if @options[:only_members].present? and type == "Organization"
+      if @options[:members] == "members_only" and type == "Organization"
         next
       end
       # For each scope (user, org, repo) check if the search terms match anything
