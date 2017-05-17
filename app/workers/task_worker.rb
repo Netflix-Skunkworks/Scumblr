@@ -21,10 +21,16 @@ class TaskWorker
 
   def perform(task_id, task_params=nil)
     t= Time.now
-    task_params ||= {}
+
+    if(task_params.present?)
+      task_params = {:_body=> task_params}
+    else
+      task_params = {}
+    end
 
     begin
       @task = Task.find(task_id)
+
       task_params.merge!(:_jid=>@jid)
       
       if(@task)
