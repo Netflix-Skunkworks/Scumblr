@@ -12,6 +12,10 @@ class SystemMetadataController < ApplicationController
   # GET /system_metadata/1
   # GET /system_metadata/1.json
   def show
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json { render json: @system_metadata }
+    end
   end
 
   # GET /system_metadata/new
