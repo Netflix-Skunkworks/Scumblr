@@ -274,7 +274,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
       return nil
     end
     repo_local_path = ""
-    unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?))
+    unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?)
       create_error("No URL for result: #{r.id.to_s}")
     else
       git_url = r.metadata["repository_data"]["ssh_clone_url"]
