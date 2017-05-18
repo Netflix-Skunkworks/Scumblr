@@ -274,18 +274,10 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
       return nil
     end
     repo_local_path = ""
-    unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
+    unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?)
       create_error("No URL for result: #{r.id.to_s}")
     else
-      if r.metadata.try(:[], "github_analyzer").present?
-        if r.metadata["github_analyzer"]["git_clone_url"].nil?
-          git_url = r.url + ".git"
-        else
-          git_url = r.metadata["github_analyzer"]["git_clone_url"]
-        end
-      elsif r.metadata.try(:[], "depot_analyzer").present?
-        git_url = r.metadata["depot_analyzer"]["git_clone_url"]
-      end
+      git_url = r.metadata["repository_data"]["ssh_clone_url"]
       Rails.logger.info "Cloning and scanning #{git_url}"
       findings = []
       begin

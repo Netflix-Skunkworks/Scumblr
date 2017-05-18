@@ -1,7 +1,0 @@
-<div id="github_analyzer_actions">
-  <% if(@result.metadata.try(:[],"configuration").try(:[],"brakeman").try(:[],"disabled") == true) %>
-  <%= link_to "Enable Brakeman Scans", update_metadata_result_path(id: @result, "key[0]"=> "configuration.brakeman.disabled", "value[0]"=> false, "target[0]"=> "#github_analyzer_actions", "partial[0]"=>"actions/github_analyzer_actions"), {class:"button tiny", remote:true } %>
-  <% else %>
-  <%= link_to "Disable Brakeman Scans", update_metadata_result_path(id: @result, "key[0]"=> "configuration.brakeman.disabled", "value[0]"=> true, "target[0]"=> "#github_analyzer_actions", "partial[0]"=>"actions/github_analyzer_actions"), {class:"button tiny", remote:true} %>
-  <% end %>
-</div>
