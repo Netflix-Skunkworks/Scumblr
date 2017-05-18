@@ -312,6 +312,24 @@ class TasksController < ApplicationController
     end
   end
 
+  def search
+    q_param = params[:q]
+    page = params[:page]
+    per_page = params[:per_page]
+    resolve_system_metadata = params[:resolve_system_metadata]
+
+
+    if resolve_system_metadata
+    end
+
+    @q = Task.ransack q_param
+    @tasks = @q.result.page(page).per(per_page)
+    require 'byebug'
+    byebug
+    puts 1
+    render json: @tasks.to_json
+
+  end
 
   private
 
