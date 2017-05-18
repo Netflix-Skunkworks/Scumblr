@@ -19,6 +19,10 @@ Scumblr::Application.configure do
   # other values needed for tasks. By default the values will be retrieve
   # from environment variables as configured below. This file can be modified
   # to include these values inline if desired.
+  
+  # Notification emails
+  config.email_source_address = "scumblr@localhost"
+
 
   # Sketchy
   config.sketchy_url = ENV["sketchy_url"]

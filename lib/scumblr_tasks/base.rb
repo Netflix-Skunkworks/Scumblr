@@ -91,11 +91,14 @@ module ScumblrTask
       if(@options.key?(:saved_result_filter) || @options.key?(:saved_event_filter))
         get_saved_results
       end
-      
+
 
       begin
         self.class.options.select{ |k,v| v[:type] == :tag}.each do |k, v|
           tags = []
+          if @options[k].nil?
+            next
+          end
           @options[k].split(",").each do |tag_name|
             tags << Tag.where(name: tag_name.strip).first_or_create
           end
@@ -159,7 +162,7 @@ module ScumblrTask
       if(@return_batched_results != false)
         @results = @results.find_each(batch_size: 10)
       end
-      
+
     end
 
     def run
@@ -192,7 +195,7 @@ module ScumblrTask
       else
         Rails.logger.debug details
       end
-      
+
       event_details = Event.create(action: level, eventable_id: @options.try(:[],:_self).try(:id), eventable_type: "Task", source: "Task: #{self.class.task_type_name}", details: details)
 
       @event_metadata[level] ||= []

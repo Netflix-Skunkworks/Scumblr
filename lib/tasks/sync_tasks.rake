@@ -60,7 +60,7 @@ task :send_email_updates => :environment do
 
     filter.summaries.create(:timestamp=>end_time)
 
-    if(filter.subscriber_list.present? && results.count > 0)
+    if(filter.subscriber_list.present? && results.length > 0)
       SummaryMailer.notification(filter.subscriber_list, filter,results).deliver
     end
 

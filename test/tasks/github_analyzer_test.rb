@@ -42,6 +42,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     # This should help with some github stuff
     # and also did it create vulns correctly.
     github_repo_fixture = Task.where(id: 59).first
+
     github_repo_fixture.perform_task
 
     # Return 2 results from test github org

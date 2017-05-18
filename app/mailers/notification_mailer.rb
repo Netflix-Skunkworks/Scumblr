@@ -15,14 +15,14 @@
 
 class NotificationMailer < ActionMailer::Base
 
-  default from: "scumblr@scumblr.com"
+  default from: Rails.configuration.try(:email_source_address) || "scumblr@localhost"
 
 
   def notification(recipients, subject, content)
     attachments['logo.png'] = File.read("#{Rails.root}/app/assets/images/scumblr_logo.png")
     @content = content
 
-    mail(:to=> "scumblr@scumblr.com", :bcc=> recipients, :subject=>subject)
+    mail(:to=> "", :bcc=> recipients, :subject=>subject)
 
   end
 
