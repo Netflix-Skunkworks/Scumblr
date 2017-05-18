@@ -56,6 +56,10 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
                   description: "Specify the organization or user.",
                   required: true,
                   type: :string},
+      :owner_metadata => {name: "Organization/Users from Metadata",
+                  description: "Provide a metadata key to pull organizations or users from.",
+                  required: false,
+                  type: :system_metadata},
       :members => {name: "Import Organization Members' Repos",
                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
                   required: false,
@@ -102,20 +106,38 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   def run
     @completed=0
     @last_total = 0
+    
+    owners =[]
+    if(@options[:owner_metadata])
+      begin
+        owners = SystemMetadata.find(@options[:owner_metadata]).metadata
+      rescue
+        owners = []
+        create_error("Could not parse System Metadata for users/organizations, skipping")
+      end
+    end
+    owners |= [@options[:owner]] if @options[:owner].present?
+
     previous_results = @options.try(:[],:_self).try(:metadata).try(:[],"previous_results")
     if(previous_results)
       @last_total = previous_results["created"].to_a.count + previous_results["updated"].to_a.count 
     end
-    get_repos(@options[:owner].to_s,@options[:sync_type])
 
-    if(@options[:sync_type] == "org" && @options[:members] == true)
-      members = @github.orgs.members.list @options[:owner].to_s
+    owners.each do |owner|
+      puts "Syncing #{owner}"
+      get_repos(owner.to_s,@options[:sync_type])
 
-      members.each do |m|
-        puts "Getting repos for #{m["login"]}"
-        get_repos(m["login"],"user")
+      if(@options[:sync_type] == "org" && @options[:members] == true)
+        members = @github.orgs.members.list owner.to_s
+
+        members.each do |m|
+          puts "Getting repos for #{m["login"]}"
+          get_repos(m["login"],"user")
+        end
       end
     end
+
+    
 
 
     return []
