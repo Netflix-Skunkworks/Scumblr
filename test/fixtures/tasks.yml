@@ -6,7 +6,7 @@ task_1:
     elements:
       sync_type: org
       owner: Netflix
-      members: '0'
+      members: 'organization_only'
       scope_visibility: public
     ivars:
       :@permitted: true
@@ -437,7 +437,7 @@ task_56:
     elements:
       sync_type: user
       owner: scumblrtest2
-      members: '0'
+      members: 'organization_only'
       scope_visibility: public
       tags: github
     ivars:
@@ -503,7 +503,7 @@ task_60:
       repo:
       saved_repos: ''
       scope: both
-      members: '0'
+      members: 'organization_only'
     ivars:
       :@permitted: true
   name: Github Code Search - Saved Users
@@ -531,7 +531,7 @@ task_61:
       repo:
       saved_repos: '4'
       scope: both
-      members: '0'
+      members: 'organization_only'
     ivars:
       :@permitted: true
   name: Github Code Search - Bad Repos
@@ -559,7 +559,7 @@ task_58:
       repo: notarealrepo
       saved_repos: '3'
       scope: both
-      members: '1'
+      members: 'both'
     ivars:
       :@permitted: true
   name: Github Code Search - Test
@@ -587,7 +587,7 @@ task_59:
       repo: scumblrtest2/test_repo
       saved_repos: ''
       scope: both
-      members: '0'
+      members: 'organization_only'
     ivars:
       :@permitted: true
   name: Github Repo Search Test
@@ -615,7 +615,7 @@ task_62:
       repo: ''
       saved_repos: ''
       scope: both
-      members: '0'
+      members: 'organization_only'
     ivars:
       :@permitted: true
   name: Github Repo Search Test

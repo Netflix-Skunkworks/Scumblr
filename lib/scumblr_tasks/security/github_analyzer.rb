@@ -101,8 +101,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                  choices: [:file, :path, :both]},
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
-                   required: false,
-                   type: :boolean}
+                   required: true,
+                   default: :both,
+                   choices: [:members_only, :both, :organization_only]}
     }
   end
 
@@ -133,11 +134,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     @total_matches = 0
 
     # End of remove
-    if @options[:members] == "0"
-      @options[:members] = false
-    else
-      @options[:members] = true
-    end
 
     if(@options[:key_suffix].present?)
       @key_suffix = "_" + @options[:key_suffix].to_s.strip
@@ -344,7 +340,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         while true
           more_pages = false
           pages = 1
-          if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
+          if ["members_only", "both"].include? @options[:members] and @scope_type == "Organization" and core_rate_limit >= 0
 
             response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
@@ -487,7 +483,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         res.update_vulnerabilities(vulnerabilities)
         res.metadata.merge!({"repository_data" => search_metadata["repository_data"]})
         if @options[:tags].present?
-        	res.add_tags(@options[:tags])
+          res.add_tags(@options[:tags])
         end
         res.save!
         @results << res
@@ -495,7 +491,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       else
         github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"].to_s + " (Github)", domain: "github.com", metadata: {"repository_data" => search_metadata["repository_data"]})
         if @options[:tags].present?
-        	github_result.add_tags(@options[:tags])
+          github_result.add_tags(@options[:tags])
         end
         github_result.save!
         github_result.update_vulnerabilities(vulnerabilities)
@@ -512,6 +508,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     puts "Checking #{@terms.length.to_s} search terms on #{@search_scope.length.to_s} scopes"
 
     @search_scope.each do |scope, type|
+      # If we are only looking for members, skip any orgs
+      if @options[:members] == "members_only" and type == "Organization"
+        next
+      end
       # For each scope (user, org, repo) check if the search terms match anything
       puts "Checking #{scope}"
       @retry_interval = 0
