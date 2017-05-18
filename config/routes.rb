@@ -19,7 +19,7 @@ class ActionDispatch::Routing::Mapper
     ["custom/config/routes.rb", "../custom/config/routes.rb"].each do |filename|
       instance_eval(File.read(Rails.root.join(filename))) if File.file?(filename)
     end
-    
+
   end
 end
 
@@ -101,7 +101,7 @@ Scumblr::Application.routes.draw do
       match 'update_metadata', via: [:get, :post]
       match 'get_metadata', via: [:get, :post]
       get 'summary', to: 'results#summary'
-      
+
       match 'render_metadata_partial', via: [:get, :post]
     end
 
@@ -116,6 +116,7 @@ Scumblr::Application.routes.draw do
       get 'run', to: 'tasks#run'
       post 'bulk_update'
       get 'expandall', to: 'tasks#expandall'
+      get 'search', to: 'tasks#search'
       get :events
     end
 
