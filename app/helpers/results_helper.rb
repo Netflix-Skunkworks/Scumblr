@@ -23,9 +23,10 @@ module ResultsHelper
     if result.metadata.try(:[], "sketchy_response").present?
       url = URI(result.metadata["sketchy_response"])
       parsed_url = url.path.match(/\/([^\/]+)\/(.+)/)
-      aws_resource = AWS::S3.new({:s3_endpoint=>"s3.amazonaws.com", :region=>"us-west-1"})
-      obj = aws_resource.buckets[parsed_url[1]].objects[parsed_url[2]] # no request made
-      return obj.url_for(:read, :expires => 10*60)
+      aws_client = Aws::S3::Client.new(region: "us-east-1")
+      signer = Aws::S3::Presigner.new(client: aws_client)
+      return signer.presigned_url(:get_object, bucket: parsed_url[1], key: parsed_url[2], expires_in: 10*60)
+      #return obj.url_for(:read, :expires => 10*60)
     end
   end
 end
