@@ -13,6 +13,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       ids += r.id.to_s
     end
     xhr :get, "/tasks/expandall.js?result_ids=#{ids}"
+
     assert_response :success
   end
 
@@ -20,6 +21,12 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     xhr :get, "/tasks/events.js"
     assert_response :success
+  end
+
+  test "verfiy search endpoint returns json" do
+    sign_in
+    get "/tasks/search"
+    assert response.body.include? "id"
   end
 
   test "verfiy get_metadata tasks no error rendering" do
