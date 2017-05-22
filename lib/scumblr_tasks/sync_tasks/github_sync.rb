@@ -54,7 +54,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
                  choices: [:org, :user]},
       :owner => {name: "Organization/User",
                   description: "Specify the organization or user.",
-                  required: true,
+                  required: false,
                   type: :string},
       :owner_metadata => {name: "Organization/Users from Metadata",
                   description: "Provide a metadata key to pull organizations or users from.",
@@ -201,7 +201,8 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
     response.each do |repo|
       if(@options[:scope_visibility] == "both" || (repo.private == true && @options[:scope_visibility] == "private") || (repo.private == false && @options[:scope_visibility] == "public"))
-        res = Result.where(url: repo.html_url).first_or_initialize
+        res = Result.where(url: repo.html_url.downcase).first_or_initialize
+
         res.title = repo.full_name.to_s + " (Github)"
         res.domain = "github.com"
         res.metadata ||={}

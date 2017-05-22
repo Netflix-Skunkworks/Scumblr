@@ -477,7 +477,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         #   vulnerabilities << vuln
       end
 
-      res = Result.where(url: search["repository"]["html_url"]).first
+      res = Result.where(url: search["repository"]["html_url"].downcase).first
 
       if res.present?
         res.update_vulnerabilities(vulnerabilities)

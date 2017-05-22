@@ -32,6 +32,7 @@ module ScumblrTask
         run
       rescue=>e
         create_error(e)
+        return nil
       end
     end
 
