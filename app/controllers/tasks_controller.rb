@@ -317,17 +317,49 @@ class TasksController < ApplicationController
     page = params[:page]
     per_page = params[:per_page]
     resolve_system_metadata = params[:resolve_system_metadata]
-
-
-    if resolve_system_metadata
-    end
-
+    system_metadata = []
+    metadata_hash = {}
     @q = Task.ransack q_param
     @tasks = @q.result.page(page).per(per_page)
-    require 'byebug'
-    byebug
-    puts 1
-    render json: @tasks.to_json
+
+    if resolve_system_metadata == "true"
+      @system_metadata = []
+      @tasks.each do | task|
+        if (Task.task_type_valid?(task.task_type))
+          @task_type_options = task.task_type.constantize.options
+        else
+          @task_type_options = []
+        end
+        @task_type_options.each do |key,v|
+          if v[:type] == :system_metadata and task.options[key].present?
+            system_metadata << task.options[key].to_i
+            # moved this from array to hash
+            metadata_hash[task.id.to_s.to_sym] ||= {}
+            metadata_hash[task.id.to_s.to_sym].merge!({"#{key}": task.options[key].to_i})
+          end
+        end
+      end
+
+      system_metadata_objects = SystemMetadata.where(id: system_metadata)
+
+      metadata_hash.each_with_index do |(task, value), index|
+        value.each do | key,data |
+          metadata_hash[task][key] = system_metadata_objects.where(id: data.to_i).first.metadata
+        end
+      end
+      @updated_tasks = []
+      @tasks.each do | task|
+        if metadata_hash.keys.include? task.id.to_s.to_sym
+          task.options.merge!(metadata_hash[task.id.to_s.to_sym])
+          @updated_tasks << task
+        else
+          @updated_tasks << task
+        end
+      end
+      render json: @updated_tasks.to_json
+    else
+      render json: @tasks.to_json
+    end
 
   end
 

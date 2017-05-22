@@ -626,3 +626,43 @@ task_62:
   enabled: true
   group: 1
   metadata:
+
+task_5:
+  id: 5
+  task_type: ScumblrTask::GithubSyncAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      sync_type: user
+      owner_metadata: '5'
+      members: '0'
+      tags: Repository,Github
+      scope_visibility: both
+    ivars:
+      :@permitted: true
+  name: Github Sync
+  description: ''
+  created_at: 2017-04-03 16:40:22.530235000 Z
+  updated_at: 2017-05-17 18:17:00.335994000 Z
+  query: ''
+  enabled: true
+  group: 2
+  metadata:
+    _last_run: '2017-05-17T11:16:59.938-07:00'
+    _start_time: '2017-05-17T11:02:49.074-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results:
+      created:
+      - 274899
+      - 271288
+    previous_events:
+      Error:
+      - 6680794
+    previous_results:
+      created:
+      - 271121
+      updated:
+      - 187103
+    _last_status_event: 6684349
+    _last_status_message: Task completed in 849.889874 seconds
+    _last_successful_run: '2017-05-17T11:16:59.938-07:00'

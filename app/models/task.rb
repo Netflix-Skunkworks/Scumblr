@@ -145,7 +145,7 @@ class Task < ActiveRecord::Base
       Rails.logger.error "Invalid task type #{task.task_type}"
       return
     end
-    
+
     task_type = task.task_type.constantize
     task_options = task.options.merge({_self:task, _params:task_params})
 
@@ -222,6 +222,7 @@ class Task < ActiveRecord::Base
 
     counter = 0
     #foo = []
+
     results.each do |r|
 
       result = Result.where(:url=>r[:url].strip).first_or_initialize

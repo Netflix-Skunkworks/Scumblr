@@ -13,6 +13,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       ids += r.id.to_s
     end
     xhr :get, "/tasks/expandall.js?result_ids=#{ids}"
+
     assert_response :success
   end
 
@@ -20,6 +21,42 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     xhr :get, "/tasks/events.js"
     assert_response :success
+  end
+
+  # Scott Tests for task search ransack
+  test "verfiy search endpoint returns json" do
+    sign_in
+    get "/tasks/search"
+    assert response.body.include? "id"
+    assert JSON.parse(response.body) ? true : false
+  end
+
+  test "verfiy search endpoint returns filtered json" do
+    # we should get back some fixtures for this filter
+    sign_in
+    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer"
+    json_response = JSON.parse(response.body)
+    puts json_response.count
+    assert json_response.count >= 0
+  end
+
+  test "verfiy search endpoint returns resolved system metadata when configured" do
+    # we should get back expanded system metadata for this fixture
+    sign_in
+    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer&resolve_system_metadata=true"
+    json_response = JSON.parse(response.body)
+    asserted = false
+    json_response.each do | response_object |
+      if response_object["id"] == 5
+        assert_equal("scumblrtest2", response_object["options"]["owner_metadata"].first)
+        asserted = true
+      end
+    end
+
+    if asserted == false
+      skip("no owner_metadata found for task search, maybe you changed a fixture?")
+    end
+
   end
 
   test "verfiy get_metadata tasks no error rendering" do
