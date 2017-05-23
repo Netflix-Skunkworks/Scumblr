@@ -56,7 +56,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     @workers = []
     _self = @options[:_self]
     @options[:_self] = @options[:_self].id
-    
+
     # Store @options in redis once to be reused by all tasks
     Sidekiq.redis do |r|
       r.set "#{@_jid}:options", @options.to_json
@@ -84,7 +84,6 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       update_sidekiq_status("Processing #{@total_result_count} results.  (#{@completed_count}/#{@total_result_count} completed)", @completed_count, @total_result_count)
       @workers.delete_if do |worker_id|
         status = Sidekiq::Status::status(worker_id)
-        # Rails.logger.warn "Task #{worker_id} #{status}"
 
         # Next statement determines whether to delete the worker from the array. We deleted the worker
         # if the status is not queued or working. In this case we also increment the count by one and
