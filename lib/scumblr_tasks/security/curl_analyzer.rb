@@ -108,11 +108,6 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
                              description: "Toggle to strip strip to hostname only (exp. http://netflix.com/movie/1234 becomes http://netflix.com",
                              required: false,
                              type: :boolean
-                             },
-      :metadata_only => {name: "Do not create vulnerablities, metadata only.",
-                             description: "Ignore reponse strings and http status codes, and update metadata for each host which returns request metadata",
-                             required: false,
-                             type: :boolean
                              }
 
     }
