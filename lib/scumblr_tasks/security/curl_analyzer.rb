@@ -205,7 +205,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
 
     # A user must supply either a status code or response string to check for
     unless @options[:status_code].present? or @options[:response_string].present? or @options[:request_metadata].present?
-      create_event("No response string, status code, or request metadata provided")
+      create_event("No response string, status code, request metadata provided")
       raise 'No response string, status code, or request metadata provided.'
       return
     end
@@ -217,9 +217,9 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
       @options[:payloads] = [""]
     end
 
-    
+
     @options[:response_string] ||= ""
-    
+
 
     if(@options[:negative_match].to_i == 1)
       @options[:negative_match] = true
@@ -265,7 +265,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
 
 
 
-  
+
 
   def run
     initialize_trends("open_vulnerability_count", ["open"], {legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
@@ -278,7 +278,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
     }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"})
 
     super
-    
+
     return
   end
 
@@ -290,7 +290,7 @@ def initialize_trends(primary_key, sub_keys, chart_options={}, series_options=[]
   # @series_options ||= {}
   # @trend_options ||={}
   # Sidekiq.redis do |redis|
-  #   Array(sub_keys).each do |k|      
+  #   Array(sub_keys).each do |k|
   #     redis.set "#{primary_key}:#{k}:value", 0
   #   end
   # end
@@ -314,18 +314,18 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     if(@options["_self"].present?)
       @options["_self"] = Task.find(@options["_self"])
     end
-    
+
     r.metadata ||= {}
 
     curl_runner(r)
   end
 
   def request_metadata_parser(r, response, request_url, request_metadata, metadata_checks)
-    curl_metadata ||= {}
-    r.metadata[:curl_metadata] ||= {}
-    duplicate_keys = 0
-    response.each do |line|
-      metadata_checks.each_with_index do |check, line_no|
+    curl_metadata = {}
+    r.metadata[:curl_metadata] = {}
+    terms_matched = []
+    response.each_with_index do |line, line_no|
+      metadata_checks.each_with_index do |check, key_no|
         begin
           searched_code = check.match(line.encode("UTF-8", invalid: :replace, undef: :replace))
         rescue => e
@@ -339,12 +339,11 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           else
             matched_expression = searched_code[1].to_s
           end
-          if r.metadata[:curl_metadata].key?(request_metadata.keys[line_no])
-            curl_metadata[request_metadata.keys[line_no] + "-" + duplicate_keys.to_s] = matched_expression.strip.truncate(300)
-            duplicate_keys += 1
-          else
-            curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip.truncate(300)
-          end
+          
+          curl_metadata[request_metadata.keys[key_no]] ||= []
+          curl_metadata[request_metadata.keys[key_no]] << matched_expression.strip.truncate(300)
+          curl_metadata[request_metadata.keys[key_no]].uniq!
+          curl_metadata[request_metadata.keys[key_no]]
         end
       end
         r.metadata[:curl_metadata].merge!(curl_metadata)
@@ -553,7 +552,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     # sort by unique
     urls.uniq!
 
-    
+
     urls.each_with_index do |url, index|
       if @options[:visited_urls].include? url
         urls.delete_at(index)
@@ -561,7 +560,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
         @options[:visited_urls] << url
       end
     end
-    
+
     if urls.count == 0
       return
     end
@@ -591,16 +590,17 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
         end
         pid = 0
         counter = 0
+
         begin
           # Calls popen4 to run curl command
           pid, stdin, stdout, stderr = popen4(*(tokenize_command(cmd)))
 
           data += stdout.read
-          
+
           process, exit_status_wrapper = Process::waitpid2(pid)
           [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
 
-          
+
           exit_status = exit_status_wrapper.exitstatus.to_i
           if exit_status == 124
             raise Timeout::Error, "Command #{cmd} timed out"
@@ -619,11 +619,11 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # Something else happened, so set exit_status to error
           exit_status = -1
-          
+
         end
+
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
         data = "" if data == nil
-
         match_update = false
         # vulnerabilities = []
         if exit_status.to_i != 0
@@ -631,7 +631,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           # r.auto_remediate(@options['_self'].id.to_s, request_url.to_s, @options[:response_string], payload)
           # return
         else
-          
+
           begin
             if(data[8..12].to_s.match(/\s\d{3}\s/))
               status_code = data[9..11]
@@ -646,6 +646,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
           if @options[:request_metadata]
             response = data.split("\n")
+
             # Make union of regex's
             #metadata_checks = Regexp.union(@options[:request_metadata].map {|key,val| Regexp.new val.strip})
 
@@ -654,6 +655,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
             request_metadata_parser(r, response, request_url, @options[:request_metadata], metadata_checks)
           end
           # If both status_code and response_string are present, both must match.
+
           # Modified to support negative match (sb)
           if @options[:status_code].present? and @options[:response_string].present? and @options[:status_code].to_i == status_code.to_i
             # Disabled because this woudn't flag regex response strings...
@@ -749,6 +751,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
               end
             end
           end
+
           if r.changed?
             begin
               upload_s3(r, data)
@@ -762,7 +765,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
       end
     end
 
-    
+
 
     # Track not-vulnerable results too.
     counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@options[:task_type]}", @options[:_self].id, true, {isolate_vulnerabilities: true})
@@ -772,7 +775,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     counts["closed"] *= -1
     update_trends("scan_results", counts)
 
-    
+
   end
 
 end
