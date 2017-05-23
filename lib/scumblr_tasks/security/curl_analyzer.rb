@@ -339,10 +339,11 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           else
             matched_expression = searched_code[1].to_s
           end
-            curl_metadata[request_metadata.keys[key_no]] ||= []
-            curl_metadata[request_metadata.keys[key_no]] << matched_expression.strip.truncate(300)
-            curl_metadata[request_metadata.keys[key_no]].uniq!
-            curl_metadata[request_metadata.keys[key_no]]
+          
+          curl_metadata[request_metadata.keys[key_no]] ||= []
+          curl_metadata[request_metadata.keys[key_no]] << matched_expression.strip.truncate(300)
+          curl_metadata[request_metadata.keys[key_no]].uniq!
+          curl_metadata[request_metadata.keys[key_no]]
         end
       end
         r.metadata[:curl_metadata].merge!(curl_metadata)
