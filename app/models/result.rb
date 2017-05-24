@@ -69,9 +69,7 @@ class Result < ActiveRecord::Base
   def add_tags(tags)
 
     tags.each do |the_tag|
-      require 'byebug'
-      byebug
-      puts 1
+
       unless self.tags.include? the_tag
         self.tags << the_tag
       end
