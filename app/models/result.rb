@@ -67,11 +67,22 @@ class Result < ActiveRecord::Base
   end
 
   def add_tags(tags)
-      tags.each do |the_tag|
-        unless self.tags.include? the_tag
-          self.tags << the_tag
-        end
+
+    tags.each do |the_tag|
+      require 'byebug'
+      byebug
+      puts 1
+      unless self.tags.include? the_tag
+        self.tags << the_tag
       end
+    end
+  end
+
+
+  def add_tags_by_id(tag_ids)
+    tag_ids.each do |tag_id|
+        self.taggings.create(tag_id: tag_id)
+    end
   end
 
   def self.to_csv
@@ -112,7 +123,7 @@ class Result < ActiveRecord::Base
       Thread.current["current_results"] ||={}
       Thread.current["current_results"]["created"] ||=[]
       Thread.current["current_results"]["created"] |= [self.id]
-      
+
 
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"])
@@ -139,7 +150,7 @@ class Result < ActiveRecord::Base
         redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
       end
     else
-      
+
     end
   end
 
@@ -589,26 +600,26 @@ class Result < ActiveRecord::Base
 
     # Try to grab the data referenced by the key from the current position in the data
     begin
-      
+
       # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
 
-      # If the key starts with ":" treat data like a hash and get the value referenced by the
-      # key
+        # If the key starts with ":" treat data like a hash and get the value referenced by the
+        # key
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
         if(data.nil?)
           parent[k] = {}
           data[k] = nil
         end
-      # If the key is in the form of an array (ex. [1,2,3]) get a list of elements requested
+        # If the key is in the form of an array (ex. [1,2,3]) get a list of elements requested
       elsif(k[0]=="[")
         # If there is more that "[]" in the key...
         if(k.length > 2)
 
           k2 = k[1..k.length-2].split(':')
-          # If the key can be split by ":" (i.e. [id:1,2] we want to select elements from a hash based on an attribute 
+          # If the key can be split by ":" (i.e. [id:1,2] we want to select elements from a hash based on an attribute
           if(k2.length > 1)
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
@@ -629,7 +640,7 @@ class Result < ActiveRecord::Base
           end
           return r
         end
-      # Otherwise assume data is a hash
+        # Otherwise assume data is a hash
       else
         data = data.try(:[],k)
         # If data[k] is blank, make it a hash
@@ -651,11 +662,11 @@ class Result < ActiveRecord::Base
     # If we haven't parsed all the keys, parse the remaining keys. Pass in the results we have so far to
     # be appended to (r[k])
     if(!keys.empty?)
-      
+
       r[k] ||= {}
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
-    # Otherwise we need to update
+      # Otherwise we need to update
     else
       # Treat value as JSON if it starts and ends with brackets ("{" and  "}")
       if(value[0] == "{" && value[value.length-1] == "}")
@@ -664,10 +675,10 @@ class Result < ActiveRecord::Base
         rescue
 
         end
-      # If the value is a hash, convert to json
+        # If the value is a hash, convert to json
       elsif(value.class == Hash)
         value = value.to_json
-      # Convert "true"/"false" to booleans
+        # Convert "true"/"false" to booleans
       elsif(value == "true")
         value = true
       elsif(value == "false")
@@ -676,7 +687,7 @@ class Result < ActiveRecord::Base
 
       # If the last key is "[]" then treat as an array
       if(k == "[]")
-        
+
         parent ||= []
         # Only add the value if it's not already in the array.
         parent << value if(!parent.include?(value))
