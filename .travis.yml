@@ -8,6 +8,6 @@ addons:
  postgresql: "9.5"
 before_script:
   - psql -c 'create database scumblr_test;' -U postgres
-  - rake db:schema:load
+  - bundle exec rake db:schema:load
   - bundle exec rake db:schema:load
   - bundle exec rake db:test:prepare

@@ -73,8 +73,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     # Should result in maximum result limit warning
     github_repo_fixture = Task.where(id: 62).first
     github_repo_fixture.perform_task
-
-    event_github = Event.where(action: "Warn").last["details"].include? "Hit maximum results limit"
+    event_github = Event.where(action: "Warn").last.try(:[],"details").include? "Hit maximum results limit"
 
     # Checks may pages of results, but should result in warning for too many pages of results
     assert_equal(event_github,true)
