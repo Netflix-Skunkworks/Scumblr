@@ -2,3 +2,9 @@ script: "bundle exec rake test"
 language: ruby
 rvm:
  - 2.2
+services:
+ - postgresql
+addons:
+ postgresql: "9.5"
+before_script:
+  - psql -c 'create database scumblr_test;' -U postgres
