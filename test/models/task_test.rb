@@ -59,12 +59,13 @@ class TaskTest < ActiveSupport::TestCase
   end
 
   test "should execute github sync task" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     github_sync.perform_task
 
     assert_equal(1, github_sync.metadata[:current_results].count)
   end
   test "should execute google search task" do
-
+    skip("Google developer key not defined") if Rails.configuration.try(:google_developer_key).blank?
     google_search.perform_task
 
     assert_equal(1, google_search.metadata[:current_results].count)
