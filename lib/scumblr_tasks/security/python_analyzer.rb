@@ -16,7 +16,7 @@
 require 'shellwords'
 require 'posix/spawn'
 
-class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
+class ScumblrTask::PythonAnalyzer < ScumblrTask::AsyncSidekiq
   include POSIX::Spawn
   def self.task_type_name
     "Python Analyzer"
@@ -24,6 +24,10 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
 
   def self.task_category
     "Security"
+  end
+
+  def self.worker_class
+    return ScumblrWorkers::PythonAnalyzerWorker
   end
 
   def self.options
@@ -71,6 +75,28 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
     # Do setup
     super
 
+    
+
+  end
+
+  def run
+    super
+  end
+
+end
+
+class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
+
+  def perform_work(result_id)
+
+    r = Result.find(result_id)
+
+    if(r.metadata.try(:[],"configuration").try(:[],"bandit").try(:[],"disabled") == true)
+      return nil
+    end
+
+    
+
     @temp_path = Rails.configuration.try(:downloads_tmp_dir).to_s.strip
     if @temp_path == ""
       @temp_path = "/tmp"
@@ -80,7 +106,70 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
     unless File.directory?(@temp_path)
       FileUtils.mkdir_p(@temp_path)
     end
+    repo_local_path = ""
+    findings = []
+    begin
+      unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?)
+        create_error("No  URL for result: #{r.id.to_s}")
+      else
+        git_url = r.metadata["repository_data"]["ssh_clone_url"]
+        
+        status = Timeout::timeout(600) do
+          Rails.logger.info "Cloning and scanning #{git_url}"
+          
+          #download the repo so we can scan it
+          #byebug
+          
+          repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
+          dsd = RepoDownloader.new(git_url, repo_local_path)
+          dsd.download
+        end
+        
 
+        
+        status = Timeout::timeout(600) do
+          scan_with_bandit(repo_local_path).each do |scan_result|
+            scan_result["results"].each do |issue|
+              vuln = Vulnerability.new
+              vuln.type = issue["issue_text"].to_s
+              vuln.task_id = @options[:_self]
+
+              if(@options[:key_suffix].present?)
+                vuln.key_suffix = @options[:key_suffix]
+              end
+              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "")
+              vuln.source_code_line = issue["line_number"].to_s
+              vuln.confidence_level = issue["issue_confidence"].to_s
+              vuln.severity = issue["issue_severity"].to_s
+              vuln.source = "Bandit"
+              findings.push vuln
+            end
+          end
+        end
+        
+
+        r.metadata["python_analyzer"] = true
+        r.metadata["python_results"] ||= {}
+        r.metadata["python_results"]["latest"] ||= {}
+        r.metadata["python_results"]["git_repo"] = git_url
+        r.metadata["python_results"]["results_date"] = Time.now.to_s
+        if !findings.empty?
+          r.update_vulnerabilities(findings)
+        end
+
+        
+        #if r.changed?
+          r.save!
+        #end
+      end
+      #now that we're done with it, delete the cloned repo
+    ensure
+      if repo_local_path != "" && Dir.exists?(repo_local_path)
+        FileUtils.rm_rf(repo_local_path)
+      end
+    end
+
+    return []
   end
 
   def tokenize_command(cmd)
@@ -126,79 +215,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::Async
     return results
   end
 
-  def perform_work(r)
-    repo_local_path = ""
-    findings = []
-    begin
-      unless (r.metadata.try(:[], "github_analyzer").present? && r.metadata["github_analyzer"].try(:[], "git_clone_url").present?) || (r.metadata.try(:[], "depot_analyzer").present? && r.metadata["depot_analyzer"].try(:[], "git_clone_url"))
-        create_error("No  URL for result: #{r.id.to_s}")
-      else
-        if r.metadata.try(:[], "github_analyzer").present?
-          if r.metadata["github_analyzer"]["git_clone_url"].nil?
-            git_url = r.url + ".git"
-          else
-            git_url = r.metadata["github_analyzer"]["git_clone_url"]
-          end
-        elsif r.metadata.try(:[], "depot_analyzer").present?
-          git_url = r.metadata["depot_analyzer"]["git_clone_url"]
-        end
-        @semaphore.synchronize {
-        status = Timeout::timeout(600) do
-          Rails.logger.info "Cloning and scanning #{git_url}"
-          
-          #download the repo so we can scan it
-          #byebug
-          
-          repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
-          dsd = RepoDownloader.new(git_url, repo_local_path)
-          dsd.download
-        end
-        }
-
-        @semaphore.synchronize {
-        status = Timeout::timeout(600) do
-          scan_with_bandit(repo_local_path).each do |scan_result|
-            scan_result["results"].each do |issue|
-              vuln = Vulnerability.new
-              vuln.type = issue["issue_text"].to_s
-              vuln.task_id = @options[:_self].id.to_s
-
-              if(@options[:key_suffix].present?)
-                vuln.key_suffix = @options[:key_suffix]
-              end
-              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "")
-              vuln.source_code_line = issue["line_number"].to_s
-              vuln.confidence_level = issue["issue_confidence"].to_s
-              vuln.severity = issue["issue_severity"].to_s
-              vuln.source = "Bandit"
-              findings.push vuln
-            end
-          end
-        end
-        }
-        r.metadata["python_analyzer"] = true
-        r.metadata["python_results"] ||= {}
-        r.metadata["python_results"]["latest"] ||= {}
-        r.metadata["python_results"]["git_repo"] = git_url
-        r.metadata["python_results"]["results_date"] = Time.now.to_s
-        if !findings.empty?
-          r.update_vulnerabilities(findings)
-        end
-        #if r.changed?
-          r.save!
-        #end
-      end
-      #now that we're done with it, delete the cloned repo
-    ensure
-      if repo_local_path != "" && Dir.exists?(repo_local_path)
-        FileUtils.rm_rf(repo_local_path)
-      end
-    end
-    
-  end
-
-  def run
-    super
-  end
-
 end
+
+
+
