@@ -9,6 +9,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
 
   # Class Method Tests
   test "execute saved github search task with public members" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     # This should help with some github stuff
     # and also did it create vulns correctly.
     github_search_fixture = Task.where(id: 58).first
@@ -39,6 +40,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "execute saved github repo search task" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     # This should help with some github stuff
     # and also did it create vulns correctly.
     github_repo_fixture = Task.where(id: 59).first
@@ -50,6 +52,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "execute saved github users search task with bad data" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     # This should help with some github stuff
     # and also did it create vulns correctly.
     github_repo_fixture = Task.where(id: 60).first
@@ -59,6 +62,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "execute saved github repos search task with bad data" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     # This should help with some github stuff
     # and also did it create vulns correctly.
     github_repo_fixture = Task.where(id: 61).first
@@ -68,6 +72,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "execute long search with many results and hopefully ratelimits" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     # This should help with some github stuff
     # and also did it create vulns correctly.
     # Should result in maximum result limit warning
