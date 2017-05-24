@@ -311,6 +311,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         if @search_type == "user" and core_rate_limit >= 0
           @saved_users_or_repos.each do | user_or_repo |
 
+
             response = RestClient.get "#{@github_api_endpoint}/users/#{user_or_repo}?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
             core_rate_limit -= 1
@@ -327,6 +328,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         end
       end
     rescue => e
+
       create_event("Unable to determine if suppiled input is a valid org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
     end
 
@@ -336,6 +338,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # pages = 1
     @scope_type_array.each_with_index do |scope_type, index|
       puts index
+
       begin
         while true
           more_pages = false
@@ -479,6 +482,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
       res = Result.where(url: search["repository"]["html_url"].downcase).first
 
+
       if res.present?
         res.update_vulnerabilities(vulnerabilities)
         res.metadata.merge!({"repository_data" => search_metadata["repository_data"]})
@@ -489,7 +493,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         @results << res
         # Do not create new result simply append vulns to results
       else
-        github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"].to_s + " (Github)", domain: "github.com", metadata: {"repository_data" => search_metadata["repository_data"]})
+        github_result = Result.new(url: search["repository"]["html_url"].downcase, title: search["repository"]["full_name"].to_s + " (Github)", domain: "github.com", metadata: {"repository_data" => search_metadata["repository_data"]})
         if @options[:tags].present?
           github_result.add_tags(@options[:tags])
         end
