@@ -78,8 +78,11 @@ class Result < ActiveRecord::Base
 
 
   def add_tags_by_id(tag_ids)
-    tag_ids.each do |tag_id|
-        self.taggings.create(tag_id: tag_id)
+    Array(tag_ids).each do |tag_id|
+        # Create a tagging and save only if valid 
+        # (tagging will be invalid if the result is already tagged with the given id)
+        tagging = self.taggings.build(tag_id: tag_id)      
+        tagging.save if tagging.valid?
     end
   end
 
