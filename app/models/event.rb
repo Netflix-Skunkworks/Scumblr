@@ -26,11 +26,27 @@ class Event < ActiveRecord::Base
 
 
   
+  def new_value_to_s
+    if(self.event_changes.length == 0)
+      return ""
+    elsif(self.event_changes.length == 1)
+      return self.event_changes[0].new_value.to_s
+    else
+      return "Multiple"
+    end
+  end
+
+  def old_value_to_s
+    if(self.event_changes.length == 0)
+      return ""
+    elsif(self.event_changes.length == 1)
+      return self.event_changes[0].old_value.to_s
+    else
+      return "Multiple"
+    end
+  end
 
   private
-
-
-
 
   def update_fields
     if(self.field)
