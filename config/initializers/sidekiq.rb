@@ -46,7 +46,7 @@ Sidekiq.configure_server do |config|
     if(Rails.configuration.try(:sidekiq_queues))
       config.options[:queues] = Rails.configuration.try(:sidekiq_queues)
     else
-      config.options[:queues] = ["async_worker", "worker", "runner"] 
+      config.options[:queues] = ["async_worker", "worker", "runner", "default"] 
     end
   end
 

@@ -123,7 +123,9 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
   # Expects a key (which will be created or added to) and a hash
   # containing a list of key/values pairs t
   def save_trends(time_value=Time.now)
-    
+    if(@trend_keys.blank?)
+      return
+    end
     if(@_jid.blank?)
       return
     end
