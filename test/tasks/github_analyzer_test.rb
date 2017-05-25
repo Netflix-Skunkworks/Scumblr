@@ -30,7 +30,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     #
 
     # assert 2 open issues
-    assert_equal(2, Result.last(2).first.metadata["vulnerability_count"]["open"])
+    assert_equal(2, Result.last(2).first.metadata["vulnerability_count"]["status"]["open"])
     # assert github sourced
     assert_equal(2, Result.last(2).first.metadata["vulnerability_count"]["source"]["github"])
     # assert task id
@@ -81,7 +81,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     event_github = Event.where(action: "Warn").last.try(:[],"details").include? "Hit maximum results limit"
 
     # Checks may pages of results, but should result in warning for too many pages of results
-    assert_equal(event_github,true)
+    assert_equal(event_github, true)
   end
 
 end
