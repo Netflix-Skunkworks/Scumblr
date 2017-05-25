@@ -114,9 +114,9 @@ class Event < ActiveRecord::Base
     
 
     if(options[:sql_only]==true)
-      return [events, events.result(distinct:true).to_sql]
+      return [events, events.result.to_sql]
     else
-      return [events, events.result(distinct:true).page(page).per(per).readonly(false)]
+      return [events, events.result.page(page).per(per).readonly(false)]
     end
   end
 
