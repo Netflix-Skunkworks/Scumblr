@@ -153,6 +153,13 @@ class ResultTest < ActiveSupport::TestCase
   end
 
   test "no url configured error for attachment from sketchy" do
+    restore_vals = false
+    if Rails.configuration.try(:sketchy_url).present?
+      sketchy_url = Rails.configuration.sketchy_url
+      sketchy_access_token = Rails.configuration.sketchy_access_token
+      restore_vals = true
+    end
+
     Scumblr::Application.configure do
       config.sketchy_url = ""
       config.sketchy_access_token = ""
@@ -160,6 +167,13 @@ class ResultTest < ActiveSupport::TestCase
 
     foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
     assert_equal(fixture_result.metadata["sketchy_ids"], foo)
+
+    if restore_vals
+      Scumblr::Application.configure do
+        config.sketchy_url = sketchy_url
+        config.sketchy_access_token = sketchy_access_token
+      end
+    end
   end
 
 
@@ -174,7 +188,11 @@ class ResultTest < ActiveSupport::TestCase
   end
 
   test "runtime error for attachment from sketchy" do
+    restore_vals = false
     if Rails.configuration.try(:sketchy_url).present?
+      sketchy_url = Rails.configuration.sketchy_url
+      sketchy_access_token = Rails.configuration.sketchy_access_token
+      restore_vals = true
       Scumblr::Application.configure do
         config.sketchy_url = "https://google.com"
         config.sketchy_access_token = ""
@@ -184,6 +202,12 @@ class ResultTest < ActiveSupport::TestCase
       assert_equal(nil, fixture_result.metadata["sketchy_ids"])
     else
       skip("no sketchy_url configured...skiping test.")
+    end
+    if restore_vals
+      Scumblr::Application.configure do
+        config.sketchy_url = sketchy_url
+        config.sketchy_access_token = sketchy_access_token
+      end
     end
   end
 
