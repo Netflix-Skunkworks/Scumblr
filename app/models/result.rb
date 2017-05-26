@@ -126,7 +126,7 @@ class Result < ActiveRecord::Base
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"])
       Sidekiq.redis do |redis|
-        r.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+        redis.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
       end
     end
   end
