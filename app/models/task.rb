@@ -212,6 +212,8 @@ class Task < ActiveRecord::Base
       Thread.current["previous_results"] = {}
       Thread.current["current_events"] = {}
       Thread.current["previous_events"] = {}
+      Thread.current[:current_task] = nil
+
       Rails.logger.debug "No results returned"
       return
     end
@@ -262,6 +264,7 @@ class Task < ActiveRecord::Base
     Thread.current["previous_results"] = {}
     Thread.current["current_events"] = {}
     Thread.current["previous_events"] = {}
+    Thread.current[:current_task] = nil
     if was_successful
       task.metadata["_last_run"]  = task.metadata["_last_successful_run"] = Time.now
     end
