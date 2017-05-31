@@ -79,9 +79,9 @@ class Result < ActiveRecord::Base
 
   def add_tags_by_id(tag_ids)
     Array(tag_ids).each do |tag_id|
-        # Create a tagging and save only if valid 
+        # Create a tagging and save only if valid
         # (tagging will be invalid if the result is already tagged with the given id)
-        tagging = self.taggings.build(tag_id: tag_id)      
+        tagging = self.taggings.build(tag_id: tag_id)
         tagging.save if tagging.valid?
     end
   end
@@ -129,7 +129,7 @@ class Result < ActiveRecord::Base
       #calling_task.save!
     elsif(Thread.current["sidekiq_job_id"])
       Sidekiq.redis do |redis|
-        r.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+        redis.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
       end
     end
   end

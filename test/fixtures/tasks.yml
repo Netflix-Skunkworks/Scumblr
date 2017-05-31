@@ -666,3 +666,29 @@ task_5:
     _last_status_event: 6684349
     _last_status_message: Task completed in 849.889874 seconds
     _last_successful_run: '2017-05-17T11:16:59.938-07:00'
+
+task_73:
+  id: 73
+  task_type: ScumblrTask::IsInternalAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: ''
+      internal_octets: '10,11,100'
+    ivars:
+      :@permitted: true
+  name: Resolves to Internal IP
+  description: ''
+  created_at: 2017-05-24 15:31:06.170555000 Z
+  updated_at: 2017-05-24 18:16:51.082118000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-05-24T11:16:50.888-07:00'
+    _start_time: '2017-05-24T11:15:41.645-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    _last_status_event: 6684675
+    _last_status_message: Task completed in 68.31691 seconds
+    _last_successful_run: '2017-05-24T11:16:50.888-07:00'
