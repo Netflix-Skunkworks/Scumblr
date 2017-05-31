@@ -24,21 +24,54 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def self.options
+    # these should be a hash (key: val pairs)
     {
       :github_terms => {name: "System Metadata Github Search Terms",
-                       description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
-                       required: true,
-                       type: :system_metadata}
+                        description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
+                        required: true,
+                        type: :system_metadata}
     }
   end
 
   def initialize(options={})
-    puts "*****Initializing with options: " + options[:_params].to_s
     super
   end
 
+  def determine_term(config, mapping)
+    # Given a config file determine the mapping of the term
+
+  end
+
   def run
-    puts "*****Running with options: " + @options[:_params].to_s
+    response = ""
+    create_event(@options[:_params][:_body], "Info")
+    # begin
+    #   response = JSON.parse(@options[:_params][:_body])
+    # rescue
+    #   puts 'not valid json'
+    # end
+
+    # vuln_object = {}
+    # vulnerabilities = []
+    # vuln = Vulnerability.new
+    # url = response["commit"]["repository"]["html_url"]
+
+
+    # response["findings"].each do |finding|
+    #   finding["findings"].each do | content |
+    #     require 'byebug'
+    #     byebug
+    #     puts 1
+    #     vuln.url = content["content_urls"]
+    #     hits_to_search = content["hits"]
+    #     vuln.commit_email = response["commit"]["head_commit"]["committer"]["email"]
+    #     vuln.commit_name = response["commit"]["head_commit"]["committer"]["name"]
+    #     # determine_term(response["config"], )
+    #   end
+
+    # end
+
+    #puts "*****Running with options: " + @options[:_params].to_s
 
   end
 
