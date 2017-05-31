@@ -356,9 +356,9 @@ class Result < ActiveRecord::Base
       results = Result.filter_search_with_metadata(ransack_search, per, page, options)
     rescue => e
       if(per == nil)
-        results = ransack_search.result(distinct:true).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true) || c == "content" }.map{|c| "results."+c.to_s})
+        results = ransack_search.result.select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true) || c == "content" }.map{|c| "results."+c.to_s})
       else
-        results = ransack_search.result(distinct:true).page(page).per(per).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s})
+        results = ransack_search.result.page(page).per(per).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s})
       end
 
       @errors ||= []
@@ -467,9 +467,9 @@ class Result < ActiveRecord::Base
 
         end
         if(limit == nil)
-          result = ransack_search.result(distinct: true).order(order.to_s).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         else
-          result = ransack_search.result(distinct: true).order(order.to_s).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         end
 
         #result = ransack_search.result(distinct: true).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| c == "content" }.map{|c| "results."+c.to_s})
@@ -477,9 +477,9 @@ class Result < ActiveRecord::Base
 
       else
         if(limit == nil)
-          result = ransack_search.result(distinct: true).order(order.to_s).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         else
-          result = ransack_search.result(distinct: true).order(order.to_s).page(page).per(limit).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).page(page).per(limit).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         end
 
 
