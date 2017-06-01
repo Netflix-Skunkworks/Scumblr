@@ -11,10 +11,12 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
-
+require 'rest-client'
+require 'byebug'
+require 'base64'
 
 class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
+  include ActionView::Helpers::TextHelper
   def self.task_type_name
     "Github Event Analyzer"
   end
@@ -26,6 +28,12 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   def self.options
     # these should be a hash (key: val pairs)
     {
+      :severity => {name: "Finding Severity",
+                    description: "Set severity to either observation, high, medium, or low",
+                    required: true,
+                    type: :choice,
+                    default: :observation,
+                    choices: [:observation, :high, :medium, :low]},
       :github_terms => {name: "System Metadata Github Search Terms",
                         description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
                         required: true,
@@ -37,39 +45,165 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     super
   end
 
-  def determine_term(config, mapping)
-    # Given a config file determine the mapping of the term
 
+  def match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
+
+    vulnerabilities = []
+    before = {}
+    after ={}
+    regular_expressions_union = Regexp.union(regular_expressions.map {|x| Regexp.new(x.strip)})
+    term_counter = {}
+    contents = content_response
+    contents = contents.split(/\r?\n|\r/)
+    # Iterate through each line of the response and grep for the response_sring provided
+    contents.each_with_index do |line, line_no|
+      begin
+        searched_code = regular_expressions_union.match(line.encode("UTF-8", invalid: :replace, undef: :replace))
+      rescue
+        next
+      end
+
+
+      if searched_code
+
+        # puts "----Got Match!----\n"
+        # puts searched_code.to_s
+
+        term = ""
+        details = ""
+        matched_term = ""
+        regular_expressions.each_with_index do |expression, index|
+
+          if Regexp.new(expression).match(line.encode("UTF-8", invalid: :replace, undef: :replace))
+            matched_term = regular_expressions[index]
+            break
+          end
+        end
+
+        hit_hash.each do |hit|
+
+          if matched_term.to_s == hit[:regex]
+            term = hit[:name]
+            details = '"' + term + '"' + " Match"
+          end
+        end
+
+        if term_counter[term].to_i < 1
+          term_counter[term] = 1
+
+          vuln = Vulnerability.new
+
+          vuln.source = "github"
+          vuln.task_id = @options[:_self].id.to_s
+          vuln.term = term
+          vuln.details = details
+
+
+          if @options[:severity].nil?
+            vuln.severity = "observation"
+          else
+            vuln.severity = @options[:severity]
+          end
+
+
+
+
+          case line_no
+          when 0
+
+            before = nil
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500), line_no + 2 => truncate(contents[line_no + 2].to_s, length: 500), line_no + 3 => truncate(contents[line_no + 3].to_s, length: 500)}
+          when 1
+            before = {line_no - 1 => truncate(contents[line_no - 1].to_s, length: 500)}
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500), line_no + 2 => truncate(contents[line_no + 2].to_s, length: 500), line_no + 3 => truncate(contents[line_no + 3].to_s, length: 500)}
+          when 2
+            before = {line_no - 1 =>  truncate(contents[line_no - 1].to_s, length: 500), line_no - 2 =>  truncate(contents[line_no - 2].to_s, length: 500)}
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500), line_no + 2 => truncate(contents[line_no + 2].to_s, length: 500), line_no + 3 => truncate(contents[line_no + 3].to_s, length: 500)}
+          when contents.length
+            after = nil
+            before = {line_no - 1 => truncate(contents[line_no - 1].to_s, length: 500), line_no - 2 => truncate(contents[line_no - 2].to_s, length: 500), line_no - 3 => truncate(contents[line_no - 3].to_s, length: 500)}
+          when contents.length - 1
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500)}
+            before = {line_no - 1 => truncate(contents[line_no - 1].to_s, length: 500), line_no - 2 => truncate(contents[line_no - 2].to_s, length: 500), line_no - 3 => truncate(contents[line_no - 3].to_s, length: 500)}
+          when contents.length - 2
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500), line_no + 2 => truncate(contents[line_no + 2])}
+            before = {line_no - 1 => truncate(contents[line_no - 1].to_s, length: 500), line_no - 2 => truncate(contents[line_no - 2].to_s, length: 500), line_no - 3 => truncate(contents[line_no - 3].to_s, length: 500)}
+          else
+            before = {line_no - 1 => truncate(contents[line_no - 1].to_s, length: 500), line_no - 2 => truncate(contents[line_no - 2].to_s, length: 500), line_no - 3 => truncate(contents[line_no - 3].to_s, length: 500)}
+            after = {line_no + 1 => truncate(contents[line_no + 1].to_s, length: 500), line_no + 2 => truncate(contents[line_no + 2].to_s, length: 500), line_no + 3 => truncate(contents[line_no + 3].to_s, length: 500)}
+          end
+
+          # vuln.term = searched_code.to_s
+          vuln.url = vuln_url
+          vuln.code_fragment = truncate(line.chomp, length: 500)
+          vuln.commit_email = commit_email
+          vuln.commit_name = commit_name
+          vuln.commit_branch = commit_branch
+          vuln.match_location = "file"
+          vuln.before = before
+          vuln.after = after
+          vuln.line_number = line_no
+          vulnerabilities << vuln
+
+        else
+          term_counter[term] += 1
+        end
+      end
+    end
+
+    vulnerabilities.each do |vuln|
+      vuln.match_count = term_counter[vuln.term]
+    end
+    puts vulnerabilities.inspect
+    return vulnerabilities
   end
 
   def run
     response = ""
-    create_event(@options[:_params][:_body], "Info")
-    # begin
-    #   response = JSON.parse(@options[:_params][:_body])
-    # rescue
-    #   puts 'not valid json'
-    # end
+    begin
+      response = JSON.parse(@options[:_params][:_body])
+    rescue
+      puts 'not valid json'
+    end
 
-    # vuln_object = {}
-    # vulnerabilities = []
-    # vuln = Vulnerability.new
-    # url = response["commit"]["repository"]["html_url"]
+    vuln_object = {}
+    vulnerabilities = []
 
 
-    # response["findings"].each do |finding|
-    #   finding["findings"].each do | content |
-    #     require 'byebug'
-    #     byebug
-    #     puts 1
-    #     vuln.url = content["content_urls"]
-    #     hits_to_search = content["hits"]
-    #     vuln.commit_email = response["commit"]["head_commit"]["committer"]["email"]
-    #     vuln.commit_name = response["commit"]["head_commit"]["committer"]["name"]
-    #     # determine_term(response["config"], )
-    #   end
+    # Step through each finding and it's assocaited contents
+    response["findings"].each do |finding|
+      finding["findings"].each do | content |
+        vuln = Vulnerability.new
+        url = response["commit"]["repository"]["html_url"]
+        vuln_url = content["content_urls"]
+        hits_to_search = content["hits"]
+        commit_email = response["commit"]["head_commit"]["committer"]["email"]
+        commit_name = response["commit"]["head_commit"]["committer"]["name"]
+        commit_branch = response["commit"]["ref"].split('/').last
 
-    # end
+
+        # Step into the finding and create the right things:
+        hit_hash = []
+        regular_expressions = []
+        content["hits"].each do |hit|
+          response["config"]["regex_list"].each do |regex|
+
+            if regex["name"] == hit
+              regular_expressions << regex["regex"]
+              hit_hash << {"name": hit, "regex": regex["regex"]}
+            end
+          end
+        end
+
+        content_response = JSON.parse RestClient.get(content["content_urls"])
+        content_response = Base64.decode64(content_response["content"].strip)
+        puts content["hits"]
+        vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
+        puts url
+        # determine_term(response["config"], )
+      end
+
+    end
 
     #puts "*****Running with options: " + @options[:_params].to_s
 
