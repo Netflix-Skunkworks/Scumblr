@@ -162,7 +162,8 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     begin
       response = JSON.parse(@options[:_params][:_body])
     rescue
-      puts 'not valid json'
+      create_event('not valid json')
+      raise
     end
 
     vuln_object = {}
