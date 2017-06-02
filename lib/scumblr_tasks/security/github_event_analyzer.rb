@@ -12,7 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 require 'rest-client'
-require 'byebug'
 require 'base64'
 
 class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
