@@ -92,8 +92,8 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
           term_counter[term] = 1
 
           vuln = Vulnerability.new
-
-          vuln.source = "github"
+          vuln.regex = matched_term
+          vuln.source = "github_event"
           vuln.task_id = @options[:_self].id.to_s
           vuln.term = term
           vuln.details = details
@@ -175,7 +175,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
       finding["findings"].each do | content |
         vuln = Vulnerability.new
         url = response["commit"]["repository"]["html_url"]
-        vuln_url = content["content_urls"]
+        #vuln_url = content["content_urls"]
         hits_to_search = content["hits"]
         commit_email = response["commit"]["head_commit"]["committer"]["email"]
         commit_name = response["commit"]["head_commit"]["committer"]["name"]
@@ -196,15 +196,20 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         end
 
         content_response = JSON.parse RestClient.get(content["content_urls"])
+        vuln_url = content_response["html_url"]
         content_response = Base64.decode64(content_response["content"].strip)
         puts content["hits"]
+
+
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
-        puts url
+        @res = Result.where(url: url).first
+        @res.update_vulnerabilities(vulnerabilities)
         # determine_term(response["config"], )
       end
 
     end
 
+    @res.save if @res.changed?
     #puts "*****Running with options: " + @options[:_params].to_s
 
   end
