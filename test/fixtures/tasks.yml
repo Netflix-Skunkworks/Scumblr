@@ -692,3 +692,30 @@ task_73:
     _last_status_event: 6684675
     _last_status_message: Task completed in 68.31691 seconds
     _last_successful_run: '2017-05-24T11:16:50.888-07:00'
+
+task_70:
+  id: 70
+  task_type: ScumblrTask::GithubEventAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      github_terms: '1'
+    ivars:
+      :@permitted: true
+  name: callback test task
+  description: ''
+  created_at: 2017-05-22 19:12:20.096237000 Z
+  updated_at: 2017-05-31 19:42:08.367619000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-05-31T11:35:23.850-07:00'
+    _start_time: '2017-05-31T12:42:08.118-07:00'
+    _last_status: Success
+    current_events: {}
+    previous_events:
+      Error:
+      - 6684828
+    _last_status_event: 6684829
+    _last_status_message: Task completed in 0.987644 seconds
+    _last_successful_run: '2017-05-31T11:35:23.850-07:00'
