@@ -17,7 +17,7 @@ class StatusTest < ActiveSupport::TestCase
   end
 
   test "should reset_default on after_save callback" do
-    assert_equal(2, fixture_status.reset_default.count)
+    assert_equal(3, fixture_status.reset_default.count)
   end
 
   test "should to_string a name" do

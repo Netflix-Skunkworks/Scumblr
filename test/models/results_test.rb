@@ -22,7 +22,7 @@ class ResultTest < ActiveSupport::TestCase
   should have_many(:taggings).dependent(:delete_all)
 
   fixture_result = Result.first
-  github_result = Result.last
+  github_result = Result.where(id: 2).first
 
   # Class Method Tests
   test "should generate a csv file" do
@@ -37,7 +37,7 @@ class ResultTest < ActiveSupport::TestCase
   # Class Method Search Tests
   test "should perform a default result search" do
     ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})
-    assert_equal(2, results.length)
+    assert_equal(3, results.length)
   end
 
   test "should perform a tag result search" do
@@ -131,6 +131,7 @@ class ResultTest < ActiveSupport::TestCase
   test "executes update_task_event correctly" do
     Thread.current["current_results"] ={}
     Thread.current[:current_task] = 1
+
     github_result.update_task_event
     assert_equal([2], Thread.current["current_results"]["updated"])
   end
