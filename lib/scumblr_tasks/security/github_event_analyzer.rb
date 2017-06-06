@@ -24,6 +24,16 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     "Security"
   end
 
+  def self.config_options
+    {
+      :github_oauth_token => {
+        name: "Github Oauth Token",
+        description: "Setting this token can provide access to private Github organization(s) or repo(s)",
+        required: false
+      }
+    }
+  end
+
   def self.options
     # these should be a hash (key: val pairs)
     {
@@ -158,21 +168,24 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def run
+    @github_oauth_token = @github_oauth_token.to_s.strip
     response = ""
     begin
       response = JSON.parse(@options[:_params][:_body])
     rescue
       create_event('not valid json')
+
       raise
     end
 
     vuln_object = {}
     vulnerabilities = []
 
-
     # Step through each finding and it's assocaited contents
     response["findings"].each do |finding|
+
       finding["findings"].each do | content |
+
         vuln = Vulnerability.new
         url = response["commit"]["repository"]["html_url"]
         #vuln_url = content["content_urls"]
@@ -186,6 +199,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         hit_hash = []
         regular_expressions = []
         content["hits"].each do |hit|
+
           response["config"].first["options"]["github_terms"].each do |name,regex|
 
             if name == hit
@@ -194,17 +208,12 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
             end
           end
         end
-
-        content_response = JSON.parse RestClient.get(content["content_urls"])
+        content_response = JSON.parse RestClient.get(content["content_urls"] + "&access_token=#{@github_oauth_token}")
         vuln_url = content_response["html_url"]
         content_response = Base64.decode64(content_response["content"].strip)
-        puts content["hits"]
-
 
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
-        require 'byebug'
-        byebug
-        puts 1
+
         @res = Result.where(url: url).first
         @res.update_vulnerabilities(vulnerabilities)
         # determine_term(response["config"], )
