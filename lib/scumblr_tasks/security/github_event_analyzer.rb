@@ -186,11 +186,11 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         hit_hash = []
         regular_expressions = []
         content["hits"].each do |hit|
-          response["config"]["regex_list"].each do |regex|
+          response["config"].first["options"]["github_terms"].each do |name,regex|
 
-            if regex["name"] == hit
-              regular_expressions << regex["regex"]
-              hit_hash << {"name": hit, "regex": regex["regex"]}
+            if name == hit
+              regular_expressions << regex
+              hit_hash << {"name": hit, "regex": regex}
             end
           end
         end
@@ -202,6 +202,9 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
 
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
+        require 'byebug'
+        byebug
+        puts 1
         @res = Result.where(url: url).first
         @res.update_vulnerabilities(vulnerabilities)
         # determine_term(response["config"], )
