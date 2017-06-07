@@ -133,6 +133,9 @@ group :test, :production do
   gem 'oj_mimic_json'
 end
 
+# Used for Redis Cache
+gem "redis-store"
+gem "redis-rails"
 
 group :development, :dirtylaundrydev do
   gem 'spring', group: :development
