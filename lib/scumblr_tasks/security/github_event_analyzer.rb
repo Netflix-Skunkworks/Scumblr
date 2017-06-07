@@ -187,7 +187,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
       finding["findings"].each do | content |
 
         vuln = Vulnerability.new
-        url = response["commit"]["repository"]["html_url"]
+        url = response["commit"]["repository"]["html_url"].downcase
         #vuln_url = content["content_urls"]
         hits_to_search = content["hits"]
         commit_email = response["commit"]["head_commit"]["committer"]["email"]
