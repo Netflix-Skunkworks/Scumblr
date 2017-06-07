@@ -3,6 +3,6 @@ require "byebug"
 class UserSavedFilterTest < ActiveSupport::TestCase
   # Association Tests
   should belong_to(:user)
-  should have_many(:saved_filter)
+  should belong_to(:saved_filter)
 
 end

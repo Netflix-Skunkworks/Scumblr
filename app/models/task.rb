@@ -114,7 +114,28 @@ class Task < ActiveRecord::Base
     end
   end
 
-  def perform_task
+  # this will create metadata for CRUD on results for tasks
+  #after_save :create_task_event
+
+  # def create_task_event
+  #   if(Thread.current[:current_task])
+  #     #create an event linking the updated/new result to the task
+  #     calling_task = Task.where(id: Thread.current[:current_task]).first
+  #     calling_task.metadata["current_results"] ||={}
+  #     puts calling_task.metadata
+  #     calling_task.metadata["current_results"]["created"] ||=[]
+  #     calling_task.metadata["current_results"]["updated"] ||=[]
+
+  #     if self.new_record?
+  #       calling_task.metadata["current_results"]["created"] << self.id
+  #     else
+  #       calling_task.metadata["current_results"]["updated"] << self.id
+  #     end
+  #     calling_task.save!
+  #   end
+  # end
+
+  def perform_task(task_params=nil)
     t = Time.now
     task = self
     task.metadata ||= {}
@@ -126,20 +147,23 @@ class Task < ActiveRecord::Base
     end
 
     task_type = task.task_type.constantize
-
-    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task})
-
+    task_options = task.options.merge({_self:task, _params:task_params})
 
     results = nil
     begin
       task.metadata["_start_time"] = Time.now
       if(task.task_type.match(/\ASearchProvider::/))
-        results = task_type.new(task.query, task_options).run
+        results = task_type.new(task.query, task_options).start
       else
-        results = task_type.new(task_options).run
+        results = task_type.new(task_options).start
       end
     rescue StandardError=>e
-      event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      if e.class == ScumblrTask::TaskException
+
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: e.message, eventable_type: "Task", eventable_id: task.id )
+      else
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      end
       Rails.logger.error "#{e.message}"
 
       Thread.current["current_events"] ||= {}
@@ -155,6 +179,7 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
+
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id
@@ -187,6 +212,8 @@ class Task < ActiveRecord::Base
       Thread.current["previous_results"] = {}
       Thread.current["current_events"] = {}
       Thread.current["previous_events"] = {}
+      Thread.current[:current_task] = nil
+
       Rails.logger.debug "No results returned"
       return
     end
@@ -197,6 +224,7 @@ class Task < ActiveRecord::Base
 
     counter = 0
     #foo = []
+
     results.each do |r|
 
       result = Result.where(:url=>r[:url].strip).first_or_initialize
@@ -236,6 +264,7 @@ class Task < ActiveRecord::Base
     Thread.current["previous_results"] = {}
     Thread.current["current_events"] = {}
     Thread.current["previous_events"] = {}
+    Thread.current[:current_task] = nil
     if was_successful
       task.metadata["_last_run"]  = task.metadata["_last_successful_run"] = Time.now
     end

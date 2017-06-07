@@ -22,7 +22,7 @@ class ResultTest < ActiveSupport::TestCase
   should have_many(:taggings).dependent(:delete_all)
 
   fixture_result = Result.first
-  github_result = Result.last
+  github_result = Result.where(id: 2).first
 
   # Class Method Tests
   test "should generate a csv file" do
@@ -37,7 +37,7 @@ class ResultTest < ActiveSupport::TestCase
   # Class Method Search Tests
   test "should perform a default result search" do
     ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})
-    assert_equal(2, results.length)
+    assert_equal(3, results.length)
   end
 
   test "should perform a tag result search" do
@@ -97,6 +97,28 @@ class ResultTest < ActiveSupport::TestCase
     assert_equal("High", fixture_result.metadata["vulnerabilities"].first["severity"])
   end
 
+  test "executes traverse and update metadata on result and creates a new key" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test"], "1")
+    assert_equal("1", fixture_result.metadata["test"])
+  end
+
+  test "executes traverse and update metadata on result and creates a nested key" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test","testing"], "2")
+    assert_equal("2", fixture_result.metadata["test"]["testing"])
+  end
+
+  test "executes traverse and update metadata on result and creates/updates a new array" do
+    fixture_result.reload
+    fixture_result.traverse_and_update_metadata(["test","testing","[]"], "2")
+    assert_equal("2", fixture_result.metadata["test"]["testing"].first)
+    fixture_result.traverse_and_update_metadata(["test","testing","[]"], "3")
+    assert_equal(2, fixture_result.metadata["test"]["testing"].count)
+    assert_equal("2", fixture_result.metadata["test"]["testing"].first)
+    assert_equal("3", fixture_result.metadata["test"]["testing"].last)
+  end
+
   test "executes traverse metadata on array nested object" do
     assert_equal({{:a=>{:b=>1, :c=>2}}=>nil}, fixture_result.traverse_metadata([{:a=>{b:1,c:2}},[:a,:b]]))
   end
@@ -109,6 +131,7 @@ class ResultTest < ActiveSupport::TestCase
   test "executes update_task_event correctly" do
     Thread.current["current_results"] ={}
     Thread.current[:current_task] = 1
+
     github_result.update_task_event
     assert_equal([2], Thread.current["current_results"]["updated"])
   end
@@ -131,6 +154,13 @@ class ResultTest < ActiveSupport::TestCase
   end
 
   test "no url configured error for attachment from sketchy" do
+    restore_vals = false
+    if Rails.configuration.try(:sketchy_url).present?
+      sketchy_url = Rails.configuration.sketchy_url
+      sketchy_access_token = Rails.configuration.sketchy_access_token
+      restore_vals = true
+    end
+
     Scumblr::Application.configure do
       config.sketchy_url = ""
       config.sketchy_access_token = ""
@@ -138,21 +168,32 @@ class ResultTest < ActiveSupport::TestCase
 
     foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
     assert_equal(fixture_result.metadata["sketchy_ids"], foo)
+
+    if restore_vals
+      Scumblr::Application.configure do
+        config.sketchy_url = sketchy_url
+        config.sketchy_access_token = sketchy_access_token
+      end
+    end
   end
 
 
-  if Rails.configuration.try(:sketchy_url).present?
-    test "create attachment from sketchy" do
+  test "create attachment from sketchy" do
+    if Rails.configuration.try(:sketchy_url).present?
       fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(Fixnum, fixture_result.metadata["sketchy_ids"].first.class)
       fixture_result.metadata["sketchy_ids"] = nil
+    else
+      skip("no sketchy_url configured...skiping test.")
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
   end
 
-  if Rails.configuration.try(:sketchy_url).present?
-    test "runtime error for attachment from sketchy" do
+  test "runtime error for attachment from sketchy" do
+    restore_vals = false
+    if Rails.configuration.try(:sketchy_url).present?
+      sketchy_url = Rails.configuration.sketchy_url
+      sketchy_access_token = Rails.configuration.sketchy_access_token
+      restore_vals = true
       Scumblr::Application.configure do
         config.sketchy_url = "https://google.com"
         config.sketchy_access_token = ""
@@ -160,9 +201,15 @@ class ResultTest < ActiveSupport::TestCase
 
       foo = fixture_result.create_attachment_from_sketchy("https://www.google.com/")
       assert_equal(nil, fixture_result.metadata["sketchy_ids"])
+    else
+      skip("no sketchy_url configured...skiping test.")
     end
-  else
-    skip("no sketchy_url configured...skiping test.")
+    if restore_vals
+      Scumblr::Application.configure do
+        config.sketchy_url = sketchy_url
+        config.sketchy_access_token = sketchy_access_token
+      end
+    end
   end
 
 end

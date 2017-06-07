@@ -8,3 +8,35 @@ system_metadata_1:
     - foo
     - bar
     - usa
+
+system_metadatum_2:
+  id: 2
+  key: Github System Terms Metadata
+  created_at: 2017-02-23 23:38:34.224247000 Z
+  updated_at: 2017-02-23 23:39:41.221188000 Z
+  metadata:
+  - '230820989084209428'
+
+system_metadatum_3:
+  id: 3
+  key: Github System Orgs Metadata
+  created_at: 2017-02-23 23:40:31.784425000 Z
+  updated_at: 2017-02-23 23:40:31.784425000 Z
+  metadata:
+  - SomeOrgThatIsntReal
+
+system_metadatum_4:
+  id: 4
+  key: Github Repos Metadata
+  created_at: 2017-02-23 23:40:31.784425000 Z
+  updated_at: 2017-02-23 23:40:31.784425000 Z
+  metadata:
+  - Netflix/Scumblr
+
+system_metadatum_5:
+  id: 5
+  key: ScumblrTest2 Orginization
+  created_at: 2017-05-08 22:12:51.565632000 Z
+  updated_at: 2017-05-08 22:12:51.565632000 Z
+  metadata:
+  - scumblrtest2

@@ -1,0 +1,10 @@
+<div id="repository_data_actions">
+  <% if(@result.metadata.try(:[],"repository_data").try(:[],"frameworks").try(:includes?,"rails")) %>
+    <% if(@result.metadata.try(:[],"configuration").try(:[],"brakeman").try(:[],"disabled") == true) %>
+      <%= link_to "Enable Brakeman Scans", update_metadata_result_path(id: @result, "key[0]"=> "configuration.brakeman.disabled", "value[0]"=> false, "target[0]"=> "#repository_data_actions", "partial[0]"=>"actions/repository_data_actions"), {class:"button tiny", remote:true } %>
+    <% else %>
+      <%= link_to "Disable Brakeman Scans", update_metadata_result_path(id: @result, "key[0]"=> "configuration.brakeman.disabled", "value[0]"=> true, "target[0]"=> "#repository_data_actions", "partial[0]"=>"actions/repository_data_actions"), {class:"button tiny", remote:true} %>
+    <% end %>
+
+  <% end %>
+</div>

@@ -14,13 +14,16 @@
 #
 require 'shellwords'
 require 'posix/spawn'
+require 'uri/http'
 
-class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
-  include ActionView::Helpers::TextHelper
-  include POSIX::Spawn
+class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
 
   def self.task_type_name
     "Curl Analyzer"
+  end
+
+  def self.worker_class
+    return ScumblrWorkers::CurlAnalyzerWorker
   end
 
   def self.task_category
@@ -100,7 +103,13 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
                            description: "Toggle to strip last path element in URL or sitemap (exp. http://netflix.com/movie/1234 becomes http://netflix.com/movie/",
                            required: false,
                            type: :boolean
-                           }
+                           },
+      :strip_to_hostname => {name: "Strip To Hostname",
+                             description: "Toggle to strip strip to hostname only (exp. http://netflix.com/movie/1234 becomes http://netflix.com",
+                             required: false,
+                             type: :boolean
+                             }
+
     }
   end
 
@@ -108,7 +117,8 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     # Do setup
     super
 
-    @task_type = Task.where(id: @options[:_self].id).first.name
+    @options[:visited_urls] = []
+    @options[:task_type] = Task.where(id: @options[:_self].id).first.name
 
     # Check that command is actually curl
     if(@options[:curl_command].split(' ').first != "curl")
@@ -119,19 +129,19 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
     # Parse and validate regular expressions for request metadata
     if @options[:request_metadata].present?
-      @request_metadata = @options[:request_metadata].to_s.split(/\r?\n/).reject(&:empty?)
+      @options[:request_metadata] = @options[:request_metadata].to_s.split(/\r?\n/).reject(&:empty?)
 
-      @request_metadata.each do | check_expressions |
+      @options[:request_metadata].each do | check_expressions |
         unless !!(check_expressions =~ /\w.+\:.*/)
           create_event("Request Metadata doesn't match LABEL:REGEX format: #{check_expressions}")
           raise "Request Metadata doesn't match LABEL:REGEX format: #{check_expressions}"
           return
         end
       end
-      @request_metadata.map! { |x| [x.split(':', 2)[0], x.split(':', 2)[1]] }
-      @request_metadata = @request_metadata.to_h
+      @options[:request_metadata].map! { |x| [x.split(':', 2)[0], x.split(':', 2)[1]] }
+      @options[:request_metadata] = @options[:request_metadata].to_h
     else
-      @request_metadata = nil
+      @options[:request_metadata] = nil
     end
 
     # Parse and validate regular expressions for system metadata that's request metadata
@@ -140,7 +150,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         saved_request_metadata = SystemMetadata.where(id: @options[:saved_request_metadata]).try(:first).metadata
       rescue
         saved_request_metadata = nil
-        create_event("Could not parse System Metadata for saved reqeust metadatums, skipping. \n Exception: #{e.message}\n#{e.backtrace}", "Error")
+        create_event("Could not parse System Metadata for saved reqeust metadata, skipping. \n Exception: #{e.message}\n#{e.backtrace}", "Error")
       end
 
       unless saved_request_metadata.kind_of?(Array)
@@ -158,12 +168,12 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         end
         saved_request_metadata.map! { |x| [x.split(':', 2)[0], x.split(':', 2)[1]] }
         saved_request_metadata = saved_request_metadata.to_h
-        if @request_metadata.present?
-          @request_metadata.concat(saved_request_metadata)
-          @request_metadata = @request_metadata.reject(&:blank?)
+        if @options[:request_metadata].present?
+          @options[:request_metadata].concat(saved_request_metadata)
+          @options[:request_metadata] = @options[:request_metadata].reject(&:blank?)
         else
-          @request_metadata = saved_request_metadata
-          #@request_metadata = @request_metadata.reject(&:blank?)
+          @options[:request_metadata] = saved_request_metadata
+          #@options[:request_metadata] = @options[:request_metadata].reject(&:blank?)
         end
       end
     end
@@ -183,54 +193,52 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     end
 
     if(@options[:curl_command].include? "$$sitemap$$")
-      @sitemap = true
+      @options[:sitemap] = true
     else
-      @sitemap = false
+      @options[:sitemap] = false
     end
 
     if(@options[:key_suffix].present?)
-      @key_suffix = "_" + @options[:key_suffix].to_s.strip
-      # puts "A key suffix was provided: #{@key_suffix}."
+      @options[:key_suffix] = "_" + @options[:key_suffix].to_s.strip
+      # puts "A key suffix was provided: #{@options[:key_suffix]}."
     end
 
     # A user must supply either a status code or response string to check for
     unless @options[:status_code].present? or @options[:response_string].present? or @options[:request_metadata].present?
-      create_event("No response string, status code, or request metadata provided")
+      create_event("No response string, status code, request metadata provided")
       raise 'No response string, status code, or request metadata provided.'
       return
     end
 
     # Parse out all paylods or paths to iterate through when running the curl
     if @options[:payloads].present?
-      @payloads = @options[:payloads].to_s.split(/\r?\n/).reject(&:empty?)
+      @options[:payloads] = @options[:payloads].to_s.split(/\r?\n/).reject(&:empty?)
     else
-      @payloads = [""]
+      @options[:payloads] = [""]
     end
 
-    if(@options[:status_code].present?)
-      @status_code = @options[:status_code]
-      # puts "A status code was provided: #{@status_code}."
-    end
 
-    if(@options[:response_string].present?)
-      @response_string = @options[:response_string]
-      # puts "A response string was provided: #{@response_string}."
-    else
-      @response_string = ""
-    end
+    @options[:response_string] ||= ""
+
 
     if(@options[:negative_match].to_i == 1)
-      @negative_match = true
+      @options[:negative_match] = true
       # puts "Search will use negative match."
     else
-      @negative_match = false
+      @options[:negative_match] = false
     end
 
     if(@options[:strip_last_path].to_i == 1)
-      @strip_last_path = true
+      @options[:strip_last_path] = true
       # puts "Search will strip the last path element in the url."
     else
-      @strip_last_path = false
+      @options[:strip_last_path] = false
+    end
+
+    if(@options[:strip_to_hostname].to_i == 1)
+      @options[:strip_to_hostname] = true
+    else
+      @options[:strip_to_hostname] = false
     end
 
     if(@options[:saved_payloads].present?)
@@ -248,21 +256,76 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
       # If there are staved payloads, load them.
       if saved_payloads.present?
-        @payloads.concat(saved_payloads)
-        @payloads = @payloads.reject(&:blank?)
+        @options[:payloads].concat(saved_payloads)
+        @options[:payloads] = @options[:payloads].reject(&:blank?)
       end
 
     end
   end
 
 
+
+
+
+  def run
+    initialize_trends("open_vulnerability_count", ["open"], {legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
+    initialize_trends("scan_results", ["new", "existing", "regression", "reopened","closed"], {},  {
+                    "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
+                    "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
+                    "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
+                    "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
+                    "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
+    }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"})
+
+    super
+
+    return
+  end
+
+end
+
+
+def initialize_trends(primary_key, sub_keys, chart_options={}, series_options=[], options={})
+  # @chart_options ||= {}
+  # @series_options ||= {}
+  # @trend_options ||={}
+  # Sidekiq.redis do |redis|
+  #   Array(sub_keys).each do |k|
+  #     redis.set "#{primary_key}:#{k}:value", 0
+  #   end
+  # end
+
+  # @chart_options[primary_key] = chart_options
+  # @series_options[primary_key] = series_options
+  # @trend_options[primary_key] = options
+
+end
+
+class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
+  include ActionView::Helpers::TextHelper
+  include POSIX::Spawn
+
+  def perform_work(r)
+    # Ensure metadata is defined before iterating results
+    if(r.present?)
+        r = Result.find(r)
+    end
+
+    if(@options["_self"].present?)
+      @options["_self"] = Task.find(@options["_self"])
+    end
+
+    r.metadata ||= {}
+
+    curl_runner(r)
+  end
+
   def request_metadata_parser(r, response, request_url, request_metadata, metadata_checks)
-    curl_metadata ||= {}
-    r.metadata[:curl_metadata] ||= {}
-
-    response.each do |line|
-      metadata_checks.each_with_index do |check, line_no|
-
+    curl_metadata = {}
+    r.metadata[:curl_metadata] = {}
+    terms_matched = []
+    response.each_with_index do |line, line_no|
+      metadata_checks.each_with_index do |check, key_no|
         begin
           searched_code = check.match(line.encode("UTF-8", invalid: :replace, undef: :replace))
         rescue => e
@@ -276,10 +339,14 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
           else
             matched_expression = searched_code[1].to_s
           end
-          curl_metadata[request_metadata.keys[line_no]] = matched_expression.strip
+          
+          curl_metadata[request_metadata.keys[key_no]] ||= []
+          curl_metadata[request_metadata.keys[key_no]] << matched_expression.strip.truncate(300)
+          curl_metadata[request_metadata.keys[key_no]].uniq!
+          curl_metadata[request_metadata.keys[key_no]]
         end
       end
-      r.metadata[:curl_metadata].merge!(curl_metadata)
+        r.metadata[:curl_metadata].merge!(curl_metadata)
     end
   end
 
@@ -302,7 +369,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         matches = true
       end
 
-      if searched_code && !@negative_match
+      if searched_code && !@options[:negative_match]
         # puts "----Got Match!----\n"
         # puts searched_code.to_s
         vuln = Vulnerability.new
@@ -312,7 +379,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         end
         vuln.source = "curl"
         vuln.task_id = @options[:_self].id.to_s
-        vuln.type = @task_type
+        vuln.type = @options[:task_type]
         vuln.payload = payload
         if vuln.payload.to_s != ""
           vuln.payload = payload
@@ -367,7 +434,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
 
       end
     end
-    if @negative_match and matches == false
+    if @options[:negative_match] and matches == false
 
       vuln = Vulnerability.new
 
@@ -376,7 +443,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
       end
       vuln.source = "curl"
       vuln.task_id = @options[:_self].id.to_s
-      vuln.type = @task_type
+      vuln.type = @options[:task_type]
       vuln.payload = payload
       if vuln.payload.to_s != ""
         vuln.payload = payload
@@ -423,7 +490,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
     File.write(full_file_path, response)
 
     if(previous_versions.present?)
-      digest = Digest::MD5.file (full_file_path)
+      digest = Digest::SHA256.file (full_file_path)
       previous_versions.each do |v|
         if(v.attachment.fingerprint != digest.to_s)
           previous_versions.delete(v)
@@ -457,27 +524,49 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
   def curl_runner(r, sitemap_url=nil)
     urls = []
     vulnerabilities = []
-    if(@sitemap)
+
+    if(@options[:sitemap])
       unless r.metadata.try(:[], "sitemap").nil?
         urls = r.metadata["sitemap"].map{ |entry|
-          if(@strip_last_path)
+          if(@options[:strip_last_path])
             entry["url"].match(/(.+\/\/.+)\/.*/).try(:[], 1) || entry["url"].to_s
+          elsif(@options[:strip_to_hostname])
+            uri = URI.parse(entry["url"])
+            entry["url"].gsub(uri.path, "")
           else
             entry["url"].to_s
           end
         }.uniq
       end
     else
-      if(@strip_last_path)
+      if(@options[:strip_last_path])
         urls << r.url.to_s.match(/(.+\/\/.+)\/.*/).try(:[], 1) || r.url.to_s
+      elsif(@options[:strip_to_hostname])
+        uri = URI.parse(r.url.to_s)
+        urls << r.url.to_s.gsub(uri.path, "")
       else
         urls << r.url.to_s
       end
     end
 
+    # sort by unique
+    urls.uniq!
+
+
+    urls.each_with_index do |url, index|
+      if @options[:visited_urls].include? url
+        urls.delete_at(index)
+      else
+        @options[:visited_urls] << url
+      end
+    end
+
+    if urls.count == 0
+      return
+    end
     urls.each do |url|
-      # puts "[*] Testing url #{url}"
-      @payloads.each do |payload|
+      puts "[*] Testing url #{url}"
+      @options[:payloads].each do |payload|
         request_url = URI.parse(url)
 
         if @options[:force_port].present?
@@ -497,23 +586,27 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
         timeout_cmd = Rails.configuration.try(:timeout_cmd).to_s
         # Leverage timeout wrapper for curl command to ensure timeouts
         if timeout_cmd != ""
-          cmd = timeout_cmd + " 8 " + cmd
+          cmd = timeout_cmd + " 12 " + cmd
         end
-
         pid = 0
         counter = 0
+
         begin
           # Calls popen4 to run curl command
           pid, stdin, stdout, stderr = popen4(*(tokenize_command(cmd)))
+
           data += stdout.read
 
-          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           process, exit_status_wrapper = Process::waitpid2(pid)
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
+
+
           exit_status = exit_status_wrapper.exitstatus.to_i
           if exit_status == 124
             raise Timeout::Error, "Command #{cmd} timed out"
           end
         rescue Timeout::Error => e
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # If we timeout, try up to 2 times before skipping
           counter += 1
           if counter < 2
@@ -523,60 +616,71 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             exit_status = -1
           end
         rescue
+          [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # Something else happened, so set exit_status to error
           exit_status = -1
-        end
-        data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
 
+        end
+
+        data = data.encode('utf-8', :invalid => :replace, :undef => :replace)
+        data = "" if data == nil
         match_update = false
         # vulnerabilities = []
         if exit_status.to_i != 0
           # If we can't make the curl fails we will assume that the vulnerability has been fix (host taken down, etc.)
-          # r.auto_remediate(@options['_self'].id.to_s, request_url.to_s, @response_string, payload)
+          # r.auto_remediate(@options['_self'].id.to_s, request_url.to_s, @options[:response_string], payload)
           # return
         else
+
           begin
-            status_code = data.split(' ')[1]
+            if(data[8..12].to_s.match(/\s\d{3}\s/))
+              status_code = data[9..11]
+            else
+              status_code = 0
+            end
           rescue => e
             create_event("Could not parse status_code\n Exception: #{e.message}\n#{e.backtrace}", "Warn")
             status_code = 0
           end
 
-          if @request_metadata
+
+          if @options[:request_metadata]
             response = data.split("\n")
+
             # Make union of regex's
-            #metadata_checks = Regexp.union(@request_metadata.map {|key,val| Regexp.new val.strip})
+            #metadata_checks = Regexp.union(@options[:request_metadata].map {|key,val| Regexp.new val.strip})
 
-            metadata_checks = @request_metadata.map {|key,val| Regexp.new val.strip}
+            metadata_checks = @options[:request_metadata].map {|key,val| Regexp.new val.strip}
 
-            request_metadata_parser(r, response, request_url, @request_metadata, metadata_checks)
+            request_metadata_parser(r, response, request_url, @options[:request_metadata], metadata_checks)
           end
           # If both status_code and response_string are present, both must match.
+
           # Modified to support negative match (sb)
-          if @status_code.present? and @response_string.present? and @status_code.to_i == status_code.to_i
+          if @options[:status_code].present? and @options[:response_string].present? and @options[:status_code].to_i == status_code.to_i
             # Disabled because this woudn't flag regex response strings...
-            # if @status_code.present? and @response_string.present? and @status_code.to_i == status_code.to_i and data.include? (@response_string)
+            # if @options[:status_code].present? and @options[:response_string].present? and @options[:status_code].to_i == status_code.to_i and data.include? (@options[:response_string])
 
             *headers, response_body = data.split("\r\n")
             response_body = response_body.split("\n")
 
             # Check if we have matches in the http response
             # take into consideration negative match operations
-            if @negative_match
-              response_matches = match_environment(r, "response", data.split("\n"), @response_string, request_url, status_code, true, payload)
+            if @options[:negative_match]
+              response_matches = match_environment(r, "response", data.split("\n"), @options[:response_string], request_url, status_code, true, payload)
               unless response_matches.empty?
                 match_update = true
                 vulnerabilities.push(*response_matches)
               end
             else
-              response_matches = match_environment(r, "content", response_body, @response_string,  request_url, status_code, true, payload)
+              response_matches = match_environment(r, "content", response_body, @options[:response_string],  request_url, status_code, true, payload)
               unless response_matches.empty?
                 match_update = true
                 vulnerabilities.push(*response_matches)
               end
 
               # Check if we have matches in the http response headers
-              header_matches = match_environment(r, "headers", headers, @response_string,  request_url, status_code, true, payload)
+              header_matches = match_environment(r, "headers", headers, @options[:response_string],  request_url, status_code, true, payload)
               unless header_matches.empty?
                 match_update = true
                 vulnerabilities.push(*header_matches)
@@ -586,11 +690,8 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             # Update all vulnerablities
             # r.update_vulnerabilities(vulnerabilities)
 
-            if r.changed?
-              upload_s3(r, data)
-            end
             # If status_code matches, create a vulnerability
-          elsif @response_string.to_s == "" and @status_code.present? and @status_code.to_i == status_code.to_i
+          elsif @options[:response_string].to_s == "" and @options[:status_code].present? and @options[:status_code].to_i == status_code.to_i
 
             match_update = true
             vuln = Vulnerability.new
@@ -600,14 +701,14 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             end
             vuln.source = "curl"
             vuln.task_id = @options[:_self].id.to_s
-            vuln.type = @task_type
+            vuln.type = @options[:task_type]
             if @options[:severity].nil?
               vuln.severity = "observation"
             else
               vuln.severity = @options[:severity]
             end
 
-            if @negative_match
+            if @options[:negative_match]
               vuln.details = '"' + status_code.to_s + '"' + " - Negative HTTP Status Code Match"
             else
               vuln.details = '"' + status_code.to_s + '"' + " - HTTP Status Code Match"
@@ -623,81 +724,58 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::Async
             vuln.status_code = status_code.to_s
             vulnerabilities << vuln
             # r.update_vulnerabilities([vuln])
-
-            if r.changed?
-              upload_s3(r, data)
-            end
             # If the response string matches expected, create metadata
-          elsif @status_code.to_s == "" and @response_string.present?
+          elsif @options[:status_code].to_s == "" and @options[:response_string].present?
 
             *headers, response_body = data.split("\r\n")
             response_body = response_body.split("\n")
 
-            if @negative_match
-              response_matches = match_environment(r, "response", data.split("\n"), @response_string,  request_url, status_code, true, payload)
+            if @options[:negative_match]
+              response_matches = match_environment(r, "response", data.split("\n"), @options[:response_string],  request_url, status_code, true, payload)
               unless response_matches.empty?
                 match_update = true
                 vulnerabilities.push(*response_matches)
               end
             else
-              response_matches = match_environment(r, "content", response_body, @response_string,  request_url, status_code, true, payload)
+              response_matches = match_environment(r, "content", response_body, @options[:response_string],  request_url, status_code, true, payload)
               unless response_matches.empty?
                 match_update = true
                 vulnerabilities.push(*response_matches)
               end
 
               # Check if we have matches in the http response headers
-              header_matches = match_environment(r, "headers", headers, @response_string,  request_url, status_code, true, payload)
+              header_matches = match_environment(r, "headers", headers, @options[:response_string],  request_url, status_code, true, payload)
               unless header_matches.empty?
                 match_update = true
                 vulnerabilities.push(*header_matches)
               end
             end
+          end
 
+          if r.changed?
+            begin
+              upload_s3(r, data)
+            rescue=>e
+              create_error("Could not create S3 attachment for Result #{r.id} #{e.message} #{e.backtrace}")
+            end
           end
 
         end
 
       end
     end
+
+
+
     # Track not-vulnerable results too.
-    counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@task_type}", @options[:_self].id, true, {isolate_vulnerabilities: true})
+    counts = r.add_scan_vulnerabilities(vulnerabilities, [], "Curl: #{@options[:task_type]}", @options[:_self].id, true, {isolate_vulnerabilities: true})
     open_count = ["new", "existing", "regression", "reopened"].sum{|type| counts[type].to_i }
-    update_trends("open_vulnerability_count", {"open" =>open_count},{legend: {display: true}}, {"open" =>{"steppedLine"=> true}})
+    update_trends("open_vulnerability_count", {"open" =>open_count})
 
     counts["closed"] *= -1
-    update_trends("scan_results", counts, {}, {
-                    "new" => {"backgroundColor"=>"#990000", "borderColor"=>"#990000"},
-                    "existing" => {"backgroundColor"=>"#999", "borderColor"=>"#999"},
-                    "regression" => {"backgroundColor"=>"#ef6548", "borderColor"=>"#ef6548"},
-                    "reopened" => {"backgroundColor"=>"#fc8d59", "borderColor"=>"#fc8d59"},
-                    "closed" => {"backgroundColor"=>"#034e7b", "borderColor"=>"#034e7b"}
-    }, {"date_format"=>"%b %d %Y %H:%M:%S.%L"} )
-
-    if r.changed?
-      upload_s3(r, data)
-    end
-  end
-
-  def perform_work(r)
-    # Ensure metadata is defined before iterating results
-    curl_runner(r)
+    update_trends("scan_results", counts)
 
 
-
-  end
-
-  def run
-    @trends = {}
-    super
-    @options[:_self].metadata["latest_results_link"] = {text: "#{@trends.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
-    save_trends
-
-
-
-
-
-    return
   end
 
 end

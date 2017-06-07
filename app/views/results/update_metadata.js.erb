@@ -8,12 +8,33 @@
 <% if params[:target].present? %>
 
   <% if params[:target].class == String %>
-    $("<%= params[:target] %>").text("<%= params[:value] %>")
+    <% if params[:partial].present? %>
+      <% if params[:partial].match(/\A[A-Za-z\/_]+\Z/) %>
+        <% begin %>
+          $("<%= params[:target] %>").replaceWith('<%= escape_javascript(render :partial=>"results/#{params[:partial]}") %>' )
+        <% rescue %>
+          <%# This would indicate the partial doesn't exist %>
+        <% end %>
+      <% else %>
+        <%# This would indicate the partial doesn't seem valid %>
+      <% end %>
+    <% else %>  
+      $("<%= params[:target] %>").text("<%= params[:value] %>")
+    <% end %>
     $(document).foundation('dropdown', 'closeall');
     ready();
   <% else %>
     <% params[:target].each do |k,v| %>
-      <% if params[:value].try(:[], k) %>
+      <% if params[:partial].try(:[], k) %>
+        <% if params[:partial][k].match(/\A[A-Za-z\/_]+\Z/) %>
+          <% begin %>
+            <% partial_html = escape_javascript(render :partial=>"results/#{params[:partial][k]}") %>
+            $("<%= v %>").replaceWith('<%= partial_html %>' )
+          <% rescue %>
+            <%# This would indicate the partial doesn't exist %>
+          <% end %>
+        <% end %>
+      <% elsif params[:value].try(:[], k) %>
         $("<%= v %>").text("<%= params[:value][k] %>")
       <% end %>
       

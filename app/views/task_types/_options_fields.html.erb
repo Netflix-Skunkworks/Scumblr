@@ -17,6 +17,11 @@
     <% elsif value[:type] == :system_metadata %>
       <%= builder.collection_select key, SystemMetadata.all.uniq, :id, :key, include_blank: true %>
 
+    <% elsif value[:type] == :tag %>
+    <div id="tags" class="search_type_fields">
+    <%= builder.text_field key, {value: builder.object[key] ||  value[:default] || "", class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
+    </div>
+
     <% elsif value[:type] == :saved_event_filter %>
       <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, include_blank: true %>
 <% elsif value[:type] == :text %>

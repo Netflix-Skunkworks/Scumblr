@@ -53,8 +53,8 @@ gem 'cancan'
 gem 'ransack'
 
 #Image processing/attachments
-gem 'paperclip'
-gem 'aws-sdk', '< 2.0'
+gem 'paperclip', ">= 5.0"
+gem 'aws-sdk'
 
 
 # Time period parsing
@@ -72,6 +72,8 @@ gem 'activerecord-import'
 #Used for task queueing
 gem 'sidekiq'
 gem 'sidekiq-status'
+gem 'sidekiq-limit_fetch'
+gem 'mlanett-redis-lock', require: 'redis-lock'
 
 #Pagination
 gem 'kaminari'
@@ -131,6 +133,9 @@ group :test, :production do
   gem 'oj_mimic_json'
 end
 
+# Used for Redis Cache
+gem "redis-store"
+gem "redis-rails"
 
 group :development, :dirtylaundrydev do
   gem 'spring', group: :development

@@ -73,17 +73,10 @@ module SearchProvider
 
     end
 
-
-    def stop
-
-    end
-
     def start
-
-    end
-
-    def update
-
+      Thread.current["sidekiq_job_id"].present?
+      Thread.current["current_task"].present?
+      run
     end
 
     private
