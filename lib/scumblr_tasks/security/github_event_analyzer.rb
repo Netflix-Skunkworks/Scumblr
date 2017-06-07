@@ -214,9 +214,13 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
 
-        @res = Result.where(url: url).first
-        @res.update_vulnerabilities(vulnerabilities)
-        # determine_term(response["config"], )
+        begin
+          @res = Result.where(url: url).first
+          @res.update_vulnerabilities(vulnerabilities)
+        rescue
+          create_event("Couldn't update vulnerabilities due to missing url.  #{url} not found")
+        end
+
       end
 
     end
