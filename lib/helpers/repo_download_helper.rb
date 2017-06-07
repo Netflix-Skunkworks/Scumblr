@@ -27,22 +27,13 @@ class RepoDownloader
     @repo_url = repo_url
   end
 
-  def tokenize_command(cmd)
-    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-    select {|s| not s.empty? }.
-    map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
-    return res
-  end
-
   def download_repo_from_git(save_path, repo)
     #Creating a directory path to save repo files in, deletes it if it already exists
     #this can happen if the script crashes somewhere between cloning and deleting after the
     #contents are scanned
     has_ssh_key = true
-    res = ""
-    pid, stdin, stdout, stderr = popen4(*(tokenize_command("ssh -v git@github.com 2>&1")))
-    res += stdout.read
-    if res =~ /Permission denied/
+    res = `ssh -v git@github.com 2>&1`
+    if res.include? "Permission denied"
       has_ssh_key = false
     end
 
