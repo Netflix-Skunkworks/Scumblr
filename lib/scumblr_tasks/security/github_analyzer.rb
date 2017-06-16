@@ -102,6 +102,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
                    required: true,
+                   type: :choice,
                    default: :both,
                    choices: [:members_only, :both, :organization_only]}
     }
