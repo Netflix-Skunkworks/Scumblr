@@ -201,9 +201,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         hit_hash = []
         regular_expressions = []
         content["hits"].each do |hit|
-
-          response["config"].first["options"]["github_terms"].each do |name,regex|
-
+          response["config"]["options"]["github_terms"].each do |name,regex|
             if name == hit
               regular_expressions << regex
               hit_hash << {"name": hit, "regex": regex}
