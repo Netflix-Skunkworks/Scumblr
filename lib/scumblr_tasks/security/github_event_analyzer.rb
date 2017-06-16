@@ -144,6 +144,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
           # vuln.term = searched_code.to_s
           vuln.url = vuln_url
+          vuln.file_name = vuln_url.gsub(/blob\/(\w+)\//, "blob/")
           vuln.code_fragment = truncate(line.chomp, length: 500)
           vuln.commit_email = commit_email
           vuln.commit_name = commit_name
@@ -168,6 +169,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def run
+
     @github_oauth_token = @github_oauth_token.to_s.strip
     response = ""
     begin
