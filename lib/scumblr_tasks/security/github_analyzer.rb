@@ -380,10 +380,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
 
       # Append each user from each page to the searched_scope array
-      if more_pages and @options[:members] == true
+      if more_pages and ["members_only", "both"].include? @options[:members]
+
         begin
           1.upto(pages.to_i) do | page |
             if core_rate_limit >= 0
+
               response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}&page=#{page}"
               json_response = JSON.parse(response)
               core_rate_limit -= 1
@@ -403,7 +405,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
 
     end
-
     if @search_scope.blank?
       raise ScumblrTask::TaskException.new("Search Scope is not defined, do the orgs/users you specified actually exist?")
     else
