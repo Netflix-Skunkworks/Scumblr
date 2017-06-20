@@ -1,4 +1,4 @@
-#     Copyright 2014 Netflix, Inc.
+test/models/events_test.rb#     Copyright 2014 Netflix, Inc.
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
 #     you may not use this file except in compliance with the License.
@@ -200,7 +200,9 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         # Step into the finding and create the right things:
         hit_hash = []
         regular_expressions = []
+
         content["hits"].each do |hit|
+
           response["config"]["options"]["github_terms"].each do |name,regex|
             if name == hit
               regular_expressions << regex

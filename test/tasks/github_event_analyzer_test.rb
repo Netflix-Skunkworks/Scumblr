@@ -6,6 +6,6 @@ class GithubEventAnalyzerTest < ActiveSupport::TestCase
     TaskRunner.new.perform(70, task_params)
     github_event_result = Result.where(id: 275235).first
 
-    assert_equal(2, github_event_result.metadata["vulnerabilities"].count)
+    assert_equal(1, github_event_result.metadata["vulnerabilities"].count)
   end
 end

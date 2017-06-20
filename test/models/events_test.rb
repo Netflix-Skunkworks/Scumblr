@@ -15,6 +15,9 @@ class EventTest < ActiveSupport::TestCase
   should allow_value("new value").for(:new_value)
   should allow_value("old value").for(:old_value)
 
+  Event.delete_all
+  Rake::Task["db:fixtures:load"].execute
+
   # Load Fixtured Event
   fixture_event = Event.first
 

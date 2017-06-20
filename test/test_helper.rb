@@ -1,5 +1,6 @@
 require 'simplecov'
 
+
 # SimpleCov.start :rails do
 #   add_group "Custom", "#{SimpleCov.root + '/../custom/'}"
 # end
@@ -41,6 +42,22 @@ require "rails/test_help"
 require "minitest/rails"
 require "paperclip/matchers"
 
+DatabaseCleaner.strategy = :transaction
+DatabaseCleaner.clean_with(:truncation)
+#
+
+# class Minitest::Rails::ActionController::TestCase
+#   def setup
+#     require 'byebug'
+#     byebug
+#     puts 1
+#     DatabaseCleaner.start
+#   end
+
+#   def teardown
+#     DatabaseCleaner.clean
+#   end
+# end
 # To add Capybara feature tests add `gem "minitest-rails-capybara"`
 # to the test group in the Gemfile and uncomment the following:
 # require "minitest/rails/capybara"
@@ -51,9 +68,16 @@ require "paperclip/matchers"
 class ActiveSupport::TestCase
   extend Paperclip::Shoulda::Matchers
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+  #self.use_transactional_fixtures = true
   fixtures :all
   # Add more helper methods to be used by all tests here...
+  def setup
+    DatabaseCleaner.start
+  end
 
+  def teardown
+    DatabaseCleaner.clean
+  end
 end
 
 # Shoulda::Matchers.configure do |config|

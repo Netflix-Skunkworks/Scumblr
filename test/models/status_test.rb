@@ -1,4 +1,4 @@
-require "test_helper"
+test/models/results_test.rbrequire "test_helper"
 require "byebug"
 class StatusTest < ActiveSupport::TestCase
 
@@ -17,6 +17,16 @@ class StatusTest < ActiveSupport::TestCase
   end
 
   test "should reset_default on after_save callback" do
+    # require 'byebug'
+    # byebug
+    # puts 1
+    # DatabaseCleaner.clean
+    # DatabaseCleaner.start
+    # Result.delete_all
+    # Rake::Task["db:fixtures:load"].execute
+    # require 'active_record/fixtures'
+    # ActiveRecord::FixtureSet.create_fixtures(Rails.root.join('test', 'fixtures'), 'results')
+    # byebug
     assert_equal(3, fixture_status.reset_default.count)
   end
 

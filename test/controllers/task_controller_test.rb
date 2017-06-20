@@ -12,6 +12,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       end
       ids += r.id.to_s
     end
+
     xhr :get, "/tasks/expandall.js?result_ids=#{ids}"
 
     assert_response :success
