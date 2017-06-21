@@ -130,12 +130,12 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
-  test "individual task run loads with no error" do
-    sign_in
-    res = Task.first
-    get "/tasks/#{res.id}/run"
-    assert_response :redirect
-  end
+  # test "individual task run loads with no error" do
+  #   sign_in
+  #   res = Task.first
+  #   get "/tasks/#{res.id}/run"
+  #   assert_response :redirect
+  # end
 
   #commented out until we get status in fixtures
   #test "update status result renders no errors" do

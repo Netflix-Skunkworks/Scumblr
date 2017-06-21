@@ -1,4 +1,4 @@
-test/models/results_test.rbrequire "test_helper"
+require "test_helper"
 require "byebug"
 class StatusTest < ActiveSupport::TestCase
 
