@@ -5,6 +5,9 @@ class GithubEventAnalyzerTest < ActiveSupport::TestCase
     task_params = Rails.root.join('test', 'data', 'github_event.json').read
     TaskRunner.new.perform(70, task_params)
     github_event_result = Result.where(id: 275235).first
+    # Debugging
+    puts github_event_result.metadata
+    puts Task.where(id: 70).first
 
     assert_equal(1, github_event_result.metadata["vulnerabilities"].count)
   end

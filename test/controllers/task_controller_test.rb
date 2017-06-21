@@ -48,6 +48,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     asserted = false
     json_response.each do | response_object |
+      puts response_object
       if response_object["id"] == 70
         assert_equal("foo", response_object["options"]["github_terms"].first)
         asserted = true
