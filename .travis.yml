@@ -12,5 +12,5 @@ before_script:
   - bundle exec rake db:schema:load
   - bundle exec rake db:test:prepare
   - bundle exec rake db:fixtures:load
-  - bundle exec sidekiq -d -L /tmp/sidekiq.log
+  - RAILS_ENV=test bundle exec sidekiq -d -L /tmp/sidekiq.log
   - sleep 1
