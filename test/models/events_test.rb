@@ -34,12 +34,12 @@ class EventTest < ActiveSupport::TestCase
 
   # Instance Method Tests
   test "should perform a single event search" do
-    ransack, results = Event.perform_search(q={action_in: ["", "Error"], chronic_date_lteq: "today"}, 1, 25)
+    ransack, results = Event.perform_search(q={action_in: ["", "Test"], chronic_date_lteq: "today"}, 1, 25)
     assert_equal(1, results.length)
   end
 
   test "should perform a single event greater search" do
-    ransack, results = Event.perform_search(q={action_in: ["", "Error"], chronic_date_gteq: "November 10 2016"}, 1, 25)
+    ransack, results = Event.perform_search(q={action_in: ["", "Test"], chronic_date_gteq: "November 10 2016"}, 1, 25)
     assert_equal(1, results.length)
   end
 
