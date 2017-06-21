@@ -165,14 +165,14 @@ end
 
 #Testing
 group :development, :test, :dirtylaundrydev do
-  gem 'rspec-rails'
+  #gem 'rspec-rails'
   gem 'factory_girl_rails'
 
 end
 
 group :test do
   gem 'database_cleaner'
-  gem 'shoulda'
+  gem 'shoulda', '~> 3.5'
   gem 'activerecord-nulldb-adapter'
   gem 'minitest-reporters'
   gem 'shoulda-matchers', '~> 2.0'
