@@ -14,4 +14,3 @@ before_script:
   - bundle exec rake db:fixtures:load
   - bundle exec sidekiq -d -L /tmp/sidekiq.log
   - sleep 1
-
