@@ -8,7 +8,7 @@ class GithubEventAnalyzerTest < ActiveSupport::TestCase
     # Debugging
     puts github_event_result.metadata
     puts Task.where(id: 70).first
-
+    puts File.open('/tmp/sidekiq.log').read
     assert_equal(1, github_event_result.metadata["vulnerabilities"].count)
   end
 end
