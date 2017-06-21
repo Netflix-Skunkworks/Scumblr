@@ -28,7 +28,9 @@ SimpleCov.profiles.define 'scumblr' do
   add_group "Helpers", "app/helpers"
   add_group "Jobs", %w(app/jobs app/workers)
   add_group "Libraries", "lib"
-  add_group "Custom", "../custom/app/models"
+  add_group "Custom-Controllers", "../custom/app/controllers"
+  add_group "Custom-Helpers", "../custom/app/helpers"
+  add_group "Custom-Lib", "../custom/lib"
   track_files "{.,../custom}/{app,lib}/**/*.rb"
 
   #track_files "#{SimpleCov.root + '/../custom/'}{app,lib}/**/*.rb"
@@ -41,9 +43,12 @@ Dir[File.expand_path("../support/**/*.rb", __FILE__)].each { |rb| require(rb) }
 require "rails/test_help"
 require "minitest/rails"
 require "paperclip/matchers"
+require "minitest/reporters"
 
-DatabaseCleaner.strategy = :transaction
-DatabaseCleaner.clean_with(:truncation)
+Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+#require 'database_cleaner'
+#DatabaseCleaner.strategy = :truncation#, {:pre_count => true}
+#DatabaseCleaner.clean_with(:truncation)
 #
 
 # class Minitest::Rails::ActionController::TestCase
@@ -67,17 +72,19 @@ DatabaseCleaner.clean_with(:truncation)
 
 class ActiveSupport::TestCase
   extend Paperclip::Shoulda::Matchers
-  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-  #self.use_transactional_fixtures = true
+  self.use_transactional_fixtures = true
   fixtures :all
   # Add more helper methods to be used by all tests here...
-  def setup
-    DatabaseCleaner.start
-  end
+  # def setup
+  # 	Rake::Task["db:fixtures:load"].execute
+  #   DatabaseCleaner.start
 
-  def teardown
-    DatabaseCleaner.clean
-  end
+  # end
+
+  # def teardown
+  #   DatabaseCleaner.clean
+
+  # end
 end
 
 # Shoulda::Matchers.configure do |config|
