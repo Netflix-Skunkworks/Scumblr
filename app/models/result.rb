@@ -156,55 +156,8 @@ class Result < ActiveRecord::Base
   end
 
   # Unused method, consider removing Janurary 12th (S.B.)
+  # Removed June 21, 2017 (S.B.)
   # def create_events
-
-  #   # This will catch if the metadata hash was updated directly (i.e. result.metadata[:k] = v)
-  #   # But the event will not contain the correct old value. The work around is reassigning the
-  #   # metadata value by merging the changes in. I.e.:
-  #   # result.metadata = result.metadata.merge(k:v)
-  #   # Doing it this will both catch the change and the new/old value.
-  #   if(self.metadata_hash != self.metadata.to_json.hash.to_s)
-  #     self.metadata_will_change!
-  #   end
-  #   self.metadata_hash = self.metadata.to_json.hash.to_s
-
-
-
-  #   if(self.changes.present?)
-  #     event = self.events.build(action: self.new_record? ? "Created" : "Updated", user_id: self.current_user.try(:id) )
-  #     self.changes.each do |k, v|
-  #       if k == "metadata_hash"
-  #         # We don't need to create a record of changes to the metadata hash
-
-  #       elsif(k.ends_with?("_id") && (association = self.class.reflect_on_all_associations.select{|a| a.try(:foreign_key) == k}).present?)
-  #         associated_values = association.first.klass.where(id: [ v[0], v[1] ])
-  #         event.event_changes.build(field: association.first.class_name,
-  #                                   old_value: associated_values.select{|a| a.id == v[0]}.try(:first).to_s,
-  #                                   new_value: associated_values.select{|a| a.id == v[1]}.try(:first).to_s,
-  #                                   old_value_key: v[0],
-  #                                   new_value_key: v[1],
-  #                                   value_class: association.first.klass.to_s,
-  #                                   )
-  #       elsif(self.class.serialized_attributes.keys.include?(k))
-
-  #         event.event_changes.build(field: k.to_s, old_value: v[0].to_s, new_value: v[1].to_s)
-  #         HashDiff.diff(v[0] || {},v[1]).each do |diff|
-  #           field_name = (k.to_s + ": " + diff[1].to_s).titlecase
-  #           if(diff[0] == "-")
-  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: nil)
-  #           elsif(diff[0] == "+")
-  #             event.event_changes.build(field: field_name, old_value: nil, new_value: diff[2].to_s)
-  #           elsif(diff[0] == "~")
-  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: diff[3].to_s)
-  #           end
-  #         end
-  #       else
-  #         event.event_changes.build(field: k.to_s.titlecase, old_value: v[0].to_s, new_value: v[1].to_s)
-  #       end
-  #     end
-  #   end
-  # end
-
 
   def to_s
     "Result #{id}"

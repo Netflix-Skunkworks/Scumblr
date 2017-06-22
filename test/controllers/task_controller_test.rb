@@ -12,6 +12,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       end
       ids += r.id.to_s
     end
+
     xhr :get, "/tasks/expandall.js?result_ids=#{ids}"
 
     assert_response :success
@@ -36,19 +37,18 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer"
     json_response = JSON.parse(response.body)
-    puts json_response.count
     assert json_response.count >= 0
   end
 
   test "verfiy search endpoint returns resolved system metadata when configured" do
     # we should get back expanded system metadata for this fixture
     sign_in
-    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer&resolve_system_metadata=true"
+    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubEventAnalyzer&resolve_system_metadata=true"
     json_response = JSON.parse(response.body)
     asserted = false
     json_response.each do | response_object |
-      if response_object["id"] == 5
-        assert_equal("scumblrtest2", response_object["options"]["owner_metadata"].first)
+      if response_object["id"] == 70
+        assert_equal("foo", response_object["options"]["github_terms"].first)
         asserted = true
       end
     end
@@ -132,7 +132,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "individual task run loads with no error" do
     sign_in
     res = Task.first
-    get "/tasks/#{res.id}/run"
+    get "/tasks/70/run"
     assert_response :redirect
   end
 

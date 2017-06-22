@@ -295,9 +295,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # Check ratelimit for core lookups
     begin
       response = JSON.parse(RestClient.get "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}")
-      puts "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}"
       core_rate_limit = response["resources"]["core"]["remaining"].to_i
-      puts 1
       # If we have hit the core limit, sleep
       rate_limit_sleep(core_rate_limit, response["resources"]["core"]["reset"])
     rescue => e
@@ -338,7 +336,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # more_pages = false
     # pages = 1
     @scope_type_array.each_with_index do |scope_type, index|
-      puts index
 
       begin
         while true
@@ -526,7 +523,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         begin
           # If the scope is a repo, we need to set a different query string
           if type == "repo"
-
             response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"
           else
             response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}"), :accept => "application/vnd.github.v3.text-match+json"

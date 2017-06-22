@@ -55,7 +55,7 @@ class TaskTest < ActiveSupport::TestCase
 
   test "should execute simple curl task" do
     curl_task.perform_task
-    assert_equal(nil, curl_task.perform_task)
+    assert_nil(curl_task.perform_task)
   end
 
   test "should execute github sync task" do
