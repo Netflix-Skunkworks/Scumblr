@@ -17,27 +17,26 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
 
     # Return 2 results from test github org
     assert_equal(2, github_search_fixture.metadata[:current_results].count)
-    # Check that 2 results were created with right # of vulns
 
-    assert_equal(2, Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerabilities"].count)
+    # Check vuln count is correct
     assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].count)
     # check key_suffix is correct
-    assert_equal("test", Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerabilities"].first["key_suffix"])
+    assert_equal("test", Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].first["key_suffix"])
     # Check that the vulnerablity was opened
-    assert_equal("Open", Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerabilities"].first["status"])
+    assert_equal("Open", Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].first["status"])
 
     #
     # Vulnerablity Counter Assertions
     #
 
     # assert 2 open issues
-    assert_equal(2, Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerability_count"]["status"]["open"])
+    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["status"]["open"])
     # assert github sourced
-    assert_equal(2, Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerability_count"]["source"]["github"])
+    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["source"]["github"])
     # assert task id
-    assert_equal(2, Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerability_count"]["task_id"]["58"])
+    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["task_id"]["58"])
     # assert key_suffix
-    assert_equal(2, Result.where(url: "https://github.com/scumblrtest2/test_repo").first.metadata["vulnerability_count"]["key_suffix"]["test"])
+    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["key_suffix"]["test"])
   end
 
   test "execute saved github repo search task" do
@@ -49,7 +48,7 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     github_repo_fixture.perform_task
 
     # Return 2 results from test github org
-    assert_equal(1, github_repo_fixture.metadata[:current_results]["created"].count)
+    assert_equal(1, github_repo_fixture.metadata[:current_results].count)
   end
 
   test "execute saved github users search task with bad data" do

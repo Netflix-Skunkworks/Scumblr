@@ -37,7 +37,6 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer"
     json_response = JSON.parse(response.body)
-    puts json_response.count
     assert json_response.count >= 0
   end
 
@@ -48,7 +47,6 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     asserted = false
     json_response.each do | response_object |
-      puts response_object
       if response_object["id"] == 70
         assert_equal("foo", response_object["options"]["github_terms"].first)
         asserted = true

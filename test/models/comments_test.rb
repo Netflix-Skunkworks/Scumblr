@@ -10,9 +10,6 @@ class CommentTest < ActiveSupport::TestCase
   should belong_to(:commentable)
   should belong_to(:user)
 
-  # Load Fixtured Event
-  fixture_comment = Comment.first
-
   # Class Method Tests
   test "execute comment build_from function" do
     new_comment = Comment.build_from(Result.first, 1, "foo")
@@ -22,6 +19,7 @@ class CommentTest < ActiveSupport::TestCase
 
   # Instance Method Tests
   test "execute has_children method" do
+    fixture_comment = Comment.first
     assert_equal(false, fixture_comment.has_children?)
   end
 
