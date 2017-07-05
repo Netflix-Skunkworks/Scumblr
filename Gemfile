@@ -45,7 +45,7 @@ gem 'workflowable'
 
 #JIRA Integration
 gem 'jiralicious'
-
+gem 'jira-ruby'
 #Authorization
 gem 'cancan'
 
@@ -128,7 +128,7 @@ group :development, :test, :production do
   gem 'unicorn-rails'
 end
 
-group :test, :production do
+group :test do
   #this doesn't get along with rack-mini-profiler
   gem 'oj_mimic_json'
 end
