@@ -33,12 +33,10 @@ class ScreenshotRunner
         Sidekiq.logger.warn "**Generating: #{id.inspect}"
         @result = Result.find(id)
         at count, "t:Generating: #{@result.title}"
-        if @result.url.to_s.include? "shakti"
-          @result.create_attachment_from_sketchy(@result.title, status_code_only)
-        else
-          @result.create_attachment_from_sketchy(@result.url, status_code_only)
-        end
-
+        # if @result.url.to_s.include? "shakti"
+        #   @result.create_attachment_from_sketchy(@result.title, status_code_only)
+        # else
+        @result.create_attachment_from_sketchy(@result.url, status_code_only)
       rescue StandardError=>e
         Sidekiq.logger.error "#{e.message}"
       end
