@@ -45,7 +45,7 @@ gem 'workflowable'
 
 #JIRA Integration
 gem 'jiralicious'
-
+gem 'jira-ruby'
 #Authorization
 gem 'cancan'
 
