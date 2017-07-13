@@ -128,7 +128,7 @@ group :development, :test, :production do
   gem 'unicorn-rails'
 end
 
-group :test, :production do
+group :test do
   #this doesn't get along with rack-mini-profiler
   gem 'oj_mimic_json'
 end
@@ -165,14 +165,14 @@ end
 
 #Testing
 group :development, :test, :dirtylaundrydev do
-  gem 'rspec-rails'
+  #gem 'rspec-rails'
   gem 'factory_girl_rails'
 
 end
 
 group :test do
   gem 'database_cleaner'
-  gem 'shoulda'
+  gem 'shoulda', '~> 3.5'
   gem 'activerecord-nulldb-adapter'
   gem 'minitest-reporters'
   gem 'shoulda-matchers', '~> 2.0'

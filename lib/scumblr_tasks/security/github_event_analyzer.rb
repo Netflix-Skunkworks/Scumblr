@@ -152,6 +152,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
           # vuln.term = searched_code.to_s
           vuln.url = vuln_url
+          vuln.file_name = vuln_url.gsub(/blob\/(\w+)\//, "blob/")
           vuln.code_fragment = truncate(line.chomp, length: 500)
           vuln.commit_email = commit_email
           vuln.commit_name = commit_name
@@ -171,11 +172,11 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     vulnerabilities.each do |vuln|
       vuln.match_count = term_counter[vuln.term]
     end
-    puts vulnerabilities.inspect
     return vulnerabilities
   end
 
   def run
+
     @github_oauth_token = @github_oauth_token.to_s.strip
     response = ""
     begin
@@ -206,20 +207,30 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         # Step into the finding and create the right things:
         hit_hash = []
         regular_expressions = []
+
         content["hits"].each do |hit|
 
-          response["config"].first["options"]["github_terms"].each do |name,regex|
-
+          response["config"]["options"]["github_terms"].each do |name,regex|
             if name == hit
               regular_expressions << regex
               hit_hash << {"name": hit, "regex": regex}
             end
           end
         end
-        content_response = JSON.parse RestClient.get(content["content_urls"] + "&access_token=#{@github_oauth_token}")
+
+        unless @github_oauth_token.blank?
+          begin
+            content_response = JSON.parse RestClient.get(content["content_urls"] + "&access_token=#{@github_oauth_token}")
+          rescue RestClient::ResourceNotFound
+            create_event("Request with access token and got 401.  retrying without access token.", "Warn")
+            content_response = JSON.parse RestClient.get(content["content_urls"])
+          end
+        else
+          content_response = JSON.parse RestClient.get(content["content_urls"])
+        end
+
         vuln_url = content_response["html_url"]
         content_response = Base64.decode64(content_response["content"].strip)
-
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
 
         begin

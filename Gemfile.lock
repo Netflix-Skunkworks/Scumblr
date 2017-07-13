@@ -137,7 +137,6 @@ GEM
       railties (>= 4.1.0, < 5.1)
       responders
       warden (~> 1.2.3)
-    diff-lcs (1.2.5)
     docile (1.1.5)
     domain_name (0.5.20160615)
       unf (>= 0.0.5, < 1.0.0)
@@ -400,22 +399,6 @@ GEM
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
     retriable (1.4.1)
-    rspec-core (3.0.4)
-      rspec-support (~> 3.0.0)
-    rspec-expectations (3.0.4)
-      diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.0.0)
-    rspec-mocks (3.0.4)
-      rspec-support (~> 3.0.0)
-    rspec-rails (3.0.2)
-      actionpack (>= 3.0)
-      activesupport (>= 3.0)
-      railties (>= 3.0)
-      rspec-core (~> 3.0.0)
-      rspec-expectations (~> 3.0.0)
-      rspec-mocks (~> 3.0.0)
-      rspec-support (~> 3.0.0)
-    rspec-support (3.0.4)
     ruby-prof (0.15.1)
     ruby-progressbar (1.8.1)
     ruby2ruby (2.3.0)
@@ -613,13 +596,12 @@ DEPENDENCIES
   redis-store
   responders
   rest-client
-  rspec-rails
   ruby-prof
   ruby_gntp
   sass (= 3.2.19)
   sass-rails (= 4.0.3)
   select2-rails
-  shoulda
+  shoulda (~> 3.5)
   shoulda-callback-matchers (~> 1.1.1)
   shoulda-matchers (~> 2.0)
   sidekiq

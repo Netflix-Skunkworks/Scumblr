@@ -258,9 +258,9 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
         res = scanner.scan
         res.each do |issue|
           if issue.is_a?(Bundler::Audit::Scanner::UnpatchedGem)
-            vuln = {gem: issue.gem.name, version: issue.gem.version.to_s, title: issue.advisory.title, cve: issue.advisory.cve, cvss_v2: issue.advisory.cvss_v2}
+            vuln = {gem: issue.gem.name, version: issue.gem.version.to_s, title: issue.advisory.title, cve: issue.advisory.cve, cvss_v2: issue.advisory.cvss_v2, details: issue.advisory.description.to_s }
           elsif issue.is_a?(Bundler::Audit::Scanner::InsecureSource)
-            vuln = {title: "Remote gem with insecure (non-TLS) URI #{issue.source}", cvss_v2: 7.6}
+            vuln = {title: "Remote gem with insecure (non-TLS) URI #{issue.source}", cvss_v2: 5.5, details: "" }
           end
           results.push vuln
         end
@@ -377,6 +377,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
               vuln.type = scan_result[:title].to_s
               vuln.severity = severity
               vuln.source = "Bundler Audit"
+              vuln.details = scan_result[:details].to_s 
               findings.push vuln
             end
           end
