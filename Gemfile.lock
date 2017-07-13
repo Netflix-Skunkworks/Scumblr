@@ -210,6 +210,9 @@ GEM
     jbuilder (2.4.1)
       activesupport (>= 3.0.0, < 5.1)
       multi_json (~> 1.2)
+    jira-ruby (1.2.0)
+      activesupport
+      oauth (~> 0.5, >= 0.5.0)
     jiralicious (0.4.3)
       crack (~> 0.1.8)
       hashie (>= 1.1)
@@ -560,6 +563,7 @@ DEPENDENCIES
   google-api-client (~> 0.8.0)
   hashdiff
   ip
+  jira-ruby
   jiralicious
   jquery-rails
   jquery-turbolinks
