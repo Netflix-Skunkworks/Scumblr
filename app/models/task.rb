@@ -30,6 +30,7 @@ class Task < ActiveRecord::Base
 
   validates :name, presence: true
   validates :name, uniqueness: true
+  validates :run_type, presence: true
   validates :group, presence: true
   validate :validate_search
 
@@ -42,7 +43,11 @@ class Task < ActiveRecord::Base
   end
 
   def self.task_type_valid?(task_type)
-    task_type.match(/\ASearchProvider::|\AScumblrTask::/) && (SearchProvider::Provider.subclasses.include?(task_type.to_s.constantize) || ScumblrTask::Base.descendants.reject{|x| !x.task_type_name }.include?(task_type.to_s.constantize))
+    begin
+      task_type.match(/\ASearchProvider::|\AScumblrTask::/) && (SearchProvider::Provider.subclasses.include?(task_type.to_s.constantize) || ScumblrTask::Base.descendants.reject{|x| !x.task_type_name }.include?(task_type.to_s.constantize))
+    rescue
+      false
+    end
   end
 
   def validate_search
@@ -56,7 +61,7 @@ class Task < ActiveRecord::Base
       return
     end
 
-
+    
     task_type_options = self.task_type.constantize.options
     if(self.options.blank?)
       self.options = {}
@@ -64,7 +69,13 @@ class Task < ActiveRecord::Base
     self.options.slice!(*task_type_options.keys)
     task_type_options.each do |key, value|
       if value[:required] && options[key].blank?
+        if(run_type == "on_demand")
+          if(self.metadata.try(:[],"runtime_override") != true && !self.metadata.try(:[],"runtime_override").include?(key.to_s))
+            errors.add value[:name], " must be specified or included in Runtime Override Options"
+          end
+        else
         errors.add value[:name], " can't be blank"
+        end
       end
     end
     true
@@ -135,6 +146,26 @@ class Task < ActiveRecord::Base
   #   end
   # end
 
+
+  # Allow merging together a list of configured options with options passed at runtime for on-demand tasks
+  # runtime_options is the list of options given at runtime
+  # task_options is the hash to merge the runtime options into. If not specified this defaults to the task's saved options
+  #
+  # Looks for a key in the task's metadata called "runtime_override" which specifies which options can be overriden.
+  # If this value is set to true, all options can be overriden.
+  def merge_options(runtime_options, task_options=nil)
+    if(task_options.nil?)
+      task_options = self.options
+    end
+    
+    if(self.try(:metadata).try(:[],"runtime_override") != true)
+      runtime_options = runtime_options.with_indifferent_access.slice(*self.try(:metadata).try(:[],"runtime_override"))    
+    end
+    task_options.merge(runtime_options)
+  end
+
+
+  # Perform a standard task that has been configured and saved
   def perform_task(task_params=nil)
     t = Time.now
     task = self

@@ -2,12 +2,17 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.4.7
+-- Dumped by pg_dump version 9.6.1
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
+SET row_security = off;
 
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
@@ -56,7 +61,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: comments; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: comments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE comments (
@@ -88,7 +93,7 @@ CREATE SEQUENCE event_changes_id_seq
 
 
 --
--- Name: event_changes; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: event_changes; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE event_changes (
@@ -106,7 +111,7 @@ CREATE TABLE event_changes (
 
 
 --
--- Name: events; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: events; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE events (
@@ -155,7 +160,7 @@ CREATE SEQUENCE flags_id_seq
 
 
 --
--- Name: flags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: flags; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE flags (
@@ -182,7 +187,7 @@ CREATE SEQUENCE result_attachments_id_seq
 
 
 --
--- Name: result_attachments; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: result_attachments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE result_attachments (
@@ -211,7 +216,7 @@ CREATE SEQUENCE result_flags_id_seq
 
 
 --
--- Name: result_flags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: result_flags; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE result_flags (
@@ -238,7 +243,7 @@ CREATE SEQUENCE results_id_seq
 
 
 --
--- Name: results; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: results; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE results (
@@ -270,7 +275,7 @@ CREATE SEQUENCE saved_filters_id_seq
 
 
 --
--- Name: saved_filters; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: saved_filters; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE saved_filters (
@@ -288,7 +293,7 @@ CREATE TABLE saved_filters (
 
 
 --
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE schema_migrations (
@@ -309,7 +314,7 @@ CREATE SEQUENCE sessions_id_seq
 
 
 --
--- Name: sessions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: sessions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE sessions (
@@ -334,7 +339,7 @@ CREATE SEQUENCE statuses_id_seq
 
 
 --
--- Name: statuses; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: statuses; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE statuses (
@@ -361,7 +366,7 @@ CREATE SEQUENCE subscribers_id_seq
 
 
 --
--- Name: subscribers; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: subscribers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE subscribers (
@@ -388,7 +393,7 @@ CREATE SEQUENCE summaries_id_seq
 
 
 --
--- Name: summaries; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: summaries; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE summaries (
@@ -402,7 +407,7 @@ CREATE TABLE summaries (
 
 
 --
--- Name: system_metadata; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: system_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE system_metadata (
@@ -446,7 +451,7 @@ CREATE SEQUENCE taggings_id_seq
 
 
 --
--- Name: taggings; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE taggings (
@@ -472,7 +477,7 @@ CREATE SEQUENCE tags_id_seq
 
 
 --
--- Name: tags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE tags (
@@ -498,7 +503,7 @@ CREATE SEQUENCE task_results_id_seq
 
 
 --
--- Name: task_results; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: task_results; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE task_results (
@@ -523,7 +528,7 @@ CREATE SEQUENCE tasks_id_seq
 
 
 --
--- Name: tasks; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: tasks; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE tasks (
@@ -537,7 +542,8 @@ CREATE TABLE tasks (
     query text,
     enabled boolean DEFAULT true,
     "group" integer DEFAULT 1,
-    metadata jsonb
+    metadata jsonb,
+    run_type character varying DEFAULT 'scheduled'::character varying
 );
 
 
@@ -554,7 +560,7 @@ CREATE SEQUENCE user_saved_filters_id_seq
 
 
 --
--- Name: user_saved_filters; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: user_saved_filters; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE user_saved_filters (
@@ -579,7 +585,7 @@ CREATE SEQUENCE users_id_seq
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE users (
@@ -605,7 +611,7 @@ CREATE TABLE users (
 
 
 --
--- Name: workflowable_actions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_actions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_actions (
@@ -651,7 +657,7 @@ CREATE SEQUENCE workflowable_stage_actions_id_seq
 
 
 --
--- Name: workflowable_stage_actions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stage_actions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_stage_actions (
@@ -677,7 +683,7 @@ CREATE SEQUENCE workflowable_stage_next_steps_id_seq
 
 
 --
--- Name: workflowable_stage_next_steps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stage_next_steps; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_stage_next_steps (
@@ -702,7 +708,7 @@ CREATE SEQUENCE workflowable_stages_id_seq
 
 
 --
--- Name: workflowable_stages; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stages; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_stages (
@@ -715,7 +721,7 @@ CREATE TABLE workflowable_stages (
 
 
 --
--- Name: workflowable_workflow_actions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_workflow_actions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_workflow_actions (
@@ -759,7 +765,7 @@ CREATE SEQUENCE workflowable_workflows_id_seq
 
 
 --
--- Name: workflowable_workflows; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_workflows; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE workflowable_workflows (
@@ -772,35 +778,35 @@ CREATE TABLE workflowable_workflows (
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY events ALTER COLUMN id SET DEFAULT nextval('events_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: system_metadata id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY system_metadata ALTER COLUMN id SET DEFAULT nextval('system_metadata_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_actions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_actions ALTER COLUMN id SET DEFAULT nextval('workflowable_actions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_workflow_actions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflow_actions ALTER COLUMN id SET DEFAULT nextval('workflowable_workflow_actions_id_seq'::regclass);
 
 
 --
--- Name: comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY comments
@@ -808,7 +814,7 @@ ALTER TABLE ONLY comments
 
 
 --
--- Name: event_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: event_changes event_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY event_changes
@@ -816,7 +822,7 @@ ALTER TABLE ONLY event_changes
 
 
 --
--- Name: events_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY events
@@ -824,7 +830,7 @@ ALTER TABLE ONLY events
 
 
 --
--- Name: flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: flags flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY flags
@@ -832,7 +838,7 @@ ALTER TABLE ONLY flags
 
 
 --
--- Name: result_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: result_attachments result_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_attachments
@@ -840,7 +846,7 @@ ALTER TABLE ONLY result_attachments
 
 
 --
--- Name: result_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: result_flags result_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_flags
@@ -848,7 +854,7 @@ ALTER TABLE ONLY result_flags
 
 
 --
--- Name: results_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: results results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY results
@@ -856,7 +862,7 @@ ALTER TABLE ONLY results
 
 
 --
--- Name: saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: saved_filters saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY saved_filters
@@ -864,7 +870,7 @@ ALTER TABLE ONLY saved_filters
 
 
 --
--- Name: sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY sessions
@@ -872,7 +878,7 @@ ALTER TABLE ONLY sessions
 
 
 --
--- Name: statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: statuses statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY statuses
@@ -880,7 +886,7 @@ ALTER TABLE ONLY statuses
 
 
 --
--- Name: subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: subscribers subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY subscribers
@@ -888,7 +894,7 @@ ALTER TABLE ONLY subscribers
 
 
 --
--- Name: summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: summaries summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY summaries
@@ -896,7 +902,7 @@ ALTER TABLE ONLY summaries
 
 
 --
--- Name: system_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: system_metadata system_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY system_metadata
@@ -904,7 +910,7 @@ ALTER TABLE ONLY system_metadata
 
 
 --
--- Name: taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY taggings
@@ -912,7 +918,7 @@ ALTER TABLE ONLY taggings
 
 
 --
--- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tags
@@ -920,7 +926,7 @@ ALTER TABLE ONLY tags
 
 
 --
--- Name: task_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: task_results task_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY task_results
@@ -928,7 +934,7 @@ ALTER TABLE ONLY task_results
 
 
 --
--- Name: tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tasks
@@ -936,7 +942,7 @@ ALTER TABLE ONLY tasks
 
 
 --
--- Name: user_saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: user_saved_filters user_saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_saved_filters
@@ -944,7 +950,7 @@ ALTER TABLE ONLY user_saved_filters
 
 
 --
--- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -952,7 +958,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: workflowable_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_actions workflowable_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_actions
@@ -960,7 +966,7 @@ ALTER TABLE ONLY workflowable_actions
 
 
 --
--- Name: workflowable_stage_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stage_actions workflowable_stage_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_actions
@@ -968,7 +974,7 @@ ALTER TABLE ONLY workflowable_stage_actions
 
 
 --
--- Name: workflowable_stage_next_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stage_next_steps workflowable_stage_next_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_next_steps
@@ -976,7 +982,7 @@ ALTER TABLE ONLY workflowable_stage_next_steps
 
 
 --
--- Name: workflowable_stages_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_stages workflowable_stages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stages
@@ -984,7 +990,7 @@ ALTER TABLE ONLY workflowable_stages
 
 
 --
--- Name: workflowable_workflow_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_workflow_actions workflowable_workflow_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflow_actions
@@ -992,7 +998,7 @@ ALTER TABLE ONLY workflowable_workflow_actions
 
 
 --
--- Name: workflowable_workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: workflowable_workflows workflowable_workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflows
@@ -1000,196 +1006,196 @@ ALTER TABLE ONLY workflowable_workflows
 
 
 --
--- Name: index_comments_on_commentable_id_and_commentable_type; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_comments_on_commentable_id_and_commentable_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_comments_on_commentable_id_and_commentable_type ON comments USING btree (commentable_id, commentable_type);
 
 
 --
--- Name: index_comments_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_comments_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_comments_on_user_id ON comments USING btree (user_id);
 
 
 --
--- Name: index_event_changes_on_event_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_event_changes_on_event_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_event_changes_on_event_id ON event_changes USING btree (event_id);
 
 
 --
--- Name: index_events_on_created_at; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_events_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_events_on_created_at ON events USING btree (created_at);
 
 
 --
--- Name: index_events_on_eventable_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_events_on_eventable_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_events_on_eventable_id ON events USING btree (eventable_id);
 
 
 --
--- Name: index_events_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_events_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_events_on_user_id ON events USING btree (user_id);
 
 
 --
--- Name: index_result_attachments_on_result_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_result_attachments_on_result_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_result_attachments_on_result_id ON result_attachments USING btree (result_id);
 
 
 --
--- Name: index_result_flags_on_flag_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_result_flags_on_flag_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_result_flags_on_flag_id ON result_flags USING btree (flag_id);
 
 
 --
--- Name: index_result_flags_on_result_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_result_flags_on_result_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_result_flags_on_result_id ON result_flags USING btree (result_id);
 
 
 --
--- Name: index_results_on_status_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_results_on_status_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_results_on_status_id ON results USING btree (status_id);
 
 
 --
--- Name: index_saved_filters_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_saved_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_saved_filters_on_user_id ON saved_filters USING btree (user_id);
 
 
 --
--- Name: index_sessions_on_session_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_sessions_on_session_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_sessions_on_session_id ON sessions USING btree (session_id);
 
 
 --
--- Name: index_sessions_on_updated_at; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_sessions_on_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_sessions_on_updated_at ON sessions USING btree (updated_at);
 
 
 --
--- Name: index_taggings_on_result_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_taggings_on_result_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_result_id ON taggings USING btree (taggable_id);
 
 
 --
--- Name: index_taggings_on_tag_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_taggings_on_tag_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_taggings_on_tag_id ON taggings USING btree (tag_id);
 
 
 --
--- Name: index_task_results_on_result_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_task_results_on_result_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_task_results_on_result_id ON task_results USING btree (result_id);
 
 
 --
--- Name: index_task_results_on_task_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_task_results_on_task_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_task_results_on_task_id ON task_results USING btree (task_id);
 
 
 --
--- Name: index_user_saved_filters_on_saved_filter_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_user_saved_filters_on_saved_filter_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_saved_filters_on_saved_filter_id ON user_saved_filters USING btree (saved_filter_id);
 
 
 --
--- Name: index_user_saved_filters_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_user_saved_filters_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_user_saved_filters_on_user_id ON user_saved_filters USING btree (user_id);
 
 
 --
--- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_email ON users USING btree (email);
 
 
 --
--- Name: index_workflowable_stage_actions_on_action_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_workflowable_stage_actions_on_action_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_workflowable_stage_actions_on_action_id ON workflowable_stage_actions USING btree (action_id);
 
 
 --
--- Name: index_workflowable_stage_actions_on_stage_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_workflowable_stage_actions_on_stage_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_workflowable_stage_actions_on_stage_id ON workflowable_stage_actions USING btree (stage_id);
 
 
 --
--- Name: index_workflowable_stages_on_workflow_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_workflowable_stages_on_workflow_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_workflowable_stages_on_workflow_id ON workflowable_stages USING btree (workflow_id);
 
 
 --
--- Name: index_workflowable_workflow_actions_on_action_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_workflowable_workflow_actions_on_action_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_workflowable_workflow_actions_on_action_id ON workflowable_workflow_actions USING btree (action_id);
 
 
 --
--- Name: index_workflowable_workflow_actions_on_workflow_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: index_workflowable_workflow_actions_on_workflow_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_workflowable_workflow_actions_on_workflow_id ON workflowable_workflow_actions USING btree (workflow_id);
 
 
 --
--- Name: unique_results; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: unique_results; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX unique_results ON results USING btree (url);
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (version);
 
 
 --
--- Name: unique_search_results; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: unique_search_results; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX unique_search_results ON task_results USING btree (task_id, result_id);
@@ -1306,4 +1312,8 @@ INSERT INTO schema_migrations (version) VALUES ('20160629192755');
 INSERT INTO schema_migrations (version) VALUES ('20160804194709');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517173248');
+
+INSERT INTO schema_migrations (version) VALUES ('20170525041840');
+
+INSERT INTO schema_migrations (version) VALUES ('20170705165950');
 

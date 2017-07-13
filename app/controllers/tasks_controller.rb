@@ -22,7 +22,7 @@ class TasksController < ApplicationController
   # GET /tasks.json
   def index
     @menu_item = "tasks"
-    @tasks = Task.all.order(:name).group_by(&:group)
+    @tasks = Task.all.order(:name)
 
     respond_to do |format|
       format.html # index.html.erb
@@ -108,8 +108,23 @@ class TasksController < ApplicationController
   # POST /tasks
   # POST /tasks.json
   def create
+
     @task = Task.new(task_params)
+
     @task_types = task_types
+    if(Task.task_type_valid?(@task.task_type) && @task.task_type.constantize.respond_to?(:callback_task?) && @task.task_type.constantize.callback_task? == true)
+      @task.run_type = "callback"
+    elsif(params[:on_demand] =="1")
+      @task.run_type = "on_demand"
+      @task.metadata ||={}
+      if(params[:runtime_override_all] == "1")
+        @task.metadata["runtime_override"] = true
+      else  
+        @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
+      end
+    else
+      @task.run_type = "scheduled"
+    end
 
     respond_to do |format|
       if @task.save
@@ -126,7 +141,21 @@ class TasksController < ApplicationController
   # PUT /tasks/1
   # PUT /tasks/1.json
   def update
+
     @task_types = task_types
+    if(Task.task_type_valid?(@task.task_type) && @task.task_type.constantize.respond_to?(:callback_task?) && @task.task_type.constantize.callback_task? == true)
+      @task.run_type = "callback"
+    elsif(params[:on_demand] =="1")
+      @task.run_type = "on_demand"
+      @task.metadata ||={}
+      if(params[:runtime_override_all] == "1")
+        @task.metadata["runtime_override"] = true
+      else  
+        @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
+      end
+    else
+      @task.run_type = "scheduled"
+    end
 
     respond_to do |format|
       if @task.update_attributes(task_params)
@@ -154,6 +183,7 @@ class TasksController < ApplicationController
   end
 
   def run
+    
     if(params[:id].present?)
       if(request.method == "POST")
         task_params = request.body.read
@@ -163,15 +193,22 @@ class TasksController < ApplicationController
       load_task
 
       #@task.perform_task
-      TaskRunner.perform_async(@task.id, task_params)
+      if(@task.run_type == "on_demand")
+        TaskRunner.perform_async(@task.id, task_params, params.try(:[],"task").try(:[],"options"))
+      else
+        TaskRunner.perform_async(@task.id, task_params)
+      end
       @task.events << Event.create(field: "Task", action: "Run", user_id: current_user.id)
       respond_to do |format|
         format.html {redirect_to task_url(@task), :notice=>"Running task..."}
       end
+    elsif(params[:task_type].present?)
+      
     else
+      
 
       TaskRunner.perform_async(nil)
-      task_ids = Task.where(enabled:true).map{|s| s.id}
+      task_ids = Task.where(enabled:true, run_type: "scheduled").map{|s| s.id}
       events = []
       task_ids.each do |s|
         events << Event.new(date: Time.now, field: "Task", action: "Run", user_id: current_user.id, eventable_type: "Task", eventable_id: s)
@@ -371,7 +408,7 @@ class TasksController < ApplicationController
 
 
   def task_params
-    all_options = params.require(:task).fetch(:options, nil).try(:permit!)
+    all_options = params.require(:task).fetch(:options, nil).try(:permit!).reject{|k,v| v.blank?}
 
     params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled).merge(:options =>all_options)
   end

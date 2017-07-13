@@ -63,6 +63,11 @@ module ScumblrTask
       # Setup event hash for storing event types and IDs with tasks
       # Each time the task runs, all event data is moved into the
       # previous events key.
+      runtime_options = nil      
+      if(@options[:_self].present? && @options.try(:[],:_params).try(:[],:_options) && @options[:_self].run_type == "on_demand")
+        runtime_options = @options[:_params].delete(:_options)
+        @options = @options[:_self].merge_options(runtime_options, @options)
+      end
 
       if(@options[:_self].present?)
         @options[:_self].metadata ||={}
@@ -81,7 +86,7 @@ module ScumblrTask
         end
         @options[:_self].save
       else
-        create_event("Task initialized with _self=>nil Options: #{@options.inspect}", "Warn")
+        # create_event("Task initialized with _self=>nil Options: #{@options.inspect}", "Warn")
       end
 
       # build out results filter
@@ -108,8 +113,6 @@ module ScumblrTask
       rescue => e
         create_error("Error parsing tag options. Options: #{@options.inspect}")
       end
-
-
 
       config_options = self.class.config_options
       if(config_options.present? && config_options.class == Hash)

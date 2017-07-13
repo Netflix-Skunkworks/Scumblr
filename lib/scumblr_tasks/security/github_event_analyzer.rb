@@ -24,6 +24,10 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     "Security"
   end
 
+  def self.callback_task?
+    true
+  end
+
   def self.config_options
     {
       :github_oauth_token => {
@@ -48,6 +52,10 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
                         required: true,
                         type: :system_metadata}
     }
+  end
+
+  def self.description
+    "Receives callback from Github in order to search for a list of terms/regexs in new commits."
   end
 
   def initialize(options={})

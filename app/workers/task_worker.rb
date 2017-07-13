@@ -19,13 +19,17 @@ class TaskWorker
   include Sidekiq::Status::Worker
   sidekiq_options :queue => :worker, :retry => 0, :backtrace => true
 
-  def perform(task_id, task_params=nil)
+  def perform(task_id, task_params=nil, task_options=nil)
     t= Time.now
 
     if(task_params.present?)
       task_params = {:_body=> task_params}
     else
       task_params = {}
+    end
+
+    if(task_options.present?)
+      task_params.merge!(:_options=>task_options)
     end
 
     begin

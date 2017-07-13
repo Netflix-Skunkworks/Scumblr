@@ -19,10 +19,10 @@ class TaskRunner
   include Sidekiq::Status::Worker
   sidekiq_options :queue => :runner, :retry => 0, :backtrace => true 
 
-  def perform(task_ids=nil, task_params=nil)
+  def perform(task_ids=nil, task_params=nil, task_options=nil)
     begin
       at 0, "A:Preparing to run tasks"
-      task_groups = Array(task_ids.blank? ? Task.where(enabled:true).group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
+      task_groups = Array(task_ids.blank? ? Task.where(enabled:true, run_type:"scheduled").group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
       count = 0
       total_count = task_groups.map{|k,v| v.count}.sum
       total total_count
@@ -35,7 +35,8 @@ class TaskRunner
         tasks.each do |t|
           Rails.logger.warn "Running #{t.name}"
           # at count, "A:Queuing: #{t.name}"
-          workers << TaskWorker.perform_async(t.id, task_params)
+
+          workers << TaskWorker.perform_async(t.id, task_params, task_options)
         end
 
         while(!workers.empty?)

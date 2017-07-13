@@ -41,7 +41,12 @@ Scumblr::Application.routes.draw do
     end
   end
 
-  resources :system_metadata
+  resources :system_metadata do
+    member do
+      get 'autocomplete', xhr: :get
+    end
+  end
+
   resources :events, only: [:index, :show] do
     collection do
       post 'search' => 'events#index'
@@ -128,11 +133,8 @@ Scumblr::Application.routes.draw do
       post 'enable', to: 'tasks#enable'
       post 'disable', to: 'tasks#disable'
       get 'summary', to: 'tasks#summary'
-
-    end
-
-    member do
       get 'options', to: 'task_types#options'
+      get 'on_demand_options', to: 'task_types#on_demand_options'
     end
   end
 

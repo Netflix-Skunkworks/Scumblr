@@ -1,34 +1,77 @@
 <%= fields_for "task[options]", OpenStruct.new(task_options) do |builder| %>
   <% task_type_options.each do |key, value| %>
     <div class="field">
-    <%= label_tag do %>
-    <%= value[:name] + (value[:required] == true ? "*" : "") %>
-      <% if value[:description].present? %>
-        <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= h(value[:description]) %>"><i class="fi-info"></i></span>
-      <% end %>
-    <% end %>
-
-    <% if value[:type] == :boolean %>
-      <%= builder.check_box key, value: builder.object[key] || value[:default] %>
-    <% elsif value[:type] == :choice %>
-      <%= builder.select key, value[:choices],{ selected: builder.object[key] || value[:default]} %>
-    <% elsif value[:type] == :saved_result_filter %>
-      <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true %>
-    <% elsif value[:type] == :system_metadata %>
-      <%= builder.collection_select key, SystemMetadata.all.uniq, :id, :key, include_blank: true %>
-
-    <% elsif value[:type] == :tag %>
-    <div id="tags" class="search_type_fields">
-    <%= builder.text_field key, {value: builder.object[key] ||  value[:default] || "", class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
-    </div>
-
-    <% elsif value[:type] == :saved_event_filter %>
-      <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, include_blank: true %>
-<% elsif value[:type] == :text %>
-      <%= builder.text_area key, value: builder.object[key] || value[:default] %>
+    <% if defined?(hidden_fields) && hidden_fields.to_a.include?(key.to_s) %>
+      <%= builder.hidden_field key, value: builder.object[key] || value[:default] %>
+      </div>
+    <% elsif defined?(on_demand_options) && @task.try(:metadata).try(:[], "runtime_override") != true && !@task.try(:metadata).try(:[], "runtime_override").to_a.include?(key.to_s) %>
+      <% next %>
     <% else %>
-      <%= builder.text_field key, value: builder.object[key] || value[:default] %>
+      <%= label_tag do %>
+      <%= value[:name] + (value[:required] == true ? "*" : "") %>
+        <% if value[:description].present? %>
+          <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= h(value[:description]) %>"><i class="fi-info"></i></span>
+        <% end %>
+      <% end %>
+      
+        
+      <% if value[:type] == :boolean %>
+        <%= builder.check_box key, value: builder.object[key] || value[:default] %>
+      <% elsif value[:type] == :choice %>
+
+        <%= builder.select key, [["Please Choose",""]]+value[:choices],{ selected: (builder.object[key] || value[:default])}, {class:"select2"}  %>
+      <% elsif value[:type] == :saved_result_filter %>
+        <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true, class:"select2" %>
+      <% elsif value[:type] == :system_metadata %>
+        <%= builder.collection_select key, SystemMetadata.all.uniq, :id, :key, include_blank: true, class:"select2" %>
+      <% elsif value[:type] == :tag %>
+        <div id="tags" class="search_type_fields">
+        <%= builder.text_field key, {value: builder.object[key] ||  value[:default] || "", class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
+        </div>
+      <% elsif value[:type] == :datetime %>
+        <%= builder.datetime_field key,  value: builder.object[key] || value[:default], class: "datetimepicker" %>
+
+      <% elsif value[:type] == :saved_event_filter %>
+        <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, include_blank: true %>
+      <% elsif value[:type] == :text %>
+        <%= builder.text_area key, value: builder.object[key] || value[:default] %>
+      <% elsif value[:type] == :system_metadata_autocomplete %>
+        <% current_value = builder.object[key] ||  value[:default] || ""
+        metadata = SystemMetadata.where(id: value["system_metadata_id"]).first.try(:metadata)
+        metadata = metadata.try(:[], value["system_metadata_key"]) if value["system_metadata_key"].present?
+        initial_data = nil
+        if(value["multiple"] != true)
+          initial_data = metadata.try(:find){|v| v[value["id_field"] || "id"] == current_value} 
+        else
+          current_values = current_value.split(",")
+          initial_data = metadata.try(:select){|v| current_values.include?(v[value["id_field"] || "id"])} 
+        end
+        %>
+        
+        <%= builder.text_field key, {value: current_value, class: "remote_select2", "data-initial"=>initial_data.to_json, "data-multiple"=>value["multiple"]== true, "data-id-attribute"=>value["id_field"] || "id", "data-attribute"=>value["value_field"] || "name" , "data-object"=>"results", "data-path"=>autocomplete_system_metadatum_path(value["system_metadata_id"], key:value["system_metadata_key"], format: :json)} %>
+      <% else %>
+        <%= builder.text_field key, value: builder.object[key] || value[:default] %>
+      <% end %>
+      </div>
     <% end %>
-    </div>
   <% end %>
+
+  <% if !defined?(on_demand_options) || on_demand_options != true %>
+    <div class="field on-demand-optons <%= "hidden" if @task.try(:run_type) != "on_demand" %>">
+
+      <%= builder.label :runtime_override do %>
+        Runtime Override Options <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="For an on-demand task, which options can be overriden at runtime"><i class="fi-info"></i></span>
+      <% end %>
+
+      <%= check_box_tag :runtime_override_all, "1", @task.try(:metadata).try(:[], "runtime_override") == true, {class: "hide-toggle reverse-toggle", data:{toggle:".overrideable_options"}} %> <%= label_tag :all_options do %>Allow overriding all options <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="Allow specifying/overriding all task options at runtime. If unchecked, only options explictly listed below will be controllable at runtime."><i class="fi-info"></i></span><% end %>
+      <div class="overrideable_options <%= "hidden" if @task.try(:metadata).try(:[], "runtime_override") == true%>">
+        <%= label_tag :overridable_options %>
+        <%= builder.select "runtime_override", task_type_options.map{|k,v| [v[:name], k]}, { selected: @task.try(:metadata).try(:[], "runtime_override")}, class:"select2 runtime_override_field", multiple: true %>
+      </div>
+    </div>
+  </div>
+  <% end %>
+  
+
+
 <% end %>

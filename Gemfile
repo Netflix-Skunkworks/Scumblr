@@ -128,7 +128,7 @@ group :development, :test, :production do
   gem 'unicorn-rails'
 end
 
-group :test do
+group :test, :production do
   #this doesn't get along with rack-mini-profiler
   gem 'oj_mimic_json'
 end
