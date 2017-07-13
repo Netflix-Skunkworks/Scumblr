@@ -14,7 +14,7 @@
 
 
 class TaskTypesController < ApplicationController
-protect_from_forgery except: :options, :on_demand_options
+protect_from_forgery except: [:options, :on_demand_options]
 
  def options
     authorize! :options, :task_type
@@ -31,7 +31,7 @@ protect_from_forgery except: :options, :on_demand_options
     end
 
     respond_to do |format|
-      format.js
+    format.js
     end
 
   end
@@ -40,7 +40,6 @@ protect_from_forgery except: :options, :on_demand_options
     authorize! :on_demand_options, :task_type
     @task = Task.find_by_id(params[:id])
     @task_type = params[:task_type] || @task.task_type
-
     
     if(Task.task_type_valid?(@task_type.to_s) && @task_type.constantize.respond_to?(:options))
       #the line above validates the task is a valid (and safe) type so constantize is safe
@@ -51,7 +50,8 @@ protect_from_forgery except: :options, :on_demand_options
 
 
       if(task_class.method(:options).arity == 0 || params[:options].blank?)
-        @task_options = @task.options
+        
+        @task_options = @task.merge_options(params[:options])
         if(task_class.respond_to?(:prepare_options))
           @task_options = task_class.prepare_options(@task_options)
         end

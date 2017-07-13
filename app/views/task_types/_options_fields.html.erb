@@ -69,7 +69,7 @@
         <%= builder.select "runtime_override", task_type_options.map{|k,v| [v[:name], k]}, { selected: @task.try(:metadata).try(:[], "runtime_override")}, class:"select2 runtime_override_field", multiple: true %>
       </div>
     </div>
-  </div>
+  
   <% end %>
   
 
