@@ -63,8 +63,11 @@ class ResultsController < ApplicationController
         filter = key.split(":")
         filter_on=nil
         filter_on = params["filter_on"][key].split(":") if params.try(:[],"filter_on").try(:[],key)
-
-        @result.filter_metadata(@result.metadata, filter, values, filter_on)
+        begin
+          @result.filter_metadata(@result.metadata, filter, values, filter_on)
+        rescue
+          
+        end
 
       end
       

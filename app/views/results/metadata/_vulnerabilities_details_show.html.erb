@@ -11,7 +11,7 @@ def vulnerability_with_index_sort(a,b)
   comp = (risks[a[0]["severity"].to_s.downcase].to_i <=> risks[b[0]["severity"].to_s.downcase].to_i)
   comp.zero? ? (a[0]["type"].to_s <=> b[0]["type"].to_s) : comp
 end
-
+result.metadata["vulnerabilities"] ||=[]
 findings = result.metadata["vulnerabilities"].sort{|a,b| vulnerability_sort(a,b)}#.select{|v| v["status"].match(/open/i) }
 
 finding_indices = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| vulnerability_with_index_sort(a,b)}.map(&:last)
