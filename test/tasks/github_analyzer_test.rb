@@ -23,17 +23,18 @@ class GithubAnalyzerTest < ActiveSupport::TestCase
     # check key_suffix is correct
     assert_equal("test", Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].first["key_suffix"])
     # Check that the vulnerablity was opened
-    assert_equal("Open", Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].first["status"])
+    assert_equal("New", Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerabilities"].first["status"])
 
     #
     # Vulnerablity Counter Assertions
     #
 
     # assert 2 open issues
-    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["status"]["open"])
+    assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["state"]["open"])
     # assert github sourced
     assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["source"]["github"])
     # assert task id
+
     assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["task_id"]["58"])
     # assert key_suffix
     assert_equal(2, Result.where(url: "https://github.com/scumblrminitest/test_repo2").first.metadata["vulnerability_count"]["key_suffix"]["test"])

@@ -339,7 +339,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           else
             matched_expression = searched_code[1].to_s
           end
-          
+
           curl_metadata[request_metadata.keys[key_no]] ||= []
           curl_metadata[request_metadata.keys[key_no]] << matched_expression.strip.truncate(300)
           curl_metadata[request_metadata.keys[key_no]].uniq!
@@ -378,7 +378,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           vuln.key_suffix = @options[:key_suffix]
         end
         vuln.source = "curl"
-        vuln.task_id = @options[:_self].id.to_s
+        vuln.task_id = @options[:_self].id
         vuln.type = @options[:task_type]
         vuln.payload = payload
         if vuln.payload.to_s != ""
@@ -442,7 +442,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
         vuln.key_suffix = @options[:key_suffix]
       end
       vuln.source = "curl"
-      vuln.task_id = @options[:_self].id.to_s
+      vuln.task_id = @options[:_self].id
       vuln.type = @options[:task_type]
       vuln.payload = payload
       if vuln.payload.to_s != ""
@@ -700,7 +700,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
               vuln.key_suffix = @options[:key_suffix]
             end
             vuln.source = "curl"
-            vuln.task_id = @options[:_self].id.to_s
+            vuln.task_id = @options[:_self].id
             vuln.type = @options[:task_type]
             if @options[:severity].nil?
               vuln.severity = "observation"
