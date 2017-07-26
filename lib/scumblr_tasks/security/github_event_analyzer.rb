@@ -47,6 +47,10 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
                     type: :choice,
                     default: :observation,
                     choices: [:observation, :high, :medium, :low]},
+      :key_suffix => {name: "Key Suffix",
+                      description: "Provide a key suffix for testing out experimental regular expressions",
+                      required: false,
+                      type: :string},
       :github_terms => {name: "System Metadata Github Search Terms",
                         description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
                         required: true,
@@ -114,7 +118,9 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
           vuln.task_id = @options[:_self].id.to_s
           vuln.term = term
           vuln.details = details
-
+          if(@options[:key_suffix].present?)
+            vuln.key_suffix = @options[:key_suffix]
+          end
 
           if @options[:severity].nil?
             vuln.severity = "observation"
@@ -176,14 +182,12 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def run
-
     @github_oauth_token = @github_oauth_token.to_s.strip
     response = ""
     begin
       response = JSON.parse(@options[:_params][:_body])
     rescue
       create_event('not valid json')
-
       raise
     end
 
