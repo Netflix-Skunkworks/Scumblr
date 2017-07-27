@@ -102,9 +102,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     }
   end
 
-  def rate_limit_sleep(remaining, reset)
+  def rate_limit_sleep(remaining, reset, no_limit)
     # This method sleeps until the rate limit resets
-    if remaining.to_i <= 1
+    if remaining.to_i <= 1 && no_limit == false
       time_to_sleep = (reset.to_i - Time.now.to_i)
       puts "Sleeping for #{time_to_sleep}"
       sleep (time_to_sleep + 1) if time_to_sleep > 0
@@ -295,12 +295,20 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       response = JSON.parse(RestClient.get "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}")
       puts "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}"
       core_rate_limit = response["resources"]["core"]["remaining"].to_i
+      no_limit = false
       puts 1
       # If we have hit the core limit, sleep
-      rate_limit_sleep(core_rate_limit, response["resources"]["core"]["reset"])
+      rate_limit_sleep(core_rate_limit, response["resources"]["core"]["reset"], no_limit)
     rescue => e
-      create_event("Unable to retrieve rate limit from Github.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-      raise "Unable to retrieve rate limit for Github!"
+      # Rate limiting might not be enabled, e.g. with GitHub Enterprise
+      if JSON.parse(e.response)["message"] == "Rate limiting is not enabled."
+        no_limit = true
+        core_rate_limit = 0
+        puts 1
+      else
+        create_event("Unable to retrieve rate limit from Github.\n\n. Exception: #{e.message}\n#{e.backtrace}")
+        raise "Unable to retrieve rate limit for Github!"
+      end
     end
 
     # Determine if supplied input is org or not.
@@ -318,7 +326,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             @search_scope[user_or_repo] = json_response["type"]
             @scope_type_array.concat([@scope_type])
 
-            rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+            rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset], no_limit)
           end
           break
         else
@@ -362,7 +370,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             end
 
             # Sleep if we hit a ratelimit
-            rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+            rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset], no_limit)
             break
           else
 
@@ -391,7 +399,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 @search_scope.merge!(member_object["login"] => "user")
               end
               # Sleep if we hit a rate limit
-              rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset])
+              rate_limit_sleep(core_rate_limit, response.headers[:x_ratelimit_reset], no_limit)
             end
           end
         rescue => e
@@ -490,6 +498,20 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # Store results in results array
     @results = []
 
+    # Check if GitHub rate limiting is enabled
+    begin
+      response = JSON.parse(RestClient.get "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}")
+      no_limit = false
+    rescue => e
+      # Rate limiting might not be enabled, e.g. with GitHub Enterprise
+      if JSON.parse(e.response)["message"] == "Rate limiting is not enabled."
+        no_limit = true
+      else
+        create_event("Unable to retrieve rate limit from Github.\n\n. Exception: #{e.message}\n#{e.backtrace}")
+        raise "Unable to retrieve rate limit for Github!"
+      end
+    end
+
     puts "Checking #{@terms.length.to_s} search terms on #{@search_scope.length.to_s} scopes"
 
     @search_scope.each do |scope, type|
@@ -514,7 +536,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             if e.response.headers[:retry_after].present?
               retry_after(e.response.headers[:retry_after])
             else
-              rate_limit_sleep(e.response.headers[:x_ratelimit_remaining], e.response.headers[:x_ratelimit_reset])
+              rate_limit_sleep(e.response.headers[:x_ratelimit_remaining], e.response.headers[:x_ratelimit_reset], no_limit)
             end
           rescue => e
             puts "Could not retrieve response headers"
@@ -545,7 +567,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         # If we have no findings, skip to the next search term
         if json_response["total_count"] == 0
           puts "no results for \'#{term}\'"
-          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
+          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset], no_limit)
           next
         end
 
@@ -559,7 +581,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
             return []
           end
-          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
+          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset], no_limit)
           next
         end
 
@@ -576,7 +598,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           end
 
           # Sleep if we hit the rate limit
-          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
+          rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset], no_limit)
 
           # Grab total number of pages we need to scan
           unless response.headers[:link].split(" ")[0].split("=").last.gsub!(/\W/,'') == 0
@@ -597,7 +619,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                   retry_after(e.response.headers[:retry_after])
                   retry
                 else
-                  rate_limit_sleep(e.response.headers[:x_ratelimit_remaining], e.response.headers[:x_ratelimit_reset])
+                  rate_limit_sleep(e.response.headers[:x_ratelimit_remaining], e.response.headers[:x_ratelimit_reset], no_limit)
                 end
               rescue
                 puts "Could not retrieve response headers"
@@ -617,7 +639,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
               create_event("Hit maximum results limit\n\n. Exception: #{@options[:max_results].to_s}", "Warn")
               return []
             end
-            rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset])
+            rate_limit_sleep(response.headers[:x_ratelimit_remaining], response.headers[:x_ratelimit_reset], no_limit)
           end
         end
       end
