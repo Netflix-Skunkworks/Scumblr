@@ -74,12 +74,13 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     after ={}
     regular_expressions_union = Regexp.union(regular_expressions.map {|x| Regexp.new(x.strip)})
     term_counter = {}
-    contents = content_response
+    # force encoding fixes issues with ASCII or other weird stuff in source code
+    contents = content_response.encode("UTF-8", invalid: :replace, undef: :replace)
     contents = contents.split(/\r?\n|\r/)
     # Iterate through each line of the response and grep for the response_sring provided
     contents.each_with_index do |line, line_no|
       begin
-        searched_code = regular_expressions_union.match(line.encode("UTF-8", invalid: :replace, undef: :replace))
+        searched_code = regular_expressions_union.match(line)
       rescue
         next
       end
@@ -240,8 +241,8 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         begin
           @res = Result.where(url: url).first
           @res.update_vulnerabilities(vulnerabilities)
-        rescue
-          create_event("Couldn't update vulnerabilities due to missing url.  #{url} not found")
+        rescue => e
+          create_event("Couldn't update vulnerabilities.  Exception: #{e.message}\n#{e.backtrace}")
         end
 
       end
@@ -249,8 +250,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     end
 
     @res.save if @res.changed?
-    #puts "*****Running with options: " + @options[:_params].to_s
-
+    return []
   end
 
 end
