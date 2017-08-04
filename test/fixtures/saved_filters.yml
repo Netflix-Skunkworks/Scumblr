@@ -68,3 +68,40 @@ saved_filter_49:
   saved_filter_type: Result
   store_index_columns: false
   index_columns: 'null'
+
+saved_filter_83:
+  id: 83
+  name: All Results
+  query: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      url_cont: ''
+      url_not_cont: ''
+      title_cont: ''
+      title_not_cont: ''
+      tags_id_in: &1
+      - ''
+      user_id_in:
+      - ''
+      status_id_in:
+      - ''
+      tasks_id_in:
+      - ''
+      id_in_saved_event_filter: ''
+      metadata_search: ''
+      flags_id_in:
+      - ''
+      stages_id_in:
+      - ''
+      status_id_includes_closed: '0'
+    ivars:
+      :@permitted: false
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          *1: true
+  user_id: 2
+  public: false
+  created_at: 2017-08-04 17:12:20.750895000 Z
+  updated_at: 2017-08-04 17:12:20.750895000 Z
+  saved_filter_type: Result
+  store_index_columns: false
+  index_columns: 'null'
