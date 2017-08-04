@@ -719,3 +719,77 @@ task_70:
     _last_status_event: 6684829
     _last_status_message: Task completed in 0.987644 seconds
     _last_successful_run: '2017-05-31T11:35:23.850-07:00'
+
+task_88:
+  id: 88
+  task_type: ScumblrTask::VulnerabilityCleaner
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: '83'
+      vuln_value: Api
+    ivars:
+      :@permitted: true
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          ? - ''
+          : true
+  name: Cleaner
+  description: ''
+  created_at: 2017-08-04 16:19:30.145176000 Z
+  updated_at: 2017-08-04 19:27:11.838919000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-08-04T12:27:11.554-07:00'
+    _start_time: '2017-08-04T12:27:06.384-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    previous_events:
+      Error: []
+      Warning: []
+    previous_results:
+      created: []
+      updated: []
+    _last_status_event: 6687341
+    _last_status_message: Task completed in 4.512189 seconds
+    _last_successful_run: '2017-08-04T12:27:11.554-07:00'
+  run_type: scheduled
+
+task_89:
+  id: 89
+  task_type: ScumblrTask::VulnerabilityCleaner
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: '83'
+      task_id: '2'
+    ivars:
+      :@permitted: true
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          ? - ''
+          : true
+  name: Cleaner
+  description: ''
+  created_at: 2017-08-04 16:19:30.145176000 Z
+  updated_at: 2017-08-04 19:37:52.769812000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-08-04T12:27:11.554-07:00'
+    _start_time: '2017-08-04T12:27:06.384-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    previous_events:
+      Error: []
+      Warning: []
+    previous_results:
+      created: []
+      updated: []
+    _last_status_event: 6687341
+    _last_status_message: Task completed in 4.512189 seconds
+    _last_successful_run: '2017-08-04T12:27:11.554-07:00'
+  run_type: scheduled
