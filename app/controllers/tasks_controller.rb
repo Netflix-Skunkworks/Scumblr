@@ -283,6 +283,40 @@ class TasksController < ApplicationController
 
   end
 
+  def schedule
+    task_ids = params[:task_ids] || []
+    task_ids.uniq!
+    if(task_ids.present?)
+      events = []
+      if(params[:commit] == "Schedule")
+        days = params[:days] || 0
+        hours = params[:hours] || 0
+        minutes = params[:minutes] || 0
+        task_ids.each do |s|
+          Task.find(s).schedule(days, hours, minutes)
+          events << Event.new(date: Time.now, action: "Scheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks scheduled."
+      elsif(params[:commit] == "Unschedule")
+        task_ids.each do |s|
+          Task.find(s).unschedule
+          events << Event.new(date: Time.now, action: "Unscheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks unscheduled."
+      end
+
+      Event.import events
+    else
+      message = "No tasks selected to schedule."
+    end
+
+    respond_to do |format|
+      format.html {redirect_to tasks_url, notice: message || "Could not schedule tasks" }
+    end
+  end
+
   def get_metadata
 
     response = @task.metadata

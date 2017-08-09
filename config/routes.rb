@@ -115,6 +115,7 @@ Scumblr::Application.routes.draw do
       get 'options', to: 'task_types#options'
       get 'run', to: 'tasks#run'
       post 'bulk_update'
+      post 'schedule'
       get 'expandall', to: 'tasks#expandall'
       get :events
     end

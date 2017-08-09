@@ -28,6 +28,16 @@ class TaskTest < ActiveSupport::TestCase
     assert_equal("Task 1", fixture_task.to_s)
   end
 
+  test "should schedule task" do
+    fixture_task.schedule(0, 5, 0)
+    assert_equal("0 days 5 hours 0 minutes", fixture_task.frequency)
+  end
+
+  test "should unschedule task" do
+    fixture_task.unschedule
+    assert_equal(nil, fixture_task.frequency)
+  end
+
   test "should check task type is valid" do
     is_valid = Task.task_type_valid? "ScumblrTask::CurlAnalyzer"
     assert_equal(true, is_valid)

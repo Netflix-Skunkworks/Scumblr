@@ -32,6 +32,7 @@ $(function(){
         <th>Task Type</th>
         <th>Query</th>
         <th>Last Success</th>
+        <th>Frequency</th>
         <th></th>
       </tr>
       <% tasks.partition{|v| v.enabled == true}.flatten.each do |task| %>
@@ -116,6 +117,7 @@ $(function(){
           <td><%= task.task_type_name %></td>
           <td><%= task.query %></td>
           <td><%= time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_successful_run").to_s)) + " ago" if task.metadata.try(:[], "_last_successful_run")%></td>
+          <td><%= task.frequency %></td>
           <td>
             <% if task.enabled %>
               <%= link_to 'Disable', disable_task_path(task), method: :post, class: "button tiny" if can? :disable, task %>
@@ -173,6 +175,26 @@ $(function(){
         <% if can? :destroy, Task %>
           <%= submit_tag "Delete", :method=>:delete, :class=>"button small alert update_multiple_button", data: {:confirm=>"Are you sure you want to delete these tasks?"} %>
         <% end %>
+      <% end %>
+    </section>
+    <!-- Where scheduling sidebar section begins -->
+    <nav class="tab-bar">
+      <section class="tab-bar-section">
+        <h1>Schedule Tasks</h1>
+      </section>
+    </nav>
+    <section class="panel sidepanel">
+      <%= form_tag schedule_tasks_path, method: :post, :id=>"schedule_tasks_form" do %>
+        <p>
+          Schedule selected tasks to run every DD:HH:MM
+        </p>
+        <p>
+          Days <%= select_tag :days, options_for_select((0..31)) %>
+          Hours <%= select_tag :hours, options_for_select((0..24)) %>
+          Minutes <%= select_tag :minutes, options_for_select((0..60)) %>
+        </p>
+        <%= submit_tag "Schedule", :method=>:post, :class=>"button small schedule_tasks_button" %>
+        <%= submit_tag "Unschedule", :method=>:post, :class=>"button small alert schedule_tasks_button" %>
       <% end %>
     </section>
   </div>

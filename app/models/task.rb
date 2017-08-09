@@ -41,6 +41,18 @@ class Task < ActiveRecord::Base
     "Task #{id}"
   end
 
+  def schedule(days, hours, minutes)
+    frequency = "#{days} days #{hours} hours #{minutes} minutes"
+    update_attribute(:frequency, frequency)
+    time = (days.to_i * 1440 + hours.to_i * 60 + minutes.to_i).to_s + "m"
+    Sidekiq.set_schedule("task: #{id}", { 'every' => [time], 'class' => 'TaskRunner', 'args' => [id] })
+  end
+
+  def unschedule
+    update_attribute(:frequency, nil)
+    Sidekiq.set_schedule("task: #{id}", { 'every' => [nil], 'class' => 'TaskRunner', 'args' => [id] })
+  end
+
   def self.task_type_valid?(task_type)
     task_type.match(/\ASearchProvider::|\AScumblrTask::/) && (SearchProvider::Provider.subclasses.include?(task_type.to_s.constantize) || ScumblrTask::Base.descendants.reject{|x| !x.task_type_name }.include?(task_type.to_s.constantize))
   end
