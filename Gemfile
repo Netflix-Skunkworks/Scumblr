@@ -18,7 +18,6 @@ gem "brakeman", require: false
 gem "bundler-audit"
 gem 'rest-client'
 gem 'chartkick'
-gem 'puma'
 gem 'redcarpet'
 
 gem 'addressable'
