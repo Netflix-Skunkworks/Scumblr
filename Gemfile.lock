@@ -61,6 +61,7 @@ GEM
       activesupport (>= 3.0)
       awesome_nested_set (>= 2.0)
     addressable (2.4.0)
+    ansi (1.5.0)
     arel (6.0.3)
     autoparse (0.3.3)
       addressable (>= 2.3.1)
@@ -133,10 +134,13 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.2.5)
+    docile (1.1.5)
     domain_name (0.5.20160615)
       unf (>= 0.0.5, < 1.0.0)
     equalizer (0.0.9)
     erubis (2.7.0)
+    et-orbi (1.0.5)
+      tzinfo
     ethon (0.9.0)
       ffi (>= 1.3.0)
     execjs (2.2.1)
@@ -246,6 +250,11 @@ GEM
     logging (2.1.0)
       little-plugger (~> 1.1)
       multi_json (~> 1.10)
+    lograge (0.6.0)
+      actionpack (>= 4, < 5.2)
+      activesupport (>= 4, < 5.2)
+      railties (>= 4, < 5.2)
+      request_store (~> 1.0)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.4)
@@ -267,6 +276,11 @@ GEM
     minitest-rails (2.2.1)
       minitest (~> 5.7)
       railties (~> 4.1)
+    minitest-reporters (1.1.14)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
     msgpack (1.0.0)
     multi_json (1.12.1)
     multi_xml (0.5.5)
@@ -301,6 +315,8 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
+    quiet_assets (1.1.0)
+      railties (>= 3.1, < 5.0)
     rack (1.6.4)
     rack-contrib (1.1.0)
       rack (>= 0.9.1)
@@ -355,6 +371,7 @@ GEM
     redcarpet (3.3.4)
     redis (3.3.1)
     ref (2.0.0)
+    request_store (1.3.2)
     responders (2.2.0)
       railties (>= 4.2.0, < 5.1)
     rest-client (1.8.0)
@@ -379,12 +396,15 @@ GEM
       rspec-support (~> 3.0.0)
     rspec-support (3.0.4)
     ruby-prof (0.15.1)
+    ruby-progressbar (1.8.1)
     ruby2ruby (2.3.0)
       ruby_parser (~> 3.1)
       sexp_processor (~> 4.0)
     ruby_gntp (0.3.4)
     ruby_parser (3.8.1)
       sexp_processor (~> 4.1)
+    rufus-scheduler (3.4.2)
+      et-orbi (~> 1.0)
     safe_yaml (1.0.4)
     sass (3.2.19)
     sass-rails (4.0.3)
@@ -398,6 +418,8 @@ GEM
     shoulda (3.5.0)
       shoulda-context (~> 1.0, >= 1.0.1)
       shoulda-matchers (>= 1.4.1, < 3.0)
+    shoulda-callback-matchers (1.1.4)
+      activesupport (>= 3)
     shoulda-context (1.2.1)
     shoulda-matchers (2.6.2)
       activesupport (>= 3.0.0)
@@ -422,6 +444,11 @@ GEM
       actionpack (> 4, < 5.1)
       activemodel (> 4, < 5.1)
     simple_oauth (0.2.0)
+    simplecov (0.14.1)
+      docile (~> 1.1.0)
+      json (>= 1.8, < 3)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.1)
     sinatra (1.4.7)
       rack (~> 1.5)
       rack-protection (~> 1.4)
@@ -543,10 +570,12 @@ DEPENDENCIES
   kaminari
   koala
   less-rails
+  lograge
   market_bot
   meta_request
   minitest
   minitest-rails
+  minitest-reporters
   net-http-persistent
   oj
   oj_mimic_json
@@ -554,6 +583,7 @@ DEPENDENCIES
   pg
   posix-spawn
   pry
+  quiet_assets
   rack-mini-profiler
   railroady
   rails (= 4.2.6)
@@ -571,10 +601,13 @@ DEPENDENCIES
   sass-rails (= 4.0.3)
   select2-rails
   shoulda
+  shoulda-callback-matchers (~> 1.1.1)
+  shoulda-matchers (~> 2.0)
   sidekiq
   sidekiq-scheduler
   sidekiq-status
   simple_form
+  simplecov
   sinatra
   slim
   spring
@@ -593,4 +626,4 @@ DEPENDENCIES
   zip
 
 BUNDLED WITH
-   1.13.2
+   1.15.3
