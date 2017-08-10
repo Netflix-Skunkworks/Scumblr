@@ -38,7 +38,7 @@ class ResultTest < ActiveSupport::TestCase
   test "should perform a default result search" do
 
     ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})
-    assert_equal(3, results.length)
+    assert_equal(4, results.length)
   end
 
   test "should perform a tag result search" do
@@ -68,7 +68,7 @@ class ResultTest < ActiveSupport::TestCase
 
   test "should perform a negative metadata  element result search" do
     ransack, results = Result.perform_search({metadata_search: "github_analyzer:private!=false"}, 1, 25, {include_metadata_column:true})
-    assert_equal(1, results.length)
+    assert_equal(2, results.length)
   end
 
   # Instance Method Tests
