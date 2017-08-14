@@ -63,8 +63,11 @@ class ResultsController < ApplicationController
         filter = key.split(":")
         filter_on=nil
         filter_on = params["filter_on"][key].split(":") if params.try(:[],"filter_on").try(:[],key)
-
-        @result.filter_metadata(@result.metadata, filter, values, filter_on)
+        begin
+          @result.filter_metadata(@result.metadata, filter, values, filter_on)
+        rescue
+          
+        end
 
       end
       
@@ -185,7 +188,17 @@ class ResultsController < ApplicationController
 
     @associated_objects = {
       task_results: {:method=>:task_results, :includes=>:task, :link=>{:method=>:task_id, :path=>:task_url, :params=>[:task_id]}, :attributes=>[:task_name, :task_type, :query, :created_at], name:"Tasks"},
-      events: {:method=>:events, :includes=>[:user, :event_changes], :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, :attributes=>[:date, :field_name, :action, :old_value, :new_value, :user], :sort_keys=>[:date,nil, :action, :old_value, :new_value,:user_id], name:"Events"},
+      events: {
+        name:"Events",
+        :method=>:events, 
+        :includes=>[:user, :event_changes], 
+        :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, 
+        :attributes=>[:date, :field_name, :action, :old_value_to_s, :new_value_to_s, :user, :details], 
+        :sort_keys=>[:date,nil, :action,  nil, nil,:user_id], 
+        :labels=>[nil, nil,nil, "Old Value", "New Value",nil, "Details"],
+        :formatters=>[nil, nil,nil, nil, nil,nil, :hint_icon]
+
+        },
       result_attachments: {
         :method=>:text_attachments,
         :includes=>[],
@@ -855,21 +868,17 @@ class ResultsController < ApplicationController
   end
 
   def update_metadata
-
     response={}
     params[:key].each do |i,key|
       data=@result.metadata
       r=response
       keys = key.split(".")
-      # validate value here
-
-
-
+      Event.create(field: "Metadata", details: "#{keys.join(":")} set to #{params[:value][i]}", new_value: params[:value][i] ,action: "Updated", user_id: current_user.id, eventable_type:"Result", eventable_id: params[:id]  )
       response = @result.traverse_and_update_metadata(keys, params[:value][i])
-
     end
-    @result.save
 
+    @result.save
+    
     respond_to do |format|
       format.js
       format.json { render json: response.to_json, layout: false}

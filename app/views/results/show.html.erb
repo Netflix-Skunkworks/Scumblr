@@ -104,10 +104,15 @@
             <%= submit_tag 'Submit', :class=>"button tiny"  %>
           <% end -%>
         </dd>
+
         <% @result.tags.select{|t| t.value.present? }.each do |tag| %>
           <dt><%= tag.name %></dt>
           <dd><%= tag.value %> <%= link_to "", delete_tag_result_path(@result,tag), :method=>:delete, :class=>"fi-x" %></dd>
         <% end %>
+      </dd>
+      <dt>Metadata</dt>
+      <dd><%= link_to "Show", get_metadata_result_path(@result, format: :json) %>
+
       </dd>
     </dl>
     <% if can? :destroy, @result %>
@@ -115,6 +120,36 @@
     <% end %>
   </section>
 </div>
+
+
+<% actions_rendered = false %>
+<div class="sidebar">
+  <nav class="tab-bar">
+    <section class="tab-bar-section">
+      <h1>Actions</h1>
+    </section>
+  </nav>
+  <section class="panel sidepanel" >
+    <div id="result_actions">
+      <% if @result.metadata.present? %>
+        <% (@result.metadata.try(:keys) || []).each do |key| %>
+          <% begin %>
+            <%= render partial: "results/actions/#{key}_actions"  %>
+          <% rescue ActionView::MissingTemplate => exception %>
+          <% else %>
+            <% actions_rendered = true %>
+          <% end %>
+        <% end %>
+      <% end %>
+      <% if actions_rendered != true %>
+        <dl class="dl-horizontal">
+          <h5>No Actions Available</h6>
+        </dl>
+      <% end %>
+    </div>
+  </section>
+</div>
+
 <div class="sidebar">
   <nav class="tab-bar">
     <section class="tab-bar-section">

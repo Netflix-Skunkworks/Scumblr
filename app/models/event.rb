@@ -15,7 +15,7 @@
 class Event < ActiveRecord::Base
   belongs_to :user
   belongs_to :eventable, polymorphic: true
-  has_many :event_changes
+  has_many :event_changes, :dependent => :delete_all
 
   before_save :update_fields
 
@@ -26,11 +26,27 @@ class Event < ActiveRecord::Base
 
 
   
+  def new_value_to_s
+    if(self.event_changes.length == 0)
+      return ""
+    elsif(self.event_changes.length == 1)
+      return self.event_changes[0].new_value.to_s
+    else
+      return "Multiple"
+    end
+  end
+
+  def old_value_to_s
+    if(self.event_changes.length == 0)
+      return ""
+    elsif(self.event_changes.length == 1)
+      return self.event_changes[0].old_value.to_s
+    else
+      return "Multiple"
+    end
+  end
 
   private
-
-
-
 
   def update_fields
     if(self.field)
@@ -98,9 +114,9 @@ class Event < ActiveRecord::Base
     
 
     if(options[:sql_only]==true)
-      return [events, events.result(distinct:true).to_sql]
+      return [events, events.result.to_sql]
     else
-      return [events, events.result(distinct:true).page(page).per(per).readonly(false)]
+      return [events, events.result.page(page).per(per).readonly(false)]
     end
   end
 

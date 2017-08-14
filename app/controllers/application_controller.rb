@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
   end
 
   def ssl_configured?
-    !(Rails.env.development? || Rails.env.profile? || Rails.env.test? )
+    !(Rails.env.development? || Rails.env.profile? || Rails.env.test? || Rails.env.dirtylaundrydev? )
   end
 
   def handler_exception(exception)
@@ -71,11 +71,11 @@ class ApplicationController < ActionController::Base
   private
 
   def get_paginated_results(object, symbol, options)
-    results = object.send(symbol).includes(options[:includes])
+    results = object.send(symbol).includes(options[:includes]).page(params[:page] || 1).per(params[:per_page] || 25)
     results = results.order({options[:order].to_sym => options[:direction].blank? ? :asc : options[:direction].to_sym}) if(options[:order].present?)
 
-    instance_variable_set("@#{symbol}_count",results.length)
-    instance_variable_set("@#{symbol}_paginated", results.page(params[:page]).per(params[:per_page]))
+    instance_variable_set("@#{symbol}_count",object.send(symbol).count)
+    instance_variable_set("@#{symbol}_paginated", results)
   end
 
 end

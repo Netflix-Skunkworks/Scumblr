@@ -1,7 +1,8 @@
 
 event_8:
   id: 8
-  action: Error
+  action: Test
+  action: Test
   source: 'Task: Curl - Test Task'
   details: |-
     Unable to run task Curl - Test Task.

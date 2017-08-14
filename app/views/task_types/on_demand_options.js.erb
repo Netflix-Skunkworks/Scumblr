@@ -1,0 +1,6 @@
+<% if @task_type_options.present? %>
+$('#task_type_options').html("<%= escape_javascript(render :partial=>"options_fields", :locals => {:task_options=>@task_options, task_type_options: @task_type_options, on_demand_options: true, hidden_fields: params[:hidden_fields] }) %>");
+<% end %>
+
+
+ready();
