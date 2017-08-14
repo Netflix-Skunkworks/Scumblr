@@ -18,22 +18,30 @@ require 'json'
 
 
 task :run_tasks_and_email_updates => :environment do
+  leader=nil
+
+  # See if Sidekiq has defined a leader
+  Sidekiq.redis {|r| leader = r.get("dear-leader")}
+
+  # If sidekiq has elected a leader, see if we are the leader. If not, exit
+  if(leader.present? && leader.to_s.split(":")[0] != Socket.gethostname.to_s)
+    abort "Not the leader. Exiting."
+  else
+    puts "I am the leader. Continuing."
+  end
+
   Rake::Task["run_tasks"].invoke
   Rake::Task["send_email_updates"].invoke
 end
 
 task :run_tasks => :environment do
 
-  Task.where(enabled:true).group_by(&:group).sort.each do |group,tasks|
-    puts "Running group #{group}"
+  job = TaskRunner.perform_async
 
-    job = TaskRunner.perform_async(tasks.map{|t| t.id})
-
-    while(Sidekiq::Status::status(job) != :complete)
-      puts "Group #{group}: running (#{job})"      
-      puts
-      sleep(0.5)
-    end
+  while(Sidekiq::Status::status(job) && Sidekiq::Status::status(job) != :complete && Sidekiq::Status::status(job) != :failed && Sidekiq::Status::status(job) != :interrupted)
+    puts "Running (#{job})"      
+    puts
+    sleep(2)
   end
 
 end
@@ -62,6 +70,7 @@ end
 
 
 task :sync_all => :environment do
+
   # Run all searches
   Rake::Task["perform_searches"].invoke
   

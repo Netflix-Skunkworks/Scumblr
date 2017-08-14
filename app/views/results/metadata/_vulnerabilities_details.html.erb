@@ -1,7 +1,7 @@
 <%
 accordion_id = SecureRandom.hex 
 @result.metadata["vulnerabilities"] ||= []
-open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"].match(/open/i)}.length
+open_findings_count = @result.metadata["vulnerabilities"].select{|v| Vulnerability.open_statuses.include?(v["status"].to_s.downcase)}.length
 %>
 
 <% content_for :title_content do %>
@@ -18,7 +18,7 @@ open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"]
 
 
                 <% facets = ["status", "severity", "key_suffix", "source", "type", "match_location"] 
-                    selected_facets = {"status" => ["Open", "Reopened"]}
+                    selected_facets = {"status" => ["New", "Ticketed"]}
                 %>
                 <% facets.each do |f| %>
                     <%= label_tag do %><%= f.titleize %>
@@ -94,7 +94,7 @@ open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"]
             <td><%= label_tag(:details, raw("<b>Details:</b>")) %></td>
             <td><%= text_area_tag("value[0][details]") %></td>
          </tr>
-         <%= hidden_field_tag("value[0][status]", "Open") %>
+         <%= hidden_field_tag("value[0][status]", "New") %>
          <%= hidden_field_tag("value[0][source][]", "Manual") %>
          <%= hidden_field_tag("value[0][identified]", "#{Time.now}") %>
          <%= hidden_field_tag("value[0][id]", "#{SecureRandom.hex}") %>
@@ -113,6 +113,6 @@ open_findings_count = @result.metadata["vulnerabilities"].select{|v| v["status"]
   </div>
 <% end %>
 
-<%= render partial: "shared/ajax_metadata_accordion", locals: {result: @result, title: "Vulnerabilities (#{open_findings_count} Open Findings)", partial_name: "vulnerabilities", options: {accordion_id: accordion_id, include_refresh: true, extra_params:{filter:{status:["Open","Reopened"]},filter_on: {status:"vulnerabilities"}}}} %>
+<%= render partial: "shared/ajax_metadata_accordion", locals: {result: @result, title: "Vulnerabilities (#{open_findings_count} Open Findings)", partial_name: "vulnerabilities", options: {accordion_id: accordion_id, include_refresh: true, extra_params:{filter:{status:["New","Ticketed"]},filter_on: {status:"vulnerabilities"}}}} %>
 
 

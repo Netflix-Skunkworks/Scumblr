@@ -17,11 +17,12 @@ class TaskTest < ActiveSupport::TestCase
   should have_many(:events)
 
   fixture_task = Task.first
-  curl_task = Task.last(4).first
-  bad_curl_task = Task.last(3).first
-  github_sync = Task.last(2).first
-  google_search = Task.last
-    # github_result = Result.last
+  curl_task = Task.where(id: 54).first
+  github_system_metadata_search = Task.where(id: 5).first
+  bad_curl_task = Task.where(id: 55).first
+  github_sync = Task.where(id: 56).first
+  google_search = Task.where(id: 57).first
+  # github_result = Result.last
 
   # Class Tests
   test "should return to_s" do
@@ -64,18 +65,29 @@ class TaskTest < ActiveSupport::TestCase
 
   test "should execute simple curl task" do
     curl_task.perform_task
-    assert_equal(nil, curl_task.perform_task)
+    assert_nil(curl_task.perform_task)
   end
 
   test "should execute github sync task" do
+    skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     github_sync.perform_task
+
     assert_equal(1, github_sync.metadata[:current_results].count)
   end
   test "should execute google search task" do
+    skip("Google developer key not defined") if Rails.configuration.try(:google_developer_key).blank?
     google_search.perform_task
 
     assert_equal(1, google_search.metadata[:current_results].count)
   end
+
+#  test "should execute system metadata search for github" do
+#  	require 'byebug'
+#  	byebug
+#  	puts 1
+#    github_system_metadata_search.perform_task
+#    assert_equal("Failed", github_system_metadata_search.metadata["_last_status"])
+#  end
 
   test "should execute badly configured curl task" do
     bad_curl_task.perform_task

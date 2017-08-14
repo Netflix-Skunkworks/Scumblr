@@ -29,10 +29,10 @@ Scumblr::Application.configure do
   # metadata (jsonb) fields using the @> operator. If the right operand contains a dot separated value
   # (example: "test.com") Rails was interpreting this as a table/column and this was breaking the query
   # AH 3/10/16
-  config.active_record.disable_implicit_join_references = true
 
+  config.active_record.raise_in_transactional_callbacks = true
   # Configure static asset server for tests with Cache-Control for performance
-  config.serve_static_assets = true
+  config.serve_static_files = true
   config.static_cache_control = "public, max-age=3600"
 
   # Log error messages when you accidentally call methods on nil

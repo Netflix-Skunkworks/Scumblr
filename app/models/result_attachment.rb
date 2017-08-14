@@ -16,7 +16,7 @@
 class ResultAttachment < ActiveRecord::Base
   attr_reader :attachment_remote_url
   belongs_to :result
-  has_attached_file :attachment, :styles => lambda{ |a| a.content_type.match(/\Aimage\/.*\Z/) ? { :medium => "300x300>", :thumb => "100x100>" } : {}} ,:default_url => "/images/:style/missing.png"
+  has_attached_file :attachment, :styles => lambda{ |a| a.content_type.match(/\Aimage\/.*\Z/) ? { :medium => "300x300>", :thumb => "100x100>" } : {}} ,:default_url => "/images/:style/missing.png", adapter_options: { hash_digest: Digest::SHA256 }
   validates_attachment_content_type :attachment , :content_type => /\Aimage\/.*\Z|\Atext\/plain\Z/
 
   

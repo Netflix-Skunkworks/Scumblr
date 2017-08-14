@@ -20,14 +20,23 @@
     end
     object = Kaminari.paginate_array(object).page(params[:page] || 1).per(params[:per_page] || 25) 
     instance_variable_set("@#{result_set[:method]}_paginated", object)
+    
+  end
+  # This was put in place to fix a bug in Arel when an in_any query contains a blank value. This impacted event searching 
+  # based on a saved filter. This should be fixed in a newer version of rails  https://github.com/rails/arel/pull/398 
+  begin
+    instance_variable_get("@#{result_set[:method]}_paginated").to_a 
+  rescue 
+    instance_variable_set("@#{result_set[:method]}_paginated", [])
   end
   
    
 %>
 
+
 <% uuid = params[:uuid] || SecureRandom.hex %>
 <% result_set[:sort_keys] ||= [] %>
-<%= render :layout=>"shared/paginated_table", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>instance_variable_get("@#{result_set[:method]}_paginated"), :remote=>true, :action_name=>"#{result_set[:method]}", :uuid=> uuid} do %>
+<%= render :layout=>"shared/paginated_table", :locals => {:title=>"#{result_set[:name]} (#{instance_variable_get("@#{result_set[:method]}_count")})", :paginated_array=>(instance_variable_get("@#{result_set[:method]}_paginated") || []), :remote=>true, :action_name=>"#{result_set[:method]}", :uuid=> uuid} do %>
   <thead>
     <tr>
       <% if result_set[:link] %>
