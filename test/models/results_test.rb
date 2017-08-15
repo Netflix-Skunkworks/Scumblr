@@ -38,7 +38,7 @@ class ResultTest < ActiveSupport::TestCase
   test "should perform a default result search" do
 
     ransack, results = Result.perform_search(q={"status_id_includes_closed"=>"0", "g"=>{"0"=>{"m"=>"or", "status_id_null"=>1, "status_closed_not_eq"=>true}}})
-    assert_equal(4, results.length)
+    assert_equal(5, results.length)
   end
 
   test "should perform a tag result search" do
