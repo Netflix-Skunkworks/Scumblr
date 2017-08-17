@@ -30,6 +30,7 @@ class Task < ActiveRecord::Base
 
   validates :name, presence: true
   validates :name, uniqueness: true
+  validates :run_type, presence: true
   validates :group, presence: true
   validate :validate_search
   after_save :update_schedule
@@ -86,7 +87,11 @@ class Task < ActiveRecord::Base
   end
 
   def self.task_type_valid?(task_type)
-    task_type.match(/\ASearchProvider::|\AScumblrTask::/) && (SearchProvider::Provider.subclasses.include?(task_type.to_s.constantize) || ScumblrTask::Base.descendants.reject{|x| !x.task_type_name }.include?(task_type.to_s.constantize))
+    begin
+      task_type.match(/\ASearchProvider::|\AScumblrTask::/) && (SearchProvider::Provider.subclasses.include?(task_type.to_s.constantize) || ScumblrTask::Base.descendants.reject{|x| !x.task_type_name }.include?(task_type.to_s.constantize))
+    rescue
+      false
+    end
   end
 
   def validate_search
@@ -100,7 +105,7 @@ class Task < ActiveRecord::Base
       return
     end
 
-
+    
     task_type_options = self.task_type.constantize.options
     if(self.options.blank?)
       self.options = {}
@@ -108,7 +113,13 @@ class Task < ActiveRecord::Base
     self.options.slice!(*task_type_options.keys)
     task_type_options.each do |key, value|
       if value[:required] && options[key].blank?
+        if(run_type == "on_demand")
+          if(self.metadata.try(:[],"runtime_override") != true && !self.metadata.try(:[],"runtime_override").include?(key.to_s))
+            errors.add value[:name], " must be specified or included in Runtime Override Options"
+          end
+        else
         errors.add value[:name], " can't be blank"
+        end
       end
     end
     true
@@ -158,7 +169,48 @@ class Task < ActiveRecord::Base
     end
   end
 
-  def perform_task
+  # this will create metadata for CRUD on results for tasks
+  #after_save :create_task_event
+
+  # def create_task_event
+  #   if(Thread.current[:current_task])
+  #     #create an event linking the updated/new result to the task
+  #     calling_task = Task.where(id: Thread.current[:current_task]).first
+  #     calling_task.metadata["current_results"] ||={}
+  #     puts calling_task.metadata
+  #     calling_task.metadata["current_results"]["created"] ||=[]
+  #     calling_task.metadata["current_results"]["updated"] ||=[]
+
+  #     if self.new_record?
+  #       calling_task.metadata["current_results"]["created"] << self.id
+  #     else
+  #       calling_task.metadata["current_results"]["updated"] << self.id
+  #     end
+  #     calling_task.save!
+  #   end
+  # end
+
+
+  # Allow merging together a list of configured options with options passed at runtime for on-demand tasks
+  # runtime_options is the list of options given at runtime
+  # task_options is the hash to merge the runtime options into. If not specified this defaults to the task's saved options
+  #
+  # Looks for a key in the task's metadata called "runtime_override" which specifies which options can be overriden.
+  # If this value is set to true, all options can be overriden.
+  def merge_options(runtime_options, task_options=nil)
+    if(task_options.nil?)
+      task_options = self.options
+    end
+    
+    if(self.try(:metadata).try(:[],"runtime_override") != true)
+      runtime_options = runtime_options.with_indifferent_access.slice(*self.try(:metadata).try(:[],"runtime_override"))    
+    end
+    task_options.merge(runtime_options)
+  end
+
+
+  # Perform a standard task that has been configured and saved
+  def perform_task(task_params=nil)
     t = Time.now
     task = self
     task.metadata ||= {}
@@ -170,20 +222,23 @@ class Task < ActiveRecord::Base
     end
 
     task_type = task.task_type.constantize
-
-    task_options = task.options.merge({_metadata:task.metadata||{}, _self:task})
-
+    task_options = task.options.merge({_self:task, _params:task_params})
 
     results = nil
     begin
       task.metadata["_start_time"] = Time.now
       if(task.task_type.match(/\ASearchProvider::/))
-        results = task_type.new(task.query, task_options).run
+        results = task_type.new(task.query, task_options).start
       else
-        results = task_type.new(task_options).run
+        results = task_type.new(task_options).start
       end
     rescue StandardError=>e
-      event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      if e.class == ScumblrTask::TaskException
+
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: e.message, eventable_type: "Task", eventable_id: task.id )
+      else
+        event = Event.create(action: "Error", source:"Task: #{task.name}", details: "Unable to run task #{task.name}.\n\nError: #{e.message}\n\n#{e.backtrace}", eventable_type: "Task", eventable_id: task.id )
+      end
       Rails.logger.error "#{e.message}"
 
       Thread.current["current_events"] ||= {}
@@ -199,6 +254,7 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
+
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id
@@ -231,6 +287,8 @@ class Task < ActiveRecord::Base
       Thread.current["previous_results"] = {}
       Thread.current["current_events"] = {}
       Thread.current["previous_events"] = {}
+      Thread.current[:current_task] = nil
+
       Rails.logger.debug "No results returned"
       return
     end
@@ -241,6 +299,7 @@ class Task < ActiveRecord::Base
 
     counter = 0
     #foo = []
+
     results.each do |r|
 
       result = Result.where(:url=>r[:url].strip).first_or_initialize
@@ -280,6 +339,7 @@ class Task < ActiveRecord::Base
     Thread.current["previous_results"] = {}
     Thread.current["current_events"] = {}
     Thread.current["previous_events"] = {}
+    Thread.current[:current_task] = nil
     if was_successful
       task.metadata["_last_run"]  = task.metadata["_last_successful_run"] = Time.now
     end

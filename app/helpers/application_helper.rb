@@ -45,6 +45,15 @@ module ApplicationHelper
     html.html_safe
   end
 
+  def hint_icon(text, blank_on_nil=true)
+    if(text.blank? && blank_on_nil)
+      ""
+    else
+      return ('<span data-tooltip aria-haspopup="true" class="has-tip tip-left" title="'+ CGI::escapeHTML(text.to_s) +'"><i class="fi-info"></i></span>').html_safe
+    end
+    
+  end
+
 
   def time_string_time_ago_in_words(value)
     begin

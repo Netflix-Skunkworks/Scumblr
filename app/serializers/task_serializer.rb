@@ -14,5 +14,5 @@
 
 
 class TaskSerializer < ActiveModel::Serializer
-  attributes :id, :type, :options, :name, :description
+  attributes :id, :task_type, :options, :name, :description
 end

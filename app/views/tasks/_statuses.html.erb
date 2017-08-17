@@ -9,8 +9,11 @@
       <% if status["total"] && status["at"] && status["message"]%>
         <li>
           <a href="#">
-            <% pct = (100*status["at"].to_f/status["total"].to_f).round(2) %>
+            <% pct = [(100*status["at"].to_f/status["total"].to_f),100].min.round(2) %>
             <div class="title"><%= status["message"].to_s.gsub(/\A.:/ , "").to_s %></div>
+            <% if status["submessage"] %>
+              <div class="title"><%= status["submessage"].to_s %></div> 
+            <% end %>
             <div class="subtitle"><%= pct%>%</div>
             <div class="progress">
               <span class="meter" style="width: <%= pct.to_i.to_s%>%"></span>

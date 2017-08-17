@@ -1,5 +1,5 @@
 class SystemMetadataController < ApplicationController
-  before_action :set_system_metadatum, only: [:show, :edit, :update, :destroy]
+  before_action :set_system_metadatum, only: [:show, :edit, :update, :destroy, :autocomplete]
   #serialize :metadata, JSON
 
   # GET /system_metadata
@@ -12,6 +12,10 @@ class SystemMetadataController < ApplicationController
   # GET /system_metadata/1
   # GET /system_metadata/1.json
   def show
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json { render json: @system_metadata }
+    end
   end
 
   # GET /system_metadata/new
@@ -22,6 +26,32 @@ class SystemMetadataController < ApplicationController
   # GET /system_metadata/1/edit
   def edit
 
+  end
+
+  def autocomplete
+    if(params[:q].blank?)
+      data = []
+    else
+      data = @system_metadata.metadata
+      if(params[:key])
+        data = data.try(:[], params[:key])
+      end
+      
+      data = data.select{ |d| 
+        if(d.class==Hash)
+          d.values.to_s.match(/#{params[:q]}/i)
+        else
+          d.to_s.match(/#{params[:q]}/i)
+        end
+      } if data
+      paginated_data = Kaminari.paginate_array(data).page(params[:page]).per(params[:per_page])
+    end
+
+
+    respond_to do |format|
+      format.json { render json: {results: paginated_data, meta:{total: data.count}}}
+    end
+      
   end
 
   # POST /system_metadata
@@ -59,7 +89,7 @@ class SystemMetadataController < ApplicationController
   def destroy
     @system_metadata.destroy
     respond_to do |format|
-      format.html { redirect_to system_metadata_index_url, notice: 'System metadata was successfully destroyed.' }
+      format.html { redirect_to system_metadata_url, notice: 'System metadata was successfully destroyed.' }
       format.json { head :no_content }
     end
   end

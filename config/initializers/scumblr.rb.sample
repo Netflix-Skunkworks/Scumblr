@@ -19,7 +19,7 @@ Scumblr::Application.configure do
   # other values needed for tasks. By default the values will be retrieve
   # from environment variables as configured below. This file can be modified
   # to include these values inline if desired.
-  
+
   # Notification emails
   config.email_source_address = "scumblr@localhost"
 
@@ -30,33 +30,33 @@ Scumblr::Application.configure do
   config.sketchy_verify_ssl = ENV["sketchy_verify_ssl"] == "false" ? false : true # Should scumblr verify sketchy's cert
   config.sketchy_tag_status_code = ENV["sketchy_tag_status_code"] # Add a tag indicating last status code sketchy received
   config.sketchy_access_token = ENV["sketchy_access_token"]
-  
+
   # Google
-  config.google_application_name = ENV["google_application_name"] 
-  config.google_application_version = ENV["google_application_version"] 
-  config.google_developer_key = ENV["google_developer_key"] 
-  config.google_cx = ENV["google_cx"] 
-  
+  config.google_application_name = ENV["google_application_name"]
+  config.google_application_version = ENV["google_application_version"]
+  config.google_developer_key = ENV["google_developer_key"]
+  config.google_cx = ENV["google_cx"]
+
   # YouTube
-  config.youtube_application_name = ENV["youtube_application_name"] 
-  config.youtube_application_version = ENV["youtube_application_version"] 
-  config.youtube_developer_key = ENV["youtube_developer_key"] 
-  
+  config.youtube_application_name = ENV["youtube_application_name"]
+  config.youtube_application_version = ENV["youtube_application_version"]
+  config.youtube_developer_key = ENV["youtube_developer_key"]
+
   # eBay
-  config.ebay_access_key = ENV["ebay_access_key"] 
-  
+  config.ebay_access_key = ENV["ebay_access_key"]
+
   # Facebook
-  config.facebook_app_id = ENV["facebook_app_id"] 
-  config.facebook_app_secret = ENV["facebook_app_secret"] 
-  
+  config.facebook_app_id = ENV["facebook_app_id"]
+  config.facebook_app_secret = ENV["facebook_app_secret"]
+
   # Twitter
-  config.twitter_consumer_key = ENV["twitter_consumer_key"] 
-  config.twitter_consumer_secret = ENV["twitter_consumer_secret"] 
-  config.twitter_access_token = ENV["twitter_access_token"] 
-  config.twitter_access_token_secret = ENV["twitter_access_token_secret"] 
-  
+  config.twitter_consumer_key = ENV["twitter_consumer_key"]
+  config.twitter_consumer_secret = ENV["twitter_consumer_secret"]
+  config.twitter_access_token = ENV["twitter_access_token"]
+  config.twitter_access_token_secret = ENV["twitter_access_token_secret"]
+
   # Github
-  config.github_oauth_token = ENV["github_oauth_token"] 
+  config.github_oauth_token = ENV["github_oauth_token"]
 
   #OpenGrok
   config.opengrok_url = ENV["opengrok_url"]

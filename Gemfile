@@ -18,7 +18,6 @@ gem "brakeman", require: false
 gem "bundler-audit"
 gem 'rest-client'
 gem 'chartkick'
-
 gem 'redcarpet'
 
 gem 'addressable'
@@ -45,7 +44,7 @@ gem 'workflowable'
 
 #JIRA Integration
 gem 'jiralicious'
-
+gem 'jira-ruby'
 #Authorization
 gem 'cancan'
 
@@ -53,8 +52,8 @@ gem 'cancan'
 gem 'ransack'
 
 #Image processing/attachments
-gem 'paperclip'
-gem 'aws-sdk', '< 2.0'
+gem 'paperclip', ">= 5.0"
+gem 'aws-sdk'
 
 
 # Time period parsing
@@ -73,6 +72,8 @@ gem 'activerecord-import'
 gem 'sidekiq'
 gem 'sidekiq-status'
 gem 'sidekiq-scheduler'
+gem 'sidekiq-limit_fetch'
+gem 'mlanett-redis-lock', require: 'redis-lock'
 
 #Pagination
 gem 'kaminari'
@@ -127,11 +128,14 @@ group :development, :test, :production do
   gem 'unicorn-rails'
 end
 
-group :test, :production do
+group :test do
   #this doesn't get along with rack-mini-profiler
   gem 'oj_mimic_json'
 end
 
+# Used for Redis Cache
+gem "redis-store"
+gem "redis-rails"
 
 group :development, :dirtylaundrydev do
   gem 'spring', group: :development
@@ -161,14 +165,14 @@ end
 
 #Testing
 group :development, :test, :dirtylaundrydev do
-  gem 'rspec-rails'
+  #gem 'rspec-rails'
   gem 'factory_girl_rails'
 
 end
 
 group :test do
   gem 'database_cleaner'
-  gem 'shoulda'
+  gem 'shoulda', '~> 3.5'
   gem 'activerecord-nulldb-adapter'
   gem 'minitest-reporters'
   gem 'shoulda-matchers', '~> 2.0'

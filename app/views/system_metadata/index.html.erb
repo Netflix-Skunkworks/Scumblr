@@ -1,6 +1,5 @@
 <h3>System Metadata</h3>
-<p>Define json collections of data you can use across multiple tasks.
-Curl Security Task and Github Security Task expect JSON arrays.</p>
+<p>Define collections of JSON data you can use across multiple tasks.</p>
 
 <table>
   <thead>
@@ -14,7 +13,7 @@ Curl Security Task and Github Security Task expect JSON arrays.</p>
     <% @system_metadata.each do |system_metadatum| %>
       <tr>
         <td><%= system_metadatum.key %></td>
-        <td><%= system_metadatum.metadata.to_json %></td>
+        <td><%= system_metadatum.metadata.to_s.truncate(255) %></td>
         <td>
           <%= link_to link_to 'Show', system_metadatum, class: "button tiny" %>
           <% if can? :edit, SystemMetadata %>
