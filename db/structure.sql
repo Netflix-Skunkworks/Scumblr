@@ -2,11 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.4.5
--- Dumped by pg_dump version 9.5.2
+-- Dumped from database version 9.6.0
+-- Dumped by pg_dump version 9.6.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -613,7 +614,8 @@ CREATE TABLE tasks (
     query text,
     enabled boolean DEFAULT true,
     "group" integer DEFAULT 1,
-    metadata jsonb
+    metadata jsonb,
+    frequency character varying DEFAULT ''::character varying
 );
 
 
@@ -909,182 +911,182 @@ ALTER SEQUENCE workflowable_workflows_id_seq OWNED BY workflowable_workflows.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: comments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY comments ALTER COLUMN id SET DEFAULT nextval('comments_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: event_changes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY event_changes ALTER COLUMN id SET DEFAULT nextval('event_changes_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY events ALTER COLUMN id SET DEFAULT nextval('events_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: flags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY flags ALTER COLUMN id SET DEFAULT nextval('flags_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: result_attachments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_attachments ALTER COLUMN id SET DEFAULT nextval('result_attachments_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: result_flags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_flags ALTER COLUMN id SET DEFAULT nextval('result_flags_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY results ALTER COLUMN id SET DEFAULT nextval('results_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: saved_filters id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY saved_filters ALTER COLUMN id SET DEFAULT nextval('saved_filters_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: sessions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY sessions ALTER COLUMN id SET DEFAULT nextval('sessions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: statuses id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY statuses ALTER COLUMN id SET DEFAULT nextval('statuses_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: subscribers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY subscribers ALTER COLUMN id SET DEFAULT nextval('subscribers_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: summaries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY summaries ALTER COLUMN id SET DEFAULT nextval('summaries_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: system_metadata id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY system_metadata ALTER COLUMN id SET DEFAULT nextval('system_metadata_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY taggings ALTER COLUMN id SET DEFAULT nextval('taggings_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: tags id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tags ALTER COLUMN id SET DEFAULT nextval('tags_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: task_results id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY task_results ALTER COLUMN id SET DEFAULT nextval('task_results_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: tasks id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tasks ALTER COLUMN id SET DEFAULT nextval('tasks_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: user_saved_filters id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_saved_filters ALTER COLUMN id SET DEFAULT nextval('user_saved_filters_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_actions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_actions ALTER COLUMN id SET DEFAULT nextval('workflowable_actions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_stage_actions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_actions ALTER COLUMN id SET DEFAULT nextval('workflowable_stage_actions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_stage_next_steps id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_next_steps ALTER COLUMN id SET DEFAULT nextval('workflowable_stage_next_steps_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_stages id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stages ALTER COLUMN id SET DEFAULT nextval('workflowable_stages_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_workflow_actions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflow_actions ALTER COLUMN id SET DEFAULT nextval('workflowable_workflow_actions_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: workflowable_workflows id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflows ALTER COLUMN id SET DEFAULT nextval('workflowable_workflows_id_seq'::regclass);
 
 
 --
--- Name: comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY comments
@@ -1092,7 +1094,7 @@ ALTER TABLE ONLY comments
 
 
 --
--- Name: event_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: event_changes event_changes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY event_changes
@@ -1100,7 +1102,7 @@ ALTER TABLE ONLY event_changes
 
 
 --
--- Name: events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY events
@@ -1108,7 +1110,7 @@ ALTER TABLE ONLY events
 
 
 --
--- Name: flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: flags flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY flags
@@ -1116,7 +1118,7 @@ ALTER TABLE ONLY flags
 
 
 --
--- Name: result_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: result_attachments result_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_attachments
@@ -1124,7 +1126,7 @@ ALTER TABLE ONLY result_attachments
 
 
 --
--- Name: result_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: result_flags result_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY result_flags
@@ -1132,7 +1134,7 @@ ALTER TABLE ONLY result_flags
 
 
 --
--- Name: results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: results results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY results
@@ -1140,7 +1142,7 @@ ALTER TABLE ONLY results
 
 
 --
--- Name: saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: saved_filters saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY saved_filters
@@ -1148,7 +1150,7 @@ ALTER TABLE ONLY saved_filters
 
 
 --
--- Name: search_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: task_results search_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY task_results
@@ -1156,7 +1158,7 @@ ALTER TABLE ONLY task_results
 
 
 --
--- Name: searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: tasks searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tasks
@@ -1164,7 +1166,7 @@ ALTER TABLE ONLY tasks
 
 
 --
--- Name: sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY sessions
@@ -1172,7 +1174,7 @@ ALTER TABLE ONLY sessions
 
 
 --
--- Name: statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: statuses statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY statuses
@@ -1180,7 +1182,7 @@ ALTER TABLE ONLY statuses
 
 
 --
--- Name: subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: subscribers subscribers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY subscribers
@@ -1188,7 +1190,7 @@ ALTER TABLE ONLY subscribers
 
 
 --
--- Name: summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: summaries summaries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY summaries
@@ -1196,7 +1198,7 @@ ALTER TABLE ONLY summaries
 
 
 --
--- Name: system_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: system_metadata system_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY system_metadata
@@ -1204,7 +1206,7 @@ ALTER TABLE ONLY system_metadata
 
 
 --
--- Name: taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY taggings
@@ -1212,7 +1214,7 @@ ALTER TABLE ONLY taggings
 
 
 --
--- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY tags
@@ -1220,8 +1222,7 @@ ALTER TABLE ONLY tags
 
 
 --
--- Name: user_saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
--- Name: user_saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: user_saved_filters user_saved_filters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY user_saved_filters
@@ -1229,7 +1230,7 @@ ALTER TABLE ONLY user_saved_filters
 
 
 --
--- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY users
@@ -1237,7 +1238,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: workflowable_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_actions workflowable_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_actions
@@ -1245,7 +1246,7 @@ ALTER TABLE ONLY workflowable_actions
 
 
 --
--- Name: workflowable_stage_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_stage_actions workflowable_stage_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_actions
@@ -1253,7 +1254,7 @@ ALTER TABLE ONLY workflowable_stage_actions
 
 
 --
--- Name: workflowable_stage_next_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_stage_next_steps workflowable_stage_next_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stage_next_steps
@@ -1261,7 +1262,7 @@ ALTER TABLE ONLY workflowable_stage_next_steps
 
 
 --
--- Name: workflowable_stages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_stages workflowable_stages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_stages
@@ -1269,7 +1270,7 @@ ALTER TABLE ONLY workflowable_stages
 
 
 --
--- Name: workflowable_workflow_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_workflow_actions workflowable_workflow_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflow_actions
@@ -1277,7 +1278,7 @@ ALTER TABLE ONLY workflowable_workflow_actions
 
 
 --
--- Name: workflowable_workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflowable_workflows workflowable_workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY workflowable_workflows
@@ -1484,7 +1485,7 @@ CREATE UNIQUE INDEX unique_search_results ON task_results USING btree (task_id, 
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user",public;
+SET search_path TO "$user", public;
 
 INSERT INTO schema_migrations (version) VALUES ('20140116225320');
 
@@ -1589,4 +1590,6 @@ INSERT INTO schema_migrations (version) VALUES ('20160218172906');
 INSERT INTO schema_migrations (version) VALUES ('20160629192755');
 
 INSERT INTO schema_migrations (version) VALUES ('20160804194709');
+
+INSERT INTO schema_migrations (version) VALUES ('20170622205314');
 

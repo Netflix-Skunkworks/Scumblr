@@ -15,6 +15,7 @@
 
 require 'sidekiq'
 require 'sidekiq-status'
+require 'sidekiq-scheduler/web'
 
 Sidekiq.configure_client do |config|
   config.client_middleware do |chain|
@@ -35,3 +36,5 @@ Sidekiq.configure_server do |config|
     chain.add Sidekiq::Status::ClientMiddleware
   end
 end
+
+Task.update_schedules

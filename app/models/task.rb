@@ -32,7 +32,7 @@ class Task < ActiveRecord::Base
   validates :name, uniqueness: true
   validates :group, presence: true
   validate :validate_search
-
+  after_save :update_schedule
 
 
   accepts_nested_attributes_for :taggings, :tags
@@ -41,16 +41,48 @@ class Task < ActiveRecord::Base
     "Task #{id}"
   end
 
-  def schedule(days, hours, minutes)
-    frequency = "#{days} days #{hours} hours #{minutes} minutes"
+  def update_schedule
+    if(self.enabled && self.frequency.present?)
+      self.schedule(self.frequency)
+    else
+      self.unschedule_from_sidekiq
+    end
+  end
+
+  def self.update_schedules
+    Sidekiq.schedule = []
+    Task.where(enabled:true).each do |t|
+      
+      t.schedule(t.frequency) if(t.frequency.present?)
+      
+    end
+
+  end
+
+  def set_cron(minute, hour, day, month, day_of_week)
+    return "#{minute} #{hour} #{day} #{month} #{day_of_week}"
+  end
+
+  def schedule_with_params(minute, hour, day, month, day_of_week)
+    frequency = set_cron(minute, hour, day, month, day_of_week)
     update_attribute(:frequency, frequency)
-    time = (days.to_i * 1440 + hours.to_i * 60 + minutes.to_i).to_s + "m"
-    Sidekiq.set_schedule("task: #{id}", { 'every' => [time], 'class' => 'TaskRunner', 'args' => [id] })
+    schedule(frequency)
+  end
+
+  def schedule(cron)
+    return if(cron.blank?)
+    Sidekiq.set_schedule("task: #{id}", { 'cron' => cron, 'class' => 'TaskRunner', 'args' => [id] })
   end
 
   def unschedule
-    update_attribute(:frequency, nil)
-    Sidekiq.set_schedule("task: #{id}", { 'every' => [nil], 'class' => 'TaskRunner', 'args' => [id] })
+    update_attribute(:frequency, "")
+    unschedule_from_sidekiq
+  end
+
+  def unschedule_from_sidekiq
+    schedules = Sidekiq.get_all_schedules
+    schedules = schedules.reject { |k, v| k == "task: #{id}" }
+    Sidekiq.schedule = schedules
   end
 
   def self.task_type_valid?(task_type)

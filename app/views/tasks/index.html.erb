@@ -189,9 +189,13 @@ $(function(){
           Schedule selected tasks to run every DD:HH:MM
         </p>
         <p>
-          Days <%= select_tag :days, options_for_select((0..31)) %>
-          Hours <%= select_tag :hours, options_for_select((0..24)) %>
-          Minutes <%= select_tag :minutes, options_for_select((0..60)) %>
+          Minutes <%= select_tag :minute, options_for_select(["*"]+(0..59).to_a) %>
+          Hours <%= select_tag :hour, options_for_select(["*"]+(0..23).to_a) %>
+          Day of month <%= select_tag :day, options_for_select(["*"]+(1..31).to_a) %>
+          Month <%= select_tag :month, options_for_select(["*"]+(1..12).to_a) %>
+          Day of Week <%= select_tag :day_of_week, options_for_select(["*"]+(0..6).to_a) %>
+          
+          
         </p>
         <%= submit_tag "Schedule", :method=>:post, :class=>"button small schedule_tasks_button" %>
         <%= submit_tag "Unschedule", :method=>:post, :class=>"button small alert schedule_tasks_button" %>

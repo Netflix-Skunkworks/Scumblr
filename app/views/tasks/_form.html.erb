@@ -39,6 +39,10 @@
     <%= f.label :query %>
     <%= f.text_field :query %>
   </div>
+  <div class="field ">
+    <%= f.label :frequency %>
+    <%= f.text_field :frequency %>
+  </div>
   <div id="task_type_options">
     <%= render partial: 'task_types/options_fields', locals: {task_options: @task.options, task_type_options: @task.task_type_options} %>
   </div>
