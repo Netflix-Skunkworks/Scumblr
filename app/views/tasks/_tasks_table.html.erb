@@ -8,7 +8,9 @@
     <th>Task Type</th>
     <th>Query</th>
     <th>Last Success</th>
-    <th>Frequency</th>
+    <% if !defined?(hide_frequency) || hide_frequency!=true %>
+      <th>Frequency</th>
+    <% end %>
     <th></th>
   </tr>
   <% tasks.partition{|v| v.enabled == true}.flatten.each do |task| %>
@@ -23,7 +25,7 @@
         <% message += "<br/>" + link_to("Event #{task.metadata.try(:[], "_last_status_event")}", event_path(task.metadata.try(:[], "_last_status_event"))) if task.metadata.try(:[], "_last_status_event") %>
         <% message +=  "<br/>Last run: " + time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_run").to_s)) + " ago" if task.metadata.try(:[], "_last_run")%>
         <% message +=  "<br/>Last success: " + time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_successful_run").to_s)) + " ago" if task.metadata.try(:[], "_last_successful_run") %>
-        <% message +=  "<br/> task.frequency%>
+        
         <% if task.metadata.try(:[], "current_events").try(:[], "Error").present? %>
           <% message += search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
             <% task.metadata["current_events"]["Error"].first(200).each do |error_event| %>
@@ -94,6 +96,9 @@
       <td><%= task.task_type_name %></td>
       <td><%= task.query %></td>
       <td><%= time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_successful_run").to_s)) + " ago" if task.metadata.try(:[], "_last_successful_run")%></td>
+      <% if !defined?(hide_frequency) || hide_frequency!=true %>
+        <td><%= task.frequency %></td>
+      <% end %>
       <td>
         <% if task.enabled %>
           <%= link_to 'Disable', disable_task_path(task), method: :post, class: "button tiny" if can? :disable, task %>

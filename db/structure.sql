@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-
 -- Dumped from database version 9.6.0
 -- Dumped by pg_dump version 9.6.1
 
@@ -29,33 +28,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
---
--- Name: pg_stat_statements; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
-
-
---
--- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pg_stat_statements IS 'track execution statistics of all SQL statements executed';
-
-
 SET search_path = public, pg_catalog;
-
---
--- Name: comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE comments_id_seq
-    START WITH 87
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 SET default_tablespace = '';
 
@@ -66,7 +39,7 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE comments (
-    id integer DEFAULT nextval('comments_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     commentable_id integer DEFAULT 0,
     commentable_type character varying(255) DEFAULT ''::character varying,
     title character varying(255) DEFAULT ''::character varying,
@@ -76,8 +49,45 @@ CREATE TABLE comments (
     parent_id integer,
     lft integer,
     rgt integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE comments_id_seq OWNED BY comments.id;
+
+
+--
+-- Name: event_changes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE event_changes (
+    id integer NOT NULL,
+    event_id integer,
+    field character varying(255),
+    new_value text,
+    old_value text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    old_value_key integer,
+    new_value_key integer,
+    value_class character varying(255)
 );
 
 
@@ -86,7 +96,7 @@ CREATE TABLE comments (
 --
 
 CREATE SEQUENCE event_changes_id_seq
-    START WITH 7675762
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -94,21 +104,10 @@ CREATE SEQUENCE event_changes_id_seq
 
 
 --
--- Name: event_changes; Type: TABLE; Schema: public; Owner: -
+-- Name: event_changes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE event_changes (
-    id integer DEFAULT nextval('event_changes_id_seq'::regclass) NOT NULL,
-    event_id integer,
-    field character varying(255),
-    new_value text,
-    old_value text,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
-    old_value_key integer,
-    new_value_key integer,
-    value_class character varying(255)
-);
+ALTER SEQUENCE event_changes_id_seq OWNED BY event_changes.id;
 
 
 --
@@ -120,11 +119,11 @@ CREATE TABLE events (
     action character varying(255),
     source character varying(255),
     details text,
-    date timestamp(6) without time zone,
+    date timestamp without time zone,
     user_id integer,
     eventable_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
     eventable_type character varying(255)
 );
 
@@ -134,7 +133,7 @@ CREATE TABLE events (
 --
 
 CREATE SEQUENCE events_id_seq
-    START WITH 6684280
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -149,11 +148,26 @@ ALTER SEQUENCE events_id_seq OWNED BY events.id;
 
 
 --
+-- Name: flags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE flags (
+    id integer NOT NULL,
+    name character varying(255),
+    color character varying(255),
+    workflow_id integer,
+    description text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: flags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE flags_id_seq
-    START WITH 3
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -161,17 +175,26 @@ CREATE SEQUENCE flags_id_seq
 
 
 --
--- Name: flags; Type: TABLE; Schema: public; Owner: -
+-- Name: flags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE flags (
-    id integer DEFAULT nextval('flags_id_seq'::regclass) NOT NULL,
-    name character varying(255),
-    color character varying(255),
-    workflow_id integer,
-    description text,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+ALTER SEQUENCE flags_id_seq OWNED BY flags.id;
+
+
+--
+-- Name: result_attachments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE result_attachments (
+    id integer NOT NULL,
+    result_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    attachment_file_name character varying(255),
+    attachment_content_type character varying(255),
+    attachment_file_size integer,
+    attachment_updated_at timestamp without time zone,
+    attachment_fingerprint character varying(255)
 );
 
 
@@ -180,7 +203,7 @@ CREATE TABLE flags (
 --
 
 CREATE SEQUENCE result_attachments_id_seq
-    START WITH 268570
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -188,19 +211,24 @@ CREATE SEQUENCE result_attachments_id_seq
 
 
 --
--- Name: result_attachments; Type: TABLE; Schema: public; Owner: -
+-- Name: result_attachments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE result_attachments (
-    id integer DEFAULT nextval('result_attachments_id_seq'::regclass) NOT NULL,
+ALTER SEQUENCE result_attachments_id_seq OWNED BY result_attachments.id;
+
+
+--
+-- Name: result_flags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE result_flags (
+    id integer NOT NULL,
+    stage_id integer,
+    workflow_id integer,
+    flag_id integer,
     result_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
-    attachment_file_name character varying(255),
-    attachment_content_type character varying(255),
-    attachment_file_size integer,
-    attachment_updated_at timestamp(6) without time zone,
-    attachment_fingerprint character varying(255)
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -209,7 +237,7 @@ CREATE TABLE result_attachments (
 --
 
 CREATE SEQUENCE result_flags_id_seq
-    START WITH 8
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -217,30 +245,10 @@ CREATE SEQUENCE result_flags_id_seq
 
 
 --
--- Name: result_flags; Type: TABLE; Schema: public; Owner: -
+-- Name: result_flags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE result_flags (
-    id integer DEFAULT nextval('result_flags_id_seq'::regclass) NOT NULL,
-    stage_id integer,
-    workflow_id integer,
-    flag_id integer,
-    result_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
-);
-
-
---
--- Name: results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE results_id_seq
-    START WITH 274895
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+ALTER SEQUENCE result_flags_id_seq OWNED BY result_flags.id;
 
 
 --
@@ -248,12 +256,12 @@ CREATE SEQUENCE results_id_seq
 --
 
 CREATE TABLE results (
-    id integer DEFAULT nextval('results_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     title character varying(255),
     url character varying(255),
     status_id integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     domain character varying(255),
     user_id integer,
     content text,
@@ -264,11 +272,11 @@ CREATE TABLE results (
 
 
 --
--- Name: saved_filters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: results_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE saved_filters_id_seq
-    START WITH 72
+CREATE SEQUENCE results_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -276,21 +284,47 @@ CREATE SEQUENCE saved_filters_id_seq
 
 
 --
+-- Name: results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE results_id_seq OWNED BY results.id;
+
+
+--
 -- Name: saved_filters; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE saved_filters (
-    id integer DEFAULT nextval('saved_filters_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     name character varying(255),
     query text,
     user_id integer,
     public boolean,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
     saved_filter_type character varying(255),
     store_index_columns boolean,
     index_columns text
 );
+
+
+--
+-- Name: saved_filters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE saved_filters_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: saved_filters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE saved_filters_id_seq OWNED BY saved_filters.id;
 
 
 --
@@ -303,11 +337,24 @@ CREATE TABLE schema_migrations (
 
 
 --
+-- Name: sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE sessions (
+    id integer NOT NULL,
+    session_id character varying NOT NULL,
+    data text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: sessions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE sessions_id_seq
-    START WITH 5722
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -315,15 +362,24 @@ CREATE SEQUENCE sessions_id_seq
 
 
 --
--- Name: sessions; Type: TABLE; Schema: public; Owner: -
+-- Name: sessions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE sessions (
-    id integer DEFAULT nextval('sessions_id_seq'::regclass) NOT NULL,
-    session_id character varying NOT NULL,
-    data text,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+ALTER SEQUENCE sessions_id_seq OWNED BY sessions.id;
+
+
+--
+-- Name: statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE statuses (
+    id integer NOT NULL,
+    name character varying(255),
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    closed boolean,
+    is_invalid boolean,
+    "default" boolean DEFAULT false
 );
 
 
@@ -332,7 +388,7 @@ CREATE TABLE sessions (
 --
 
 CREATE SEQUENCE statuses_id_seq
-    START WITH 9
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -340,17 +396,24 @@ CREATE SEQUENCE statuses_id_seq
 
 
 --
--- Name: statuses; Type: TABLE; Schema: public; Owner: -
+-- Name: statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE statuses (
-    id integer DEFAULT nextval('statuses_id_seq'::regclass) NOT NULL,
-    name character varying(255),
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    closed boolean,
-    is_invalid boolean,
-    "default" boolean DEFAULT false
+ALTER SEQUENCE statuses_id_seq OWNED BY statuses.id;
+
+
+--
+-- Name: subscribers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE subscribers (
+    id integer NOT NULL,
+    subscribable_id integer,
+    subscribable_type character varying(255),
+    email character varying(255),
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -359,7 +422,7 @@ CREATE TABLE statuses (
 --
 
 CREATE SEQUENCE subscribers_id_seq
-    START WITH 7
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -367,17 +430,23 @@ CREATE SEQUENCE subscribers_id_seq
 
 
 --
--- Name: subscribers; Type: TABLE; Schema: public; Owner: -
+-- Name: subscribers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE subscribers (
-    id integer DEFAULT nextval('subscribers_id_seq'::regclass) NOT NULL,
-    subscribable_id integer,
-    subscribable_type character varying(255),
-    email character varying(255),
-    user_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+ALTER SEQUENCE subscribers_id_seq OWNED BY subscribers.id;
+
+
+--
+-- Name: summaries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE summaries (
+    id integer NOT NULL,
+    summarizable_id integer,
+    summarizable_type character varying(255),
+    "timestamp" timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -386,7 +455,7 @@ CREATE TABLE subscribers (
 --
 
 CREATE SEQUENCE summaries_id_seq
-    START WITH 31607
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -394,17 +463,10 @@ CREATE SEQUENCE summaries_id_seq
 
 
 --
--- Name: summaries; Type: TABLE; Schema: public; Owner: -
+-- Name: summaries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE summaries (
-    id integer DEFAULT nextval('summaries_id_seq'::regclass) NOT NULL,
-    summarizable_id integer,
-    summarizable_type character varying(255),
-    "timestamp" timestamp(6) without time zone,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
-);
+ALTER SEQUENCE summaries_id_seq OWNED BY summaries.id;
 
 
 --
@@ -414,8 +476,8 @@ CREATE TABLE summaries (
 CREATE TABLE system_metadata (
     id integer NOT NULL,
     key character varying,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
     metadata jsonb
 );
 
@@ -425,7 +487,7 @@ CREATE TABLE system_metadata (
 --
 
 CREATE SEQUENCE system_metadata_id_seq
-    START WITH 2
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -440,11 +502,25 @@ ALTER SEQUENCE system_metadata_id_seq OWNED BY system_metadata.id;
 
 
 --
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    taggable_type character varying(255)
+);
+
+
+--
 -- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE taggings_id_seq
-    START WITH 534085
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -452,16 +528,23 @@ CREATE SEQUENCE taggings_id_seq
 
 
 --
--- Name: taggings; Type: TABLE; Schema: public; Owner: -
+-- Name: taggings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE taggings (
-    id integer DEFAULT nextval('taggings_id_seq'::regclass) NOT NULL,
-    tag_id integer,
-    taggable_id integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    taggable_type character varying(255)
+ALTER SEQUENCE taggings_id_seq OWNED BY taggings.id;
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE tags (
+    id integer NOT NULL,
+    name character varying(255),
+    color character varying(255),
+    value character varying(255),
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -470,7 +553,7 @@ CREATE TABLE taggings (
 --
 
 CREATE SEQUENCE tags_id_seq
-    START WITH 49
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -478,16 +561,22 @@ CREATE SEQUENCE tags_id_seq
 
 
 --
--- Name: tags; Type: TABLE; Schema: public; Owner: -
+-- Name: tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE tags (
-    id integer DEFAULT nextval('tags_id_seq'::regclass) NOT NULL,
-    name character varying(255),
-    color character varying(255),
-    value character varying(255),
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+ALTER SEQUENCE tags_id_seq OWNED BY tags.id;
+
+
+--
+-- Name: task_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE task_results (
+    id integer NOT NULL,
+    result_id integer,
+    task_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -496,7 +585,7 @@ CREATE TABLE tags (
 --
 
 CREATE SEQUENCE task_results_id_seq
-    START WITH 28241
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -504,28 +593,10 @@ CREATE SEQUENCE task_results_id_seq
 
 
 --
--- Name: task_results; Type: TABLE; Schema: public; Owner: -
+-- Name: task_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE task_results (
-    id integer DEFAULT nextval('task_results_id_seq'::regclass) NOT NULL,
-    result_id integer,
-    task_id integer,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE tasks_id_seq
-    START WITH 67
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+ALTER SEQUENCE task_results_id_seq OWNED BY task_results.id;
 
 
 --
@@ -533,13 +604,13 @@ CREATE SEQUENCE tasks_id_seq
 --
 
 CREATE TABLE tasks (
-    id integer DEFAULT nextval('tasks_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     task_type character varying(255),
     options text,
     name character varying(255),
     description text,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     query text,
     enabled boolean DEFAULT true,
     "group" integer DEFAULT 1,
@@ -550,15 +621,22 @@ CREATE TABLE tasks (
 
 
 --
--- Name: user_saved_filters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE user_saved_filters_id_seq
-    START WITH 55
+CREATE SEQUENCE tasks_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
+
+
+--
+-- Name: tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE tasks_id_seq OWNED BY tasks.id;
 
 
 --
@@ -566,20 +644,20 @@ CREATE SEQUENCE user_saved_filters_id_seq
 --
 
 CREATE TABLE user_saved_filters (
-    id integer DEFAULT nextval('user_saved_filters_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     user_id integer,
     saved_filter_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: user_saved_filters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE users_id_seq
-    START WITH 24
+CREATE SEQUENCE user_saved_filters_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -587,20 +665,27 @@ CREATE SEQUENCE users_id_seq
 
 
 --
+-- Name: user_saved_filters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE user_saved_filters_id_seq OWNED BY user_saved_filters.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE users (
-    id integer DEFAULT nextval('users_id_seq'::regclass) NOT NULL,
+    id integer NOT NULL,
     email character varying(255) DEFAULT ''::character varying NOT NULL,
     encrypted_password character varying(255) DEFAULT ''::character varying NOT NULL,
     sign_in_count integer DEFAULT 0 NOT NULL,
-    current_sign_in_at timestamp(6) without time zone,
-    last_sign_in_at timestamp(6) without time zone,
+    current_sign_in_at timestamp without time zone,
+    last_sign_in_at timestamp without time zone,
     current_sign_in_ip character varying(255),
     last_sign_in_ip character varying(255),
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     provider character varying(255),
     uid character varying(255),
     admin boolean DEFAULT false,
@@ -613,6 +698,25 @@ CREATE TABLE users (
 
 
 --
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
+
+
+--
 -- Name: workflowable_actions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -621,8 +725,8 @@ CREATE TABLE workflowable_actions (
     name character varying(255),
     options text,
     action_plugin character varying(255),
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
     "position" integer
 );
 
@@ -647,11 +751,25 @@ ALTER SEQUENCE workflowable_actions_id_seq OWNED BY workflowable_actions.id;
 
 
 --
+-- Name: workflowable_stage_actions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE workflowable_stage_actions (
+    id integer NOT NULL,
+    stage_id integer,
+    action_id integer,
+    event character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: workflowable_stage_actions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE workflowable_stage_actions_id_seq
-    START WITH 2
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -659,16 +777,22 @@ CREATE SEQUENCE workflowable_stage_actions_id_seq
 
 
 --
--- Name: workflowable_stage_actions; Type: TABLE; Schema: public; Owner: -
+-- Name: workflowable_stage_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE workflowable_stage_actions (
-    id integer DEFAULT nextval('workflowable_stage_actions_id_seq'::regclass) NOT NULL,
-    stage_id integer,
-    action_id integer,
-    event character varying(255),
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+ALTER SEQUENCE workflowable_stage_actions_id_seq OWNED BY workflowable_stage_actions.id;
+
+
+--
+-- Name: workflowable_stage_next_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE workflowable_stage_next_steps (
+    id integer NOT NULL,
+    current_stage_id integer,
+    next_stage_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -677,7 +801,7 @@ CREATE TABLE workflowable_stage_actions (
 --
 
 CREATE SEQUENCE workflowable_stage_next_steps_id_seq
-    START WITH 5
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -685,15 +809,22 @@ CREATE SEQUENCE workflowable_stage_next_steps_id_seq
 
 
 --
--- Name: workflowable_stage_next_steps; Type: TABLE; Schema: public; Owner: -
+-- Name: workflowable_stage_next_steps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE workflowable_stage_next_steps (
-    id integer DEFAULT nextval('workflowable_stage_next_steps_id_seq'::regclass) NOT NULL,
-    current_stage_id integer,
-    next_stage_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+ALTER SEQUENCE workflowable_stage_next_steps_id_seq OWNED BY workflowable_stage_next_steps.id;
+
+
+--
+-- Name: workflowable_stages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE workflowable_stages (
+    id integer NOT NULL,
+    name character varying(255),
+    workflow_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -702,7 +833,7 @@ CREATE TABLE workflowable_stage_next_steps (
 --
 
 CREATE SEQUENCE workflowable_stages_id_seq
-    START WITH 5
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -710,16 +841,10 @@ CREATE SEQUENCE workflowable_stages_id_seq
 
 
 --
--- Name: workflowable_stages; Type: TABLE; Schema: public; Owner: -
+-- Name: workflowable_stages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-CREATE TABLE workflowable_stages (
-    id integer DEFAULT nextval('workflowable_stages_id_seq'::regclass) NOT NULL,
-    name character varying(255),
-    workflow_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
-);
+ALTER SEQUENCE workflowable_stages_id_seq OWNED BY workflowable_stages.id;
 
 
 --
@@ -730,8 +855,8 @@ CREATE TABLE workflowable_workflow_actions (
     id integer NOT NULL,
     workflow_id integer,
     action_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -755,11 +880,24 @@ ALTER SEQUENCE workflowable_workflow_actions_id_seq OWNED BY workflowable_workfl
 
 
 --
+-- Name: workflowable_workflows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE workflowable_workflows (
+    id integer NOT NULL,
+    name character varying(255),
+    initial_stage_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: workflowable_workflows_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE workflowable_workflows_id_seq
-    START WITH 2
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
@@ -784,13 +922,7 @@ ALTER TABLE ONLY comments ALTER COLUMN id SET DEFAULT nextval('comments_id_seq':
 -- Name: event_changes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-CREATE TABLE workflowable_workflows (
-    id integer DEFAULT nextval('workflowable_workflows_id_seq'::regclass) NOT NULL,
-    name character varying(255),
-    initial_stage_id integer,
-    created_at timestamp(6) without time zone,
-    updated_at timestamp(6) without time zone
-);
+ALTER TABLE ONLY event_changes ALTER COLUMN id SET DEFAULT nextval('event_changes_id_seq'::regclass);
 
 
 --
@@ -1088,22 +1220,6 @@ ALTER TABLE ONLY taggings
 
 ALTER TABLE ONLY tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
-
-
---
--- Name: task_results task_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY task_results
-    ADD CONSTRAINT task_results_pkey PRIMARY KEY (id);
-
-
---
--- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY tasks
-    ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
 
 --
@@ -1476,14 +1592,11 @@ INSERT INTO schema_migrations (version) VALUES ('20160629192755');
 
 INSERT INTO schema_migrations (version) VALUES ('20160804194709');
 
-INSERT INTO schema_migrations (version) VALUES ('20170622205314');
-
 INSERT INTO schema_migrations (version) VALUES ('20170517173248');
 
-INSERT INTO schema_migrations (version) VALUES ('20170525041840');
+INSERT INTO schema_migrations (version) VALUES ('20170622205314');
 
 INSERT INTO schema_migrations (version) VALUES ('20170705165950');
 
 INSERT INTO schema_migrations (version) VALUES ('20170714205623');
-
 

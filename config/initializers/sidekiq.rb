@@ -86,4 +86,4 @@ module Sidekiq::Status
   end
 end
 
-Task.update_schedules
+Task.update_schedules if Task.new.respond_to?(:frequency)

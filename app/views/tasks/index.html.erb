@@ -46,7 +46,7 @@ $(function(){
         </nav>
         
         <% on_demand_tasks = @tasks.select{|t| t.run_type == "on_demand"}.sort %>
-        <%= render partial: 'tasks_table', locals: {tasks: on_demand_tasks} %>
+        <%= render partial: 'tasks_table', locals: {tasks: on_demand_tasks, hide_frequency: true} %>
       </div>
       <div class="content" id="callback_tasks">
         <nav class="tab-bar">
@@ -55,7 +55,7 @@ $(function(){
           </section>
         </nav>
         <% callback_tasks = @tasks.select{|t| t.run_type == "callback"}.sort %>
-        <%= render partial: 'tasks_table', locals: {tasks: callback_tasks} %>
+        <%= render partial: 'tasks_table', locals: {tasks: callback_tasks,  hide_frequency: true} %>
       </div>
 
     </div>

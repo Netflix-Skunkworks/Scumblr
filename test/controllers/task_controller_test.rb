@@ -103,14 +103,14 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     ids = Task.ids
     ActiveSupport::Deprecation.silence do
-      post "/tasks/schedule.html", {task_ids: ids, commit: "Schedule", minutes: "5"}
+      post "/tasks/schedule.html", {task_ids: ids, commit: "Schedule", hour: "1"}
       assert_response :redirect
     end
     schedule = Sidekiq.get_schedule
-    assert_equal(5, schedule.keys.count)
+    assert_equal(Task.count, schedule.keys.count)
     schedule.each do |task, metadata|
-      frequency = schedule[task]["every"].first
-      assert_equal("5m", frequency)
+      frequency = schedule[task]["cron"]
+      assert_equal("* 1 * * *", frequency)
     end
   end
 
@@ -122,9 +122,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       assert_response :redirect
     end
     schedule = Sidekiq.get_schedule
-    assert_equal(5, schedule.keys.count)
+    assert_equal(0, schedule.keys.count)
     schedule.each do |task, metadata|
-      frequency = schedule[task]["every"].first
+      frequency = schedule[task]["cron"]
       assert_equal(nil, frequency)
     end
   end
