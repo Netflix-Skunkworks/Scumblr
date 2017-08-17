@@ -63,7 +63,7 @@ module ScumblrTask
       # Setup event hash for storing event types and IDs with tasks
       # Each time the task runs, all event data is moved into the
       # previous events key.
-      runtime_options = nil      
+      runtime_options = nil
       if(@options[:_self].present? && @options.try(:[],:_params).try(:[],:_options) && @options[:_self].run_type == "on_demand")
         runtime_options = @options[:_params].delete(:_options)
         @options = @options[:_self].merge_options(runtime_options, @options)
@@ -216,6 +216,7 @@ module ScumblrTask
     end
 
     def create_error(event)
+      Raven.capture_exception(event) if defined?(Raven) && !Raven.try(:configuration).try(:host).blank?
       create_event(event, "Error")
     end
 
