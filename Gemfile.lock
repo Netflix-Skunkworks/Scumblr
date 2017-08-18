@@ -142,6 +142,8 @@ GEM
       unf (>= 0.0.5, < 1.0.0)
     equalizer (0.0.9)
     erubis (2.7.0)
+    et-orbi (1.0.5)
+      tzinfo
     ethon (0.9.0)
       ffi (>= 1.3.0)
     execjs (2.2.1)
@@ -410,6 +412,8 @@ GEM
     ruby_gntp (0.3.4)
     ruby_parser (3.8.1)
       sexp_processor (~> 4.1)
+    rufus-scheduler (3.4.2)
+      et-orbi (~> 1.0)
     safe_yaml (1.0.4)
     sass (3.2.19)
     sass-rails (4.0.3)
@@ -435,6 +439,11 @@ GEM
       redis (~> 3.2, >= 3.2.1)
     sidekiq-limit_fetch (3.4.0)
       sidekiq (>= 4)
+    sidekiq-scheduler (2.1.7)
+      redis (~> 3)
+      rufus-scheduler (~> 3.2)
+      sidekiq (>= 3)
+      tilt (>= 1.4.0)
     sidekiq-status (0.6.0)
       sidekiq (>= 2.7)
     signet (0.7.2)
@@ -610,6 +619,7 @@ DEPENDENCIES
   shoulda-matchers (~> 2.0)
   sidekiq
   sidekiq-limit_fetch
+  sidekiq-scheduler
   sidekiq-status
   simple_form
   simplecov

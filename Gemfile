@@ -71,6 +71,7 @@ gem 'activerecord-import'
 #Used for task queueing
 gem 'sidekiq'
 gem 'sidekiq-status'
+gem 'sidekiq-scheduler'
 gem 'sidekiq-limit_fetch'
 gem 'mlanett-redis-lock', require: 'redis-lock'
 

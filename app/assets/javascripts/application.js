@@ -635,6 +635,13 @@ var ready = function(){
     }
   })
 
+  $('.schedule_tasks_button').click(function(e) {
+    if(!e.isDefaultPrevented())
+    {
+      $('#schedule_tasks_form').append($("#selection_table").find("input").clone(true,true).hide())
+    }
+  })
+
   $('.update_multiple_link').click(function(e) {
 
     $('#update_multiple_form').append($("#selection_table").find("input").clone(true,true).hide())

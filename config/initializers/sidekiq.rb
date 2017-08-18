@@ -15,6 +15,7 @@
 
 require 'sidekiq'
 require 'sidekiq-status'
+require 'sidekiq-scheduler/web'
 
 
 
@@ -69,7 +70,6 @@ Sidekiq.configure_server do |config|
   # Sidekiq::Client.reliable_push! if !Rails.env.test? && Sidekiq::Client.respond_to?(:reliable_push!)
 end
 
-
 # Add a broadcast method that can be used to update the current status of running tasks
 # from outside the task
 module Sidekiq::Status
@@ -85,3 +85,5 @@ module Sidekiq::Status
     end
   end
 end
+
+Task.update_schedules if Task.new.respond_to?(:frequency)

@@ -99,6 +99,36 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "bulk schedule tasks no error" do
+    sign_in
+    ids = Task.ids
+    ActiveSupport::Deprecation.silence do
+      post "/tasks/schedule.html", {task_ids: ids, commit: "Schedule", hour: "1"}
+      assert_response :redirect
+    end
+    schedule = Sidekiq.get_schedule
+    assert_equal(Task.count, schedule.keys.count)
+    schedule.each do |task, metadata|
+      frequency = schedule[task]["cron"]
+      assert_equal("* 1 * * *", frequency)
+    end
+  end
+
+  test "bulk unschedule tasks no error" do
+    sign_in
+    ids = Task.ids
+    ActiveSupport::Deprecation.silence do
+      post "/tasks/schedule.html", {task_ids: ids, commit: "Unschedule"}
+      assert_response :redirect
+    end
+    schedule = Sidekiq.get_schedule
+    assert_equal(0, schedule.keys.count)
+    schedule.each do |task, metadata|
+      frequency = schedule[task]["cron"]
+      assert_equal(nil, frequency)
+    end
+  end
+
   test "bulk update tasks no error rendering" do
     sign_in
     ids = []

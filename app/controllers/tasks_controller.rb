@@ -173,6 +173,7 @@ class TasksController < ApplicationController
   # DELETE /tasks/1.json
   def destroy
     task_id = @task.id
+    @task.unschedule_from_sidekiq
     @task.destroy
     @task.events << Event.create(field: "Task", action: "Deleted", user_id: current_user.id, eventable_type:"Task", eventable_id: task_id)
 
@@ -279,6 +280,7 @@ class TasksController < ApplicationController
 
       elsif(params[:commit] == "Enable")
         Task.where({:id=>task_ids}).update_all({:enabled => true})
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Enabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -287,6 +289,7 @@ class TasksController < ApplicationController
 
       elsif(params[:commit] == "Disable")
         Task.where({:id=>task_ids}).update_all({:enabled => false})
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Disabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -294,6 +297,7 @@ class TasksController < ApplicationController
         message = "Tasks disabled."
       elsif(params[:commit] == "Delete")
         Task.where({:id=>task_ids}).delete_all
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Disabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -323,6 +327,43 @@ class TasksController < ApplicationController
       format.json { head :no_content }
     end
 
+  end
+
+  def schedule
+    task_ids = params[:task_ids] || []
+    task_ids.uniq!
+    if(task_ids.present?)
+      events = []
+      if(params[:commit] == "Schedule")
+        day = params[:day] || "*"
+        hour = params[:hour] || "*"
+        minute = params[:minute] || "*"
+        month = params[:month] || "*"
+        day_of_week = params[:day_of_week] || "*"
+        
+        task_ids.each do |s|
+          Task.find(s).schedule_with_params(minute, hour, day, month, day_of_week)
+          events << Event.new(date: Time.now, action: "Scheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks scheduled."
+      elsif(params[:commit] == "Unschedule")
+        task_ids.each do |s|
+          Task.find(s).unschedule
+          events << Event.new(date: Time.now, action: "Unscheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks unscheduled."
+      end
+
+      Event.import events
+    else
+      message = "No tasks selected to schedule."
+    end
+
+    respond_to do |format|
+      format.html {redirect_to tasks_url, notice: message || "Could not schedule tasks" }
+    end
   end
 
   def get_metadata
@@ -408,9 +449,8 @@ class TasksController < ApplicationController
 
 
   def task_params
-    all_options = params.require(:task).fetch(:options, nil).try(:permit!).reject{|k,v| v.blank?}
-
-    params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled).merge(:options =>all_options)
+    all_options = params.require(:task).fetch(:options, nil).try(:permit!)
+    params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled, :frequency).merge(:options =>all_options)
   end
 
   def task_types
