@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.0
+-- Dumped from database version 9.4.7
 -- Dumped by pg_dump version 9.6.1
 
 SET statement_timeout = 0;
@@ -615,8 +615,8 @@ CREATE TABLE tasks (
     enabled boolean DEFAULT true,
     "group" integer DEFAULT 1,
     metadata jsonb,
-    frequency character varying DEFAULT ''::character varying,
-    run_type character varying DEFAULT 'scheduled'::character varying
+    run_type character varying DEFAULT 'scheduled'::character varying,
+    frequency character varying DEFAULT ''::character varying
 );
 
 
@@ -1308,6 +1308,20 @@ CREATE INDEX index_event_changes_on_event_id ON event_changes USING btree (event
 
 
 --
+-- Name: index_event_changes_on_field; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_event_changes_on_field ON event_changes USING btree (field);
+
+
+--
+-- Name: index_events_on_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_events_on_action ON events USING btree (action);
+
+
+--
 -- Name: index_events_on_created_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1319,6 +1333,13 @@ CREATE INDEX index_events_on_created_at ON events USING btree (created_at);
 --
 
 CREATE INDEX index_events_on_eventable_id ON events USING btree (eventable_id);
+
+
+--
+-- Name: index_events_on_eventable_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_events_on_eventable_type ON events USING btree (eventable_type);
 
 
 --
@@ -1486,7 +1507,7 @@ CREATE UNIQUE INDEX unique_search_results ON task_results USING btree (task_id, 
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO "$user",public;
 
 INSERT INTO schema_migrations (version) VALUES ('20140116225320');
 
@@ -1593,6 +1614,8 @@ INSERT INTO schema_migrations (version) VALUES ('20160629192755');
 INSERT INTO schema_migrations (version) VALUES ('20160804194709');
 
 INSERT INTO schema_migrations (version) VALUES ('20170517173248');
+
+INSERT INTO schema_migrations (version) VALUES ('20170612211157');
 
 INSERT INTO schema_migrations (version) VALUES ('20170622205314');
 
