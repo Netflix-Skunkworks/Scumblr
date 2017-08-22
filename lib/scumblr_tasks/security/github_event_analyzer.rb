@@ -199,7 +199,6 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
     response["findings"].each do |finding|
 
       finding["findings"].each do | content |
-
         vuln = Vulnerability.new
         url = response["commit"]["repository"]["html_url"].downcase
         #vuln_url = content["content_urls"]
@@ -224,8 +223,9 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         end
 
         unless @github_oauth_token.blank?
+
           begin
-            content_response = JSON.parse RestClient.get(content["content_urls"] + "&access_token=#{@github_oauth_token}")
+            content_response = JSON.parse RestClient.get(content["content_urls"] + "?access_token=#{@github_oauth_token}")
           rescue RestClient::ResourceNotFound
             create_event("Request with access token and got 401.  retrying without access token.", "Warn")
             content_response = JSON.parse RestClient.get(content["content_urls"])
@@ -239,6 +239,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
 
         begin
+
           @res = Result.where(url: url).first
           @res.update_vulnerabilities(vulnerabilities)
         rescue => e
