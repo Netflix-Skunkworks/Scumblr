@@ -45,7 +45,7 @@ require "minitest/rails"
 require "paperclip/matchers"
 require "minitest/reporters"
 
-Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Reporters::JUnitReporter.new]
 #require 'database_cleaner'
 #DatabaseCleaner.strategy = :truncation#, {:pre_count => true}
 #DatabaseCleaner.clean_with(:truncation)
