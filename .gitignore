@@ -49,3 +49,4 @@ Dockerfile.*
 build/*
 *.swp
 .gradle
+test/reports
