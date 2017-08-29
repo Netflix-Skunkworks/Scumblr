@@ -46,7 +46,9 @@ Sidekiq.configure_server do |config|
   # default to async_worker, worker, and runner queues 
 
   if(config.options[:queues] == ["default"])
-    if(Rails.configuration.try(:sidekiq_queues))
+    if(ENV["SIDEKIQ_QUEUES"].present?)
+      config.options[:queues] = ENV["SIDEKIQ_QUEUES"].split(",")
+    elsif(Rails.configuration.try(:sidekiq_queues))
       config.options[:queues] = Rails.configuration.try(:sidekiq_queues)
     else
       config.options[:queues] = ["async_worker", "worker", "runner", "default"] 
