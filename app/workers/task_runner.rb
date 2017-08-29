@@ -36,8 +36,18 @@ class TaskRunner
         tasks.each do |t|
           Rails.logger.warn "Running #{t.name}"
           # at count, "A:Queuing: #{t.name}"
-
-          workers << TaskWorker.perform_async(t.id, task_params, task_options)
+          if(t.options.try(:[], :sidekiq_queue).present?)
+            queue_name = t.options[:sidekiq_queue]
+            if(Sidekiq::ProcessSet.new.map{|q| q["queues"]}.flatten.uniq.include?(queue_name))
+              workers << TaskWorker.set(:queue => queue_name.to_sym).perform_async(t.id, task_params, task_options)
+            else
+              msg = "Fatal error in TaskRunner. Could not run #{t.id} in queue #{queue_name}. Queue not found."
+              Event.create(action: "Fatal", eventable: t, source: "TaskRunner", details: msg)
+            end
+          else
+            workers << TaskWorker.perform_async(t.id, task_params, task_options)
+          end
+          
         end
 
         while(!workers.empty?)

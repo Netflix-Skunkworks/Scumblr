@@ -12,7 +12,7 @@
           </div>
 
           <div class="form-actions">
-            <%= f.button :submit, "Sign in" %>
+            <%= f.button :submit, "Sign in", class: "button small" %>
             <% if User.devise_modules.include?(:omniauthable) %>
               <%= render partial: "omniauth_button", locals: {f: f } %>
             <% end %>
