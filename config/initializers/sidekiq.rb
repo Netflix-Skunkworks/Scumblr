@@ -15,6 +15,7 @@
 
 require 'sidekiq'
 require 'sidekiq-status'
+require 'sidekiq-limit_fetch'
 require 'sidekiq-scheduler/web'
 
 
@@ -43,8 +44,11 @@ Sidekiq.configure_server do |config|
   # If a user has specified command line queues, use those
   # otherwise if use has queues in config file, use those
   # default to async_worker, worker, and runner queues 
+
   if(config.options[:queues] == ["default"])
-    if(Rails.configuration.try(:sidekiq_queues))
+    if(ENV["SIDEKIQ_QUEUES"].present?)
+      config.options[:queues] = ENV["SIDEKIQ_QUEUES"].split(",")
+    elsif(Rails.configuration.try(:sidekiq_queues))
       config.options[:queues] = Rails.configuration.try(:sidekiq_queues)
     else
       config.options[:queues] = ["async_worker", "worker", "runner", "default"] 
@@ -55,7 +59,6 @@ Sidekiq.configure_server do |config|
   Sidekiq::Queue['runner'].process_limit = 5
   Sidekiq::Queue['worker'].process_limit = 10
 
-  
   Rails.logger = Sidekiq::Logging.logger
   ActiveRecord::Base.logger = Sidekiq::Logging.logger
   Sidekiq::Logging.logger.level = Logger::INFO
@@ -66,7 +69,6 @@ Sidekiq.configure_server do |config|
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 1.days
   end
-
   # Sidekiq::Client.reliable_push! if !Rails.env.test? && Sidekiq::Client.respond_to?(:reliable_push!)
 end
 

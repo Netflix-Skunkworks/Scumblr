@@ -65,8 +65,21 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     
       
     begin
-      queue = @options[:sidekiq_queue] || :async_worker
+      queue = nil
+      if(@options[:sidekiq_worker_queue].present?)
+        queue = @options[:sidekiq_worker_queue] 
+      else
+        queue = :async_worker
+      end
       limit = 10000
+      if(!Sidekiq::ProcessSet.new.map{|q| q["queues"]}.flatten.uniq.include?(queue.to_s))
+        msg = "Fatal error in task #{@options[:_self]}. Queue (#{queue}) not found."
+        create_error(msg)
+        return
+      end
+
+
+
       @results.reorder('').limit(nil).pluck(:id).each_slice(limit).each do |group|
         @workers += Sidekiq::Client.push_bulk("queue"=> queue, "class"=>self.class.worker_class, "args"=>group.map{|rid| [rid, @_jid]})
       end

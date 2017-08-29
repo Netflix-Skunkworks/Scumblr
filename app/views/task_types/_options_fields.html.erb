@@ -33,6 +33,8 @@
 
       <% elsif value[:type] == :saved_event_filter %>
         <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Event", user_id:current_user)+SavedFilter.where(saved_filter_type: "Event", public:true)).uniq, :id, :name, include_blank: true %>
+      <% elsif value[:type] == :sidekiq_queue %>
+        <%= builder.collection_select key, Sidekiq::ProcessSet.new.map{|q| q["queues"]}.flatten.uniq.reject{|name| name=="runner"}, :to_s, :to_s, include_blank: true %>
       <% elsif value[:type] == :text %>
         <%= builder.text_area key, value: builder.object[key] || value[:default] %>
       <% elsif value[:type] == :system_metadata_autocomplete %>
