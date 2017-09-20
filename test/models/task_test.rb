@@ -71,8 +71,15 @@ class TaskTest < ActiveSupport::TestCase
   test "should execute github sync task" do
     skip("Github OAuth Token not defined") if Rails.configuration.try(:github_oauth_token).blank?
     github_sync.perform_task
+    res = Result.find(github_sync.metadata[:current_results]["updated"].first)
 
     assert_equal(1, github_sync.metadata[:current_results].count)
+
+    # add assertion that langauges were analyzed
+    assert_equal("Ruby", res.metadata["repository_data"]["primary_language"])
+
+    # add assertion that langauges were analyzed
+    assert(res.metadata["repository_data"]["languages"].keys.include? "Ruby")
   end
   test "should execute google search task" do
     skip("Google developer key not defined") if Rails.configuration.try(:google_developer_key).blank?

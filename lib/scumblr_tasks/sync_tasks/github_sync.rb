@@ -47,23 +47,23 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   def self.options
     {
       :sync_type => {name: "Sync Type (Organization/User)",
-                 description: "Should this task retrieve repos for an organization or for a user?",
-                 required: false,
-                 type: :choice,
-                 default: :both,
-                 choices: [:org, :user]},
+                     description: "Should this task retrieve repos for an organization or for a user?",
+                     required: false,
+                     type: :choice,
+                     default: :both,
+                     choices: [:org, :user]},
       :owner => {name: "Organization/User",
-                  description: "Specify the organization or user.",
-                  required: false,
-                  type: :string},
+                 description: "Specify the organization or user.",
+                 required: false,
+                 type: :string},
       :owner_metadata => {name: "Organization/Users from Metadata",
-                  description: "Provide a metadata key to pull organizations or users from.",
-                  required: false,
-                  type: :system_metadata},
+                          description: "Provide a metadata key to pull organizations or users from.",
+                          required: false,
+                          type: :system_metadata},
       :members => {name: "Import Organization Members' Repos",
-                  description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
-                  required: false,
-                  type: :boolean},
+                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
+                   required: false,
+                   type: :boolean},
       :tags => {name: "Tag Results",
                 description: "Provide a tag for newly created results",
                 required: false,
@@ -71,11 +71,11 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
                 type: :tag
                 },
       :scope_visibility => {name: "Repo Visibility",
-                  description: "Should the task sync public repos, private repos, or both.",
-                  required: true,
-                  type: :choice,
-                  default: :both,
-                  choices: [:both, :public, :private]},
+                            description: "Should the task sync public repos, private repos, or both.",
+                            required: true,
+                            type: :choice,
+                            default: :both,
+                            choices: [:both, :public, :private]},
 
     }
   end
@@ -104,9 +104,10 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   end
 
   def run
+
     @completed=0
     @last_total = 0
-    
+
     owners =[]
     if(@options[:owner_metadata])
       begin
@@ -120,7 +121,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
     previous_results = @options.try(:[],:_self).try(:metadata).try(:[],"previous_results")
     if(previous_results)
-      @last_total = previous_results["created"].to_a.count + previous_results["updated"].to_a.count 
+      @last_total = previous_results["created"].to_a.count + previous_results["updated"].to_a.count
     end
 
     owners.each do |owner|
@@ -137,7 +138,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       end
     end
 
-    
+
 
 
     return []
@@ -146,26 +147,41 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   private
 
+  def get_languages(name, repo)
+    begin
+      response = @github.repos.languages name, repo
+    rescue Github::Error::Forbidden=>e
+      handle_rate_limit(e)
+      retry
+    rescue
+
+      return nil
+    end
+    return response.body
+  end
 
   def get_repos(name, type)
+
     if(type == "org")
       begin
         response = @github.repos.list org: name
       rescue Github::Error::Forbidden=>e
-        handle_rate_limit(e)
+
         retry
+
       end
     else
       begin
+
         response = @github.repos.list user: name
       rescue Github::Error::Forbidden=>e
         handle_rate_limit(e)
         retry
+      rescue => e
+
       end
     end
     parse_results(response)
-
-
 
     while(response.has_next_page?)
       puts "Getting new page"
@@ -183,7 +199,6 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       sleep(wait_for + 1) if wait_for.to_i > 0
     elsif(e.try(:http_headers).try(:[],"x-ratelimit-remaining").present? && e.try(:http_headers).try(:[],"x-ratelimit-remaining").to_i <= 1)
 
-
       wait_for = e.http_headers["x-ratelimit-reset"].to_i - Time.now.to_i
 
       puts "Sleeping for #{wait_for}"
@@ -196,18 +211,18 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   def parse_results(response)
     puts "Rate limit: #{response.headers.ratelimit_remaining} of #{response.headers.ratelimit_limit} remaining. Reset in #{response.response.headers["x-ratelimit-reset"].to_i - DateTime.now.to_i} seconds (#{response.response.headers["x-ratelimit-reset"]})"
-    
-
 
     response.each do |repo|
       if(@options[:scope_visibility] == "both" || (repo.private == true && @options[:scope_visibility] == "private") || (repo.private == false && @options[:scope_visibility] == "public"))
+
+
         res = Result.where(url: repo.html_url.downcase).first_or_initialize
 
         res.title = repo.full_name.to_s + " (Github)"
         res.domain = "github.com"
         res.metadata ||={}
         #search_metadata[:github_analyzer] = true
-        
+
         res.metadata["repository_data"] ||= {}
         res.metadata["repository_data"]["name"] = repo["name"]
         res.metadata["repository_data"]["slug"] = repo["name"]
@@ -221,7 +236,16 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         res.metadata["repository_data"]["link"] = repo["html_url"]
         res.metadata["repository_data"]["repository_host"] = @github_api_endpoint.gsub(/\Ahttps?:\/\//,"").gsub(/\/.+/,"")
 
+        # Add programming language metadata including primary language as well as language per LOC
+        if repo["language"].present?
+          res.metadata["repository_data"]["primary_language"] = repo["language"]
+        end
 
+        languages = get_languages(repo["owner"]["login"], repo["name"])
+
+        if languages.present?
+          res.metadata["repository_data"]["languages"] = languages.to_hash
+        end
 
         if @options[:tags].present?
           res.add_tags(@options[:tags])
@@ -238,10 +262,6 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
         end
       end
     end
-
-
-
-
   end
 
 
