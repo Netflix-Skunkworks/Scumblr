@@ -74,6 +74,18 @@ Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed 
 
 ## Release History ##
 
+**Version 2.1** - "Reliablity, Useability and Performace Edition" - *September 26th, 2017*
+
+Significant changes include:
+-Major performance improvements to async tasks
+-Ability to utilize an external redis instance
+-Ability to route tasks to specific queues
+-Ability to schedule individual tasks separately within the application
+-Added concept of 'on-demand' and 'callback' tasks
+-Improved vulnerability handling
+-Bug fixes
+-Improved test coverage and integration with TravisCI
+
 **Version 2.0.2** - "XSS fix" - *November 30th, 2016*
 
 This fixes a XSS issue on the main Tasks page reported by Michael Carlson.  The XSS vulnerability is only exploitable by administrator users of the application. 
