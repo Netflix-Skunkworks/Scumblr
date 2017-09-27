@@ -40,7 +40,7 @@ protect_from_forgery except: [:options, :on_demand_options]
     authorize! :on_demand_options, :task_type
     @task = Task.find_by_id(params[:id])
     @task_type = params[:task_type] || @task.task_type
-    
+    @require_required_fields = true
     if(Task.task_type_valid?(@task_type.to_s) && @task_type.constantize.respond_to?(:options))
       #the line above validates the task is a valid (and safe) type so constantize is safe
       task_class = @task_type.constantize
