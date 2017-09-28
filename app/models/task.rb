@@ -198,6 +198,7 @@ class Task < ActiveRecord::Base
   # Looks for a key in the task's metadata called "runtime_override" which specifies which options can be overriden.
   # If this value is set to true, all options can be overriden.
   def merge_options(runtime_options, task_options=nil)
+    runtime_options ||= {}
     if(task_options.nil?)
       task_options = self.options
     end

@@ -268,6 +268,31 @@ $(document).on('click', '.close-modal', function() {
     $(".reveal-modal").foundation('reveal','close')
 })
 
+$(document).on('click', '.close-modal-on-submit', function() {
+    form = $(this).parent("form")[0]
+    if(form.checkValidity() == false)
+    {
+      msg="Error submitting form:"
+      $(form).find( ":invalid" ).each( function( index, node ) {
+
+          // Find the field's corresponding label
+          
+          label = $( "label[for=" + node.id + "] ").text().replace(/\  +/g,"").replace(/\*/g,"").replace(/\n/g,"").replace(/\t/g,"")
+          message = node.validationMessage || 'Invalid value.';
+
+          msg += "\r\n - " + label + ": " + message
+      });
+      alert(msg);
+      return false;
+    }
+    else
+    {
+      $(".reveal-modal").foundation('reveal','close') 
+    }
+
+      
+})
+
 $(document).on('click', '.remote-form', function() {
   $("#preloader-modal").remove();
   $("body").append('<div id="preloader-modal" style="height:500px" class="reveal-modal" data-reveal>'+ $(this).data("form") +' </div></div>')

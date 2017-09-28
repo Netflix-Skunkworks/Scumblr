@@ -7,7 +7,7 @@
     <% elsif defined?(on_demand_options) && @task.try(:metadata).try(:[], "runtime_override") != true && !@task.try(:metadata).try(:[], "runtime_override").to_a.include?(key.to_s) %>
       <% next %>
     <% else %>
-      <%= label_tag do %>
+      <%= label_tag("task_options_"+key.to_s) do %>
       <%= value[:name] + (value[:required] == true ? "*" : "") %>
         <% if value[:description].present? %>
           <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="<%= h(value[:description]) %>"><i class="fi-info"></i></span>
@@ -19,7 +19,7 @@
         <%= builder.check_box key, value: builder.object[key] || value[:default] %>
       <% elsif value[:type] == :choice %>
 
-        <%= builder.select key, [["Please Choose",""]]+value[:choices],{ selected: (builder.object[key] || value[:default])}, {class:"select2"}  %>
+        <%= builder.select key, value[:choices],{ selected: (builder.object[key] || value[:default]), :include_blank => 'Please Choose'}, {class:"select2", :required => (value[:required] == true && @require_required_fields == true)} %>
       <% elsif value[:type] == :saved_result_filter %>
         <%= builder.collection_select key, (SavedFilter.where(saved_filter_type: "Result", user_id:current_user)+SavedFilter.where(saved_filter_type: "Result", public:true)).uniq, :id, :name, include_blank: true, class:"select2" %>
       <% elsif value[:type] == :system_metadata %>
