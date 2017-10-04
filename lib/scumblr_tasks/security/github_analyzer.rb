@@ -509,9 +509,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     @results = []
 
     puts "Checking #{@terms.length.to_s} search terms on #{@search_scope.length.to_s} scopes"
-    require 'byebug'
-    byebug
-    puts 1
+
     @search_scope.each do |scope, type|
       # If we are only looking for members, skip any orgs
       if @options[:members] == "members_only" and type == "Organization"
