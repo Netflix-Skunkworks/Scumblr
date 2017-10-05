@@ -27,7 +27,7 @@ class StatusTest < ActiveSupport::TestCase
     # require 'active_record/fixtures'
     # ActiveRecord::FixtureSet.create_fixtures(Rails.root.join('test', 'fixtures'), 'results')
     # byebug
-    assert_equal(5, fixture_status.reset_default.count)
+    assert_equal(6, fixture_status.reset_default.count)
   end
 
   test "should to_string a name" do
