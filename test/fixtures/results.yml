@@ -192,6 +192,12 @@ result_3:
       external_link: {}
       attack_vectors: []
       match_location: content
+    - id: 2600a431554c04bbbcd2b74a57f18d54
+      url: https://www.netflix.com/bar/whatever?stuff=salkafdskjfs&things=salsjklfasj&bar=<script>alert()</script>
+      type: 'Reflected XSS'
+      source:
+      - detectify
+      status: Open
     - id: da05be901b9be3c6fadec856d5f29158
       url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
       term: Apis
@@ -213,19 +219,19 @@ result_3:
       attack_vectors: []
       match_location: content
     vulnerability_count:
-      open: 2
+      open: 3
       closed: 0
       source:
-        github: 2
+        github: 3
       task_id:
-        '2': 2
+        '2': 3
       key_suffix: {}
   metadata_hash:
 
 result_277490:
   id: 277490
-  title: https://www.altoromutual.com
-  url: https://www.altoromutual.com
+  title: https://altoromutual.com
+  url: https://altoromutual.com
   status_id: 1
   created_at: 2017-08-14 20:35:41.923202000 Z
   updated_at: 2017-08-14 20:35:41.923202000 Z
