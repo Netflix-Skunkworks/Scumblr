@@ -195,6 +195,7 @@ result_3:
     - id: 2600a431554c04bbbcd2b74a57f18d54
       url: https://www.netflix.com/bar/whatever?stuff=salkafdskjfs&things=salsjklfasj&bar=<script>alert()</script>
       type: 'Reflected XSS'
+      task_id: '3'
       source:
       - detectify
       status: Open
