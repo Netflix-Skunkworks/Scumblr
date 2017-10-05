@@ -198,6 +198,7 @@ result_3:
       task_id: '3'
       source:
       - detectify
+      severity: Observation
       status: Open
     - id: da05be901b9be3c6fadec856d5f29158
       url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
