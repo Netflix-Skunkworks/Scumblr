@@ -33,7 +33,7 @@ class ScumblrTask::ResultMaintenance < ScumblrTask::Async
   def initialize(options={})
     # Do setup
     super
-    @results = Result.all
+    
   end
 
   def perform_work(r)

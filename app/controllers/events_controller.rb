@@ -36,7 +36,7 @@ class EventsController < ApplicationController
     end
 
     @event_count = Event.count
-    @event_paginated = @events if @events
+    @event_paginated = @events || []
 
     #We delete commit to prevent the parameter value from being picked up in pagination, etc.
     params.delete(:commit)

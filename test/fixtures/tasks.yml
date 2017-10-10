@@ -6,7 +6,7 @@ task_1:
     elements:
       sync_type: org
       owner: Netflix
-      members: '0'
+      members: 'organization_only'
       scope_visibility: public
     ivars:
       :@permitted: true
@@ -437,8 +437,9 @@ task_56:
     elements:
       sync_type: user
       owner: scumblrtest2
-      members: '0'
+      members: 'organization_only'
       scope_visibility: public
+      tags: github
     ivars:
       :@permitted: true
   name: Github Sync Task
@@ -485,3 +486,310 @@ task_57:
     _last_status_event: 5120044
     _last_status_message: Task completed in 1.046229 seconds
     _last_successful_run: '2017-02-22T09:37:50.608-08:00'
+
+task_60:
+  id: 60
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix:
+      max_results: '200'
+      search_terms: ""
+      saved_terms: '2'
+      json_terms: ''
+      user:
+      saved_users: '3'
+      repo:
+      saved_repos: ''
+      scope: both
+      members: 'organization_only'
+    ivars:
+      :@permitted: true
+  name: Github Code Search - Saved Users
+  description: ''
+  created_at: 2017-02-23 21:45:17.906273000 Z
+  updated_at: 2017-02-24 00:34:06.470663000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_61:
+  id: 61
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix:
+      max_results: '200'
+      search_terms: ""
+      saved_terms: '2'
+      json_terms: ''
+      user:
+      saved_users: ''
+      repo:
+      saved_repos: '4'
+      scope: both
+      members: 'organization_only'
+    ivars:
+      :@permitted: true
+  name: Github Code Search - Bad Repos
+  description: ''
+  created_at: 2017-02-23 21:45:17.906273000 Z
+  updated_at: 2017-02-24 00:34:06.470663000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_58:
+  id: 58
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix: test
+      max_results: '200'
+      search_terms: "a6365bfb-cb41-4f2c-9c5f-2e904d0abaa8\r\n7fbdb9a3-3b8f-459a-886c-a38d6d069ce9"
+      saved_terms: '2'
+      json_terms: ''
+      user: ScumblrMinitest
+      saved_users: '3'
+      repo: notarealrepo
+      saved_repos: '3'
+      scope: both
+      members: 'both'
+    ivars:
+      :@permitted: true
+  name: Github Code Search - Test
+  description: ''
+  created_at: 2017-02-23 21:45:17.906273000 Z
+  updated_at: 2017-02-24 00:34:06.470663000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_59:
+  id: 59
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix: test
+      max_results: '200'
+      search_terms: kjsflkjsadf
+      saved_terms: ''
+      json_terms: ''
+      user: ''
+      saved_users: ''
+      repo: scumblrtest2/test_repo
+      saved_repos: ''
+      scope: both
+      members: 'organization_only'
+    ivars:
+      :@permitted: true
+  name: Github Repo Search Test
+  description: " Copied from Task 58"
+  created_at: 2017-02-24 00:52:04.421295000 Z
+  updated_at: 2017-02-24 00:52:04.421295000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_62:
+  id: 62
+  task_type: ScumblrTask::GithubAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      severity: high
+      key_suffix: test
+      max_results: '200'
+      search_terms: "netflix\r\nbar\r\nslksalajfslksjfkafs\r\nblah12345\r\nlkjlkjlk"
+      saved_terms: ''
+      json_terms: ''
+      user: 'Netflix'
+      saved_users: ''
+      repo: ''
+      saved_repos: ''
+      scope: both
+      members: 'organization_only'
+    ivars:
+      :@permitted: true
+  name: Github Repo Search Test
+  description: " Copied from Task 58"
+  created_at: 2017-02-24 00:52:04.421295000 Z
+  updated_at: 2017-02-24 00:52:04.421295000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+
+task_5:
+  id: 5
+  task_type: ScumblrTask::GithubSyncAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      sync_type: user
+      owner_metadata: '5'
+      members: '0'
+      tags: Repository,Github
+      scope_visibility: both
+    ivars:
+      :@permitted: true
+  name: Github Sync
+  description: ''
+  created_at: 2017-04-03 16:40:22.530235000 Z
+  updated_at: 2017-05-17 18:17:00.335994000 Z
+  query: ''
+  enabled: true
+  group: 2
+  metadata:
+    _last_run: '2017-05-17T11:16:59.938-07:00'
+    _start_time: '2017-05-17T11:02:49.074-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results:
+      created:
+      - 274899
+      - 271288
+    previous_events:
+      Error:
+      - 6680794
+    previous_results:
+      created:
+      - 271121
+      updated:
+      - 187103
+    _last_status_event: 6684349
+    _last_status_message: Task completed in 849.889874 seconds
+    _last_successful_run: '2017-05-17T11:16:59.938-07:00'
+
+task_73:
+  id: 73
+  task_type: ScumblrTask::IsInternalAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: ''
+      internal_octets: '10,11,100'
+    ivars:
+      :@permitted: true
+  name: Resolves to Internal IP
+  description: ''
+  created_at: 2017-05-24 15:31:06.170555000 Z
+  updated_at: 2017-05-24 18:16:51.082118000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-05-24T11:16:50.888-07:00'
+    _start_time: '2017-05-24T11:15:41.645-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    _last_status_event: 6684675
+    _last_status_message: Task completed in 68.31691 seconds
+    _last_successful_run: '2017-05-24T11:16:50.888-07:00'
+
+task_70:
+  id: 70
+  task_type: ScumblrTask::GithubEventAnalyzer
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      github_terms: '1'
+    ivars:
+      :@permitted: true
+  name: callback test task
+  description: ''
+  created_at: 2017-05-22 19:12:20.096237000 Z
+  updated_at: 2017-05-31 19:42:08.367619000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-05-31T11:35:23.850-07:00'
+    _start_time: '2017-05-31T12:42:08.118-07:00'
+    _last_status: Success
+    current_events: {}
+    previous_events:
+      Error:
+      - 6684828
+    _last_status_event: 6684829
+    _last_status_message: Task completed in 0.987644 seconds
+    _last_successful_run: '2017-05-31T11:35:23.850-07:00'
+
+task_88:
+  id: 88
+  task_type: ScumblrTask::VulnerabilityCleaner
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: '83'
+      vuln_value: Api
+    ivars:
+      :@permitted: true
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          ? - ''
+          : true
+  name: Cleaner
+  description: ''
+  created_at: 2017-08-04 16:19:30.145176000 Z
+  updated_at: 2017-08-04 19:27:11.838919000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-08-04T12:27:11.554-07:00'
+    _start_time: '2017-08-04T12:27:06.384-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    previous_events:
+      Error: []
+      Warning: []
+    previous_results:
+      created: []
+      updated: []
+    _last_status_event: 6687341
+    _last_status_message: Task completed in 4.512189 seconds
+    _last_successful_run: '2017-08-04T12:27:11.554-07:00'
+  run_type: scheduled
+
+task_89:
+  id: 89
+  task_type: ScumblrTask::VulnerabilityCleaner
+  options: !ruby/hash-with-ivars:ActionController::Parameters
+    elements:
+      saved_result_filter: '83'
+      task_id: '2'
+    ivars:
+      :@permitted: true
+      :@converted_arrays: !ruby/object:Set
+        hash:
+          ? - ''
+          : true
+  name: Cleaner
+  description: ''
+  created_at: 2017-08-04 16:19:30.145176000 Z
+  updated_at: 2017-08-04 19:37:52.769812000 Z
+  query: ''
+  enabled: true
+  group: 1
+  metadata:
+    _last_run: '2017-08-04T12:27:11.554-07:00'
+    _start_time: '2017-08-04T12:27:06.384-07:00'
+    _last_status: Success
+    current_events: {}
+    current_results: {}
+    previous_events:
+      Error: []
+      Warning: []
+    previous_results:
+      created: []
+      updated: []
+    _last_status_event: 6687341
+    _last_status_message: Task completed in 4.512189 seconds
+    _last_successful_run: '2017-08-04T12:27:11.554-07:00'
+  run_type: scheduled

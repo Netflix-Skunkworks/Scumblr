@@ -15,14 +15,14 @@
 class TasksController < ApplicationController
   before_filter :load_task, only: [:show, :edit, :update, :destroy, :enable, :disable, :get_metadata]
   authorize_resource
-
+  skip_before_action :verify_authenticity_token, only: [:run]
 
 
   # GET /tasks
   # GET /tasks.json
   def index
     @menu_item = "tasks"
-    @tasks = Task.all.order(:name).group_by(&:group)
+    @tasks = Task.all.order(:name)
 
     respond_to do |format|
       format.html # index.html.erb
@@ -81,7 +81,7 @@ class TasksController < ApplicationController
       end
     end
 
-    
+
 
 
     respond_to do |format|
@@ -108,8 +108,23 @@ class TasksController < ApplicationController
   # POST /tasks
   # POST /tasks.json
   def create
+
     @task = Task.new(task_params)
+
     @task_types = task_types
+    if(Task.task_type_valid?(@task.task_type) && @task.task_type.constantize.respond_to?(:callback_task?) && @task.task_type.constantize.callback_task? == true)
+      @task.run_type = "callback"
+    elsif(params[:on_demand] =="1")
+      @task.run_type = "on_demand"
+      @task.metadata ||={}
+      if(params[:runtime_override_all] == "1")
+        @task.metadata["runtime_override"] = true
+      else  
+        @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
+      end
+    else
+      @task.run_type = "scheduled"
+    end
 
     respond_to do |format|
       if @task.save
@@ -126,7 +141,21 @@ class TasksController < ApplicationController
   # PUT /tasks/1
   # PUT /tasks/1.json
   def update
+
     @task_types = task_types
+    if(Task.task_type_valid?(@task.task_type) && @task.task_type.constantize.respond_to?(:callback_task?) && @task.task_type.constantize.callback_task? == true)
+      @task.run_type = "callback"
+    elsif(params[:on_demand] =="1")
+      @task.run_type = "on_demand"
+      @task.metadata ||={}
+      if(params[:runtime_override_all] == "1")
+        @task.metadata["runtime_override"] = true
+      else  
+        @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
+      end
+    else
+      @task.run_type = "scheduled"
+    end
 
     respond_to do |format|
       if @task.update_attributes(task_params)
@@ -144,6 +173,7 @@ class TasksController < ApplicationController
   # DELETE /tasks/1.json
   def destroy
     task_id = @task.id
+    @task.unschedule_from_sidekiq
     @task.destroy
     @task.events << Event.create(field: "Task", action: "Deleted", user_id: current_user.id, eventable_type:"Task", eventable_id: task_id)
 
@@ -154,19 +184,32 @@ class TasksController < ApplicationController
   end
 
   def run
+    
     if(params[:id].present?)
+      if(request.method == "POST")
+        task_params = request.body.read
+      else
+        task_params = nil
+      end
       load_task
 
       #@task.perform_task
-      TaskRunner.perform_async(@task.id)
+      if(@task.run_type == "on_demand")
+        TaskRunner.perform_async(@task.id, task_params, params.try(:[],"task").try(:[],"options"))
+      else
+        TaskRunner.perform_async(@task.id, task_params)
+      end
       @task.events << Event.create(field: "Task", action: "Run", user_id: current_user.id)
       respond_to do |format|
         format.html {redirect_to task_url(@task), :notice=>"Running task..."}
       end
+    elsif(params[:task_type].present?)
+      
     else
+      
 
       TaskRunner.perform_async(nil)
-      task_ids = Task.where(enabled:true).map{|s| s.id}
+      task_ids = Task.where(enabled:true, run_type: "scheduled").map{|s| s.id}
       events = []
       task_ids.each do |s|
         events << Event.new(date: Time.now, field: "Task", action: "Run", user_id: current_user.id, eventable_type: "Task", eventable_id: s)
@@ -237,6 +280,7 @@ class TasksController < ApplicationController
 
       elsif(params[:commit] == "Enable")
         Task.where({:id=>task_ids}).update_all({:enabled => true})
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Enabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -245,6 +289,7 @@ class TasksController < ApplicationController
 
       elsif(params[:commit] == "Disable")
         Task.where({:id=>task_ids}).update_all({:enabled => false})
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Disabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -252,6 +297,7 @@ class TasksController < ApplicationController
         message = "Tasks disabled."
       elsif(params[:commit] == "Delete")
         Task.where({:id=>task_ids}).delete_all
+        Task.update_schedules
         task_ids.each do |s|
           events << Event.new(date: Time.now, action: "Disabled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
         end
@@ -283,6 +329,43 @@ class TasksController < ApplicationController
 
   end
 
+  def schedule
+    task_ids = params[:task_ids] || []
+    task_ids.uniq!
+    if(task_ids.present?)
+      events = []
+      if(params[:commit] == "Schedule")
+        day = params[:day] || "*"
+        hour = params[:hour] || "*"
+        minute = params[:minute] || "*"
+        month = params[:month] || "*"
+        day_of_week = params[:day_of_week] || "*"
+        
+        task_ids.each do |s|
+          Task.find(s).schedule_with_params(minute, hour, day, month, day_of_week)
+          events << Event.new(date: Time.now, action: "Scheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks scheduled."
+      elsif(params[:commit] == "Unschedule")
+        task_ids.each do |s|
+          Task.find(s).unschedule
+          events << Event.new(date: Time.now, action: "Unscheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)
+        end
+
+        message = "Tasks unscheduled."
+      end
+
+      Event.import events
+    else
+      message = "No tasks selected to schedule."
+    end
+
+    respond_to do |format|
+      format.html {redirect_to tasks_url, notice: message || "Could not schedule tasks" }
+    end
+  end
+
   def get_metadata
 
     response = @task.metadata
@@ -307,6 +390,56 @@ class TasksController < ApplicationController
     end
   end
 
+  def search
+    q_param = params[:q]
+    page = params[:page]
+    per_page = params[:per_page]
+    resolve_system_metadata = params[:resolve_system_metadata]
+    system_metadata = []
+    metadata_hash = {}
+    @q = Task.ransack q_param
+    @tasks = @q.result.page(page).per(per_page)
+
+    if resolve_system_metadata == "true"
+      @system_metadata = []
+      @tasks.each do | task|
+        if (Task.task_type_valid?(task.task_type))
+          @task_type_options = task.task_type.constantize.options
+        else
+          @task_type_options = []
+        end
+        @task_type_options.each do |key,v|
+          if v[:type] == :system_metadata and task.options[key].present?
+            system_metadata << task.options[key].to_i
+            # moved this from array to hash
+            metadata_hash[task.id.to_s.to_sym] ||= {}
+            metadata_hash[task.id.to_s.to_sym].merge!({"#{key}": task.options[key].to_i})
+          end
+        end
+      end
+
+      system_metadata_objects = SystemMetadata.where(id: system_metadata)
+
+      metadata_hash.each_with_index do |(task, value), index|
+        value.each do | key,data |
+          metadata_hash[task][key] = system_metadata_objects.where(id: data.to_i).first.metadata
+        end
+      end
+      @updated_tasks = []
+      @tasks.each do | task|
+        if metadata_hash.keys.include? task.id.to_s.to_sym
+          task.options.merge!(metadata_hash[task.id.to_s.to_sym])
+          @updated_tasks << task
+        else
+          @updated_tasks << task
+        end
+      end
+      render json: @updated_tasks.to_json
+    else
+      render json: @tasks.to_json
+    end
+
+  end
 
   private
 
@@ -317,7 +450,7 @@ class TasksController < ApplicationController
 
   def task_params
     all_options = params.require(:task).fetch(:options, nil).try(:permit!)
-    params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled).merge(:options =>all_options)
+    params.require(:task).permit(:name, :description, :task_type, :query, :tag_list, :subscriber_list, :group, :enabled, :frequency).merge(:options =>all_options)
   end
 
   def task_types

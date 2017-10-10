@@ -12,8 +12,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
-
 class Result < ActiveRecord::Base
   belongs_to :status
 
@@ -68,7 +66,25 @@ class Result < ActiveRecord::Base
     Rails.cache.fetch([name, id]) { find(id) }
   end
 
+  def add_tags(tags)
 
+    tags.each do |the_tag|
+
+      unless self.tags.include? the_tag
+        self.tags << the_tag
+      end
+    end
+  end
+
+
+  def add_tags_by_id(tag_ids)
+    Array(tag_ids).each do |tag_id|
+        # Create a tagging and save only if valid
+        # (tagging will be invalid if the result is already tagged with the given id)
+        tagging = self.taggings.build(tag_id: tag_id)
+        tagging.save if tagging.valid?
+    end
+  end
 
   def self.to_csv
     CSV.generate do |csv|
@@ -101,104 +117,47 @@ class Result < ActiveRecord::Base
   after_create :create_task_event
 
   def create_task_event
-
     if(Thread.current[:current_task])
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
 
       Thread.current["current_results"] ||={}
       Thread.current["current_results"]["created"] ||=[]
-      Thread.current["current_results"]["created"] << self.id
-      Thread.current["current_results"]["created"].uniq!
+      Thread.current["current_results"]["created"] |= [self.id]
+
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"])
+      Sidekiq.redis do |redis|
+        redis.sadd("#{Thread.current[:sidekiq_job_id]}:results:created",self.id)
+      end
     end
   end
 
   after_update :update_task_event
 
   def update_task_event
-
     if(Thread.current[:current_task])
+
       #create an event linking the updated/new result to the task
       #calling_task = Task.where(id: Thread.current[:current_task]).first
       Thread.current["current_results"] ||={}
       Thread.current["current_results"]["updated"] ||=[]
-      Thread.current["current_results"]["updated"] << self.id
-      Thread.current["current_results"]["updated"].uniq!
+      Thread.current["current_results"]["updated"] |= [self.id]
 
       #calling_task.save!
+    elsif(Thread.current["sidekiq_job_id"].present?)
+      Sidekiq.redis do |redis|
+        redis.sadd("#{Thread.current["sidekiq_job_id"]}:results:updated",self.id)
+      end
+    else
+
     end
   end
 
-  # def create_task_event
-  #  if(Thread.current[:current_task])
-  #     #create an event linking the updated/new result to the task
-  #       calling_task = Task.where(id: Thread.current[:current_task]).first
-  #       calling_task.metadata["current_results"] ||={}
-  #       puts calling_task.metadata
-  #       calling_task.metadata["current_results"]["created"] ||=[]
-  #       calling_task.metadata["current_results"]["updated"] ||=[]
-
-  #       if self.new_record?
-  #         calling_task.metadata["current_results"]["created"] << self.id
-  #       else
-  #         calling_task.metadata["current_results"]["updated"] << self.id
-  #       end
-  #       calling_task.save!
-  #  end
-  # end
-
   # Unused method, consider removing Janurary 12th (S.B.)
+  # Removed June 21, 2017 (S.B.)
   # def create_events
-
-  #   # This will catch if the metadata hash was updated directly (i.e. result.metadata[:k] = v)
-  #   # But the event will not contain the correct old value. The work around is reassigning the
-  #   # metadata value by merging the changes in. I.e.:
-  #   # result.metadata = result.metadata.merge(k:v)
-  #   # Doing it this will both catch the change and the new/old value.
-  #   if(self.metadata_hash != self.metadata.to_json.hash.to_s)
-  #     self.metadata_will_change!
-  #   end
-  #   self.metadata_hash = self.metadata.to_json.hash.to_s
-
-
-
-  #   if(self.changes.present?)
-  #     event = self.events.build(action: self.new_record? ? "Created" : "Updated", user_id: self.current_user.try(:id) )
-  #     self.changes.each do |k, v|
-  #       if k == "metadata_hash"
-  #         # We don't need to create a record of changes to the metadata hash
-
-  #       elsif(k.ends_with?("_id") && (association = self.class.reflect_on_all_associations.select{|a| a.try(:foreign_key) == k}).present?)
-  #         associated_values = association.first.klass.where(id: [ v[0], v[1] ])
-  #         event.event_changes.build(field: association.first.class_name,
-  #                                   old_value: associated_values.select{|a| a.id == v[0]}.try(:first).to_s,
-  #                                   new_value: associated_values.select{|a| a.id == v[1]}.try(:first).to_s,
-  #                                   old_value_key: v[0],
-  #                                   new_value_key: v[1],
-  #                                   value_class: association.first.klass.to_s,
-  #                                   )
-  #       elsif(self.class.serialized_attributes.keys.include?(k))
-
-  #         event.event_changes.build(field: k.to_s, old_value: v[0].to_s, new_value: v[1].to_s)
-  #         HashDiff.diff(v[0] || {},v[1]).each do |diff|
-  #           field_name = (k.to_s + ": " + diff[1].to_s).titlecase
-  #           if(diff[0] == "-")
-  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: nil)
-  #           elsif(diff[0] == "+")
-  #             event.event_changes.build(field: field_name, old_value: nil, new_value: diff[2].to_s)
-  #           elsif(diff[0] == "~")
-  #             event.event_changes.build(field: field_name, old_value: diff[2].to_s, new_value: diff[3].to_s)
-  #           end
-  #         end
-  #       else
-  #         event.event_changes.build(field: k.to_s.titlecase, old_value: v[0].to_s, new_value: v[1].to_s)
-  #       end
-  #     end
-  #   end
-  # end
-
 
   def to_s
     "Result #{id}"
@@ -323,7 +282,18 @@ class Result < ActiveRecord::Base
     options[:saved_event_filter_id] = q[:id_in_saved_event_filter]
     options[:saved_event_filter_id] = nil if options[:saved_event_filter_id] == 0
 
-    ransack_search = Result.includes(:status, :result_attachments).search(q.except(:metadata_search,:id_in_saved_event_filter))
+    ransack_search = Result
+
+    if(options.include?(:includes))
+      if(options[:includes].present?)
+        # Include the associations requested
+        ransack_search = ransack_search.includes(options[:includes])
+      end
+    else
+      ransack_search = ransack_search.includes(:status, :result_attachments)
+    end
+
+    ransack_search = ransack_search.search(q.except(:metadata_search,:id_in_saved_event_filter))
 
 
 
@@ -339,9 +309,9 @@ class Result < ActiveRecord::Base
       results = Result.filter_search_with_metadata(ransack_search, per, page, options)
     rescue => e
       if(per == nil)
-        results = ransack_search.result(distinct:true).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true) || c == "content" }.map{|c| "results."+c.to_s})
+        results = ransack_search.result.select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true) || c == "content" }.map{|c| "results."+c.to_s})
       else
-        results = ransack_search.result(distinct:true).page(page).per(per).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s})
+        results = ransack_search.result.page(page).per(per).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s})
       end
 
       @errors ||= []
@@ -450,9 +420,9 @@ class Result < ActiveRecord::Base
 
         end
         if(limit == nil)
-          result = ransack_search.result(distinct: true).order(order.to_s).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         else
-          result = ransack_search.result(distinct: true).order(order.to_s).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         end
 
         #result = ransack_search.result(distinct: true).page(page).per(limit).where(query, *params).select(Result.column_names.reject{|c| c == "content" }.map{|c| "results."+c.to_s})
@@ -460,9 +430,9 @@ class Result < ActiveRecord::Base
 
       else
         if(limit == nil)
-          result = ransack_search.result(distinct: true).order(order.to_s).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         else
-          result = ransack_search.result(distinct: true).order(order.to_s).page(page).per(limit).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
+          result = ransack_search.result.order(order.to_s).page(page).per(limit).select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true)  || c == "content" }.map{|c| "results."+c.to_s}+select_additions)
         end
 
 
@@ -494,7 +464,7 @@ class Result < ActiveRecord::Base
   end
 
   def traverse_and_update_metadata(keys, value)
-    _traverse_and_update_metadata(self.metadata, keys, value, nil)
+    _traverse_and_update_metadata(self.metadata, keys.clone, value, nil)
   end
 
   # Allows filtering an array inside a JSON object based on a
@@ -573,20 +543,37 @@ class Result < ActiveRecord::Base
   #
 
   def _traverse_and_update_metadata(data, keys, value, r=nil)
+    # Initialize the results to an empty hash if not initialized
     r ||={}
 
+    # Grab the next key
     k=keys.shift
+
+
     parent = data
 
+    # Try to grab the data referenced by the key from the current position in the data
     begin
+
+      # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
+
+        # If the key starts with ":" treat data like a hash and get the value referenced by the
+        # key
       elsif(k[0] == ":")
         data = data.try(:[],k.to_s)
+        if(data.nil?)
+          parent[k] = {}
+          data[k] = nil
+        end
+        # If the key is in the form of an array (ex. [1,2,3]) get a list of elements requested
       elsif(k[0]=="[")
+        # If there is more that "[]" in the key...
         if(k.length > 2)
 
           k2 = k[1..k.length-2].split(':')
+          # If the key can be split by ":" (i.e. [id:1,2] we want to select elements from a hash based on an attribute
           if(k2.length > 1)
             field = k2[0]
             k2 = k2[1].split(",").map(&:to_s)
@@ -602,15 +589,23 @@ class Result < ActiveRecord::Base
 
           k2.each do |k3|
             # data = data[k.to_i]
-
+            # For each of the subvalues identified, traverse and update
             r = _traverse_and_update_metadata(data, [k3]+keys,value, r)
           end
           return r
         end
-
+        # Otherwise assume data is a hash
       else
         data = data.try(:[],k)
-
+        # If data[k] is blank, make it a hash
+        if(data.nil?)
+          if(keys.count == 1 && keys[0] == "[]")
+            parent[k] = []
+          else
+            parent[k] = {}
+          end
+          data = parent[k]
+        end
       end
     rescue
 
@@ -618,26 +613,39 @@ class Result < ActiveRecord::Base
       return r
     end
 
-
+    # If we haven't parsed all the keys, parse the remaining keys. Pass in the results we have so far to
+    # be appended to (r[k])
     if(!keys.empty?)
+
       r[k] ||= {}
       r[k] = _traverse_and_update_metadata(data,keys,value,  r[k])
 
+      # Otherwise we need to update
     else
-
+      # Treat value as JSON if it starts and ends with brackets ("{" and  "}")
       if(value[0] == "{" && value[value.length-1] == "}")
         begin
           value = JSON.parse(value)
         rescue
 
         end
+        # If the value is a hash, convert to json
       elsif(value.class == Hash)
         value = value.to_json
+        # Convert "true"/"false" to booleans
+      elsif(value == "true")
+        value = true
+      elsif(value == "false")
+        value = false
       end
 
+      # If the last key is "[]" then treat as an array
       if(k == "[]")
+
         parent ||= []
-        parent << value
+        # Only add the value if it's not already in the array.
+        parent << value if(!parent.include?(value))
+
         r =[]
         r << value
       else

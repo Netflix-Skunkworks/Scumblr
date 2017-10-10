@@ -22,12 +22,16 @@
     <%= f.collection_select :group, groups, :first, :last, {},  class: "select2" %>
   </div>
   <div class="field">
-    <%= f.check_box :enabled %> <%= f.label :enabled %> 
+    <%= f.check_box :enabled %> <%= f.label :enabled %>
+  </div>
+
+  <div class="field">
+    <%= check_box_tag :on_demand, "1", @task.run_type == "on_demand", {class: "hide-toggle on-demand-toggle", data:{toggle:".on-demand-optons"}} %> <%= f.label :on_demand do %>On demand <span data-tooltip aria-haspopup="true" class="has-tip tip-right" title="On-demand task are not run on a schedule but only when triggered via an API call."><i class="fi-info"></i></span><% end %>
   </div>
 
   <div class="field">
     <%= f.label :task_type %>
-    
+
     <%= f.grouped_collection_select :task_type, @task_types, :last, :first, :first, :last, {prompt: "Choose a task type"}, {id: :task_type_field, "data-source"=> @task.new_record? ? options_tasks_path : options_task_path(@task) , class: "select2"} %>
   </div>
   <div id="task_description">
@@ -35,17 +39,24 @@
       <%= render :partial=>"task_types/task_configuration", :locals => {:task_options=>@task.try(:options), task_type_options: @task_type_options, task_type_description: @task_type_description, task_type_configuration: @task_type_configuration } %>
     <% end %>
   </div>
+  
   <div class="search_type_field field <%= "hidden" if !@task.task_type.to_s.match(/\ASearchProvider::/) %>">
     <%= f.label :query %>
     <%= f.text_field :query %>
   </div>
+  <div class="field ">
+    <%= f.label :frequency %>
+    <%= f.text_field :frequency %>
+  </div>
   <div id="task_type_options">
     <%= render partial: 'task_types/options_fields', locals: {task_options: @task.options, task_type_options: @task.task_type_options} %>
   </div>
+  
   <div id="tags" class="search_type_field <%= "hidden" if !@task.task_type.to_s.match(/\ASearchProvider::/) %>">
     <%= f.label :tags %>
     <%= f.hidden_field "tag_list", {value: @task.tag_list, class: "remote_select2", "data-multiple"=>true, "data-id-attribute"=>"name" , "data-parse-initial"=>"true", "data-create-new"=>"true", "data-object"=>"tags", "data-attribute"=>"name" , "data-path"=>tags_path} %>
   </div>
+
   <div class="field">
     <%= f.label :description %>
     <%= f.text_area :description %>

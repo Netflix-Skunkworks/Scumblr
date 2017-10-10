@@ -8,24 +8,14 @@ accordion_id = SecureRandom.hex
         <a href="#panel_filters">Filters</a>
         <div id="panel_filters" class="panel content">
             <%= form_tag render_metadata_partial_result_path(id: @result.id, partial: "scan_metadata", target: "#partial_#{accordion_id}"), :data=>{target: "#partial_#{accordion_id}"}, :class=>"facets", :remote=>true do |f| %>
-
-
                 <% facets = ["source"] %>
                 <% facets.each do |f| %>
                     <%= label_tag do %><%= f.titleize %>
                       <%= collection_select "filter",f, @result.metadata["scan_metadata"].map{|v| v[f].class == Array ? v[f].flatten : v[f].to_s}.flatten.reject{|x| x.blank? || x.class == Hash}.uniq , :to_s, :titleize , {:selected => (defined?(selected_facets) ? selected_facets : {}).try(:[],f)}, {class: "select2",:multiple=>true} %>
                       <%= hidden_field_tag "filter_on[#{f}]", "scan_metadata" %>
                     <% end %>
-
                 <% end %>
-
-                
-
             <% end %>
-            
-            
-          
-         
         </div>
       </dd>
     </dl>

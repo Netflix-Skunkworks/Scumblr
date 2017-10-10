@@ -10,7 +10,23 @@ tag_1:
 tag_44:
   id: 44
   name: Google Search Tag
-  color: 
-  value: 
+  color:
+  value:
+  created_at: 2017-02-22 17:43:13.714992000 Z
+  updated_at: 2017-02-22 17:43:13.714992000 Z
+
+tag_45:
+  id: 45
+  name: Internal IP
+  color:
+  value: 'internal_ip'
+  created_at: 2017-02-22 17:43:13.714992000 Z
+  updated_at: 2017-02-22 17:43:13.714992000 Z
+
+tag_46:
+  id: 46
+  name: External IP
+  color:
+  value: 'external_ip'
   created_at: 2017-02-22 17:43:13.714992000 Z
   updated_at: 2017-02-22 17:43:13.714992000 Z

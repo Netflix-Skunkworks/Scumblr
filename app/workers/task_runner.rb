@@ -12,42 +12,62 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-
+require 'sidekiq-scheduler'
+require 'sidekiq-status'
 
 class TaskRunner
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
+  sidekiq_options :queue => :runner, :retry => 0, :backtrace => true 
 
-  def perform(task_ids=nil)
-    
-    at 0, "A:Preparing to run tasks"
-    task_groups = Array(task_ids.blank? ? Task.where(enabled:true).group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
-    count = 0
-    total_count = task_groups.map{|k,v| v.count}.sum
-    total total_count
+  def perform(task_ids=nil, task_params=nil, task_options=nil)
+    begin
+      at 0, "A:Preparing to run tasks"
+      task_groups = Array(task_ids.blank? ? Task.where(enabled:true, run_type:"scheduled").group_by(&:group).sort : Task.where(id: task_ids).group_by(&:group).sort)
+      count = 0
+      total_count = task_groups.map{|k,v| v.count}.sum
+      total total_count
+      group_index = 1
+      task_groups.each do |group, tasks|
+        Rails.logger.warn "Running group #{group}"
+        at count, "A:Running group #{group}/#{task_groups.count}"
 
-    task_groups.each do |group, tasks|
-      Rails.logger.warn "Running group #{group}"
-      at count, "A:Running group #{group}"
-
-      workers = []
-      tasks.each do |t|
-        Rails.logger.warn "Running #{t.name}"
-        at count, "A:Running: #{t.name}"
-        workers << TaskWorker.perform_async(t.id)
-      end
-
-      while(!workers.empty?)
-        at count, "A:#{workers.count}/#{total_count} tasks complete"
-        Rails.logger.warn "#{workers.count} tasks remaining"
-        workers.delete_if do |worker_id|
-          status = Sidekiq::Status::status(worker_id)
-          Rails.logger.warn "Task #{worker_id} #{status}"
-          status == :complete && count += 1
+        workers = []
+        tasks.each do |t|
+          Rails.logger.warn "Running #{t.name}"
+          # at count, "A:Queuing: #{t.name}"
+          if(t.options.try(:[], :sidekiq_queue).present?)
+            queue_name = t.options[:sidekiq_queue]
+            if(Sidekiq::ProcessSet.new.map{|q| q["queues"]}.flatten.uniq.include?(queue_name))
+              workers << TaskWorker.set(:queue => queue_name.to_sym).perform_async(t.id, task_params, task_options)
+            else
+              msg = "Fatal error in TaskRunner. Could not run #{t.id} in queue #{queue_name}. Queue not found."
+              Event.create(action: "Fatal", eventable: t, source: "TaskRunner", details: msg)
+            end
+          else
+            workers << TaskWorker.perform_async(t.id, task_params, task_options)
+          end
+          
         end
-      
-        sleep(0.2)
+
+        while(!workers.empty?)
+          at count, "A:Running group #{group_index}/#{task_groups.count}. Tasks complete: #{count}/#{total_count}."
+          
+          Rails.logger.warn "#{workers.count} tasks remaining"
+          workers.delete_if do |worker_id|
+            status = Sidekiq::Status::status(worker_id)
+            Rails.logger.warn "Task #{worker_id} #{status}"
+            (status != :queued && status != :working) && count += 1
+          end
+        
+          sleep(2)
+        end
+        group_index += 1
       end
+    rescue=>e
+      msg = "Fatal error in TaskRunner. Task ids#{task_ids}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
+      Event.create(action: "Fatal", source: "TaskRunner", details: msg)
+      Rails.logger.error msg
     end
  
   end

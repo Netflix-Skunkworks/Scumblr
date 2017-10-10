@@ -53,12 +53,12 @@ class Ability
       can [:show, :index], SystemMetadata
       can :manage, Result
       cannot :destroy, Result
-      can [:index, :show, :events], Task
+      can [:index, :show, :events, :search], Task
       can :manage, SavedFilter
       can :manage, Tag
       can [:index, :edit, :update, :show], User
       can :options, :provider
       can :index, Flag
-    end 
+    end
   end
 end

@@ -185,7 +185,10 @@ tr.disabled
   }
 }
 
-
+#preloader-modal
+{
+  overflow: scroll;
+}
 .preloader
 {
   position: absolute;
@@ -230,6 +233,7 @@ a.split_button_submit.button.update_multiple_button
 span.tooltip
 {
   z-index:950;
+  max-width: 350px;
 }
 
 .italic

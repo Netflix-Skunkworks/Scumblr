@@ -3,15 +3,15 @@
 def vulnerability_sort(a,b)
   risks={"critical"=>1, "high"=>2, "medium"=>3, "low"=>4, "informational"=>6, "observation"=>5}
   comp = (risks[a["severity"].to_s.downcase].to_i <=> risks[b["severity"].to_s.downcase].to_i)
-  comp.zero? ? (a["type"] <=> b["type"]) : comp
+  comp.zero? ? (a["type"].to_s <=> b["type"].to_s) : comp
 end
 
 def vulnerability_with_index_sort(a,b)
   risks={"critical"=>1, "high"=>2, "medium"=>3, "low"=>4, "informational"=>6, "observation"=>5}
   comp = (risks[a[0]["severity"].to_s.downcase].to_i <=> risks[b[0]["severity"].to_s.downcase].to_i)
-  comp.zero? ? (a[0]["type"] <=> b[0]["type"]) : comp
+  comp.zero? ? (a[0]["type"].to_s <=> b[0]["type"].to_s) : comp
 end
-
+result.metadata["vulnerabilities"] ||=[]
 findings = result.metadata["vulnerabilities"].sort{|a,b| vulnerability_sort(a,b)}#.select{|v| v["status"].match(/open/i) }
 
 finding_indices = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| vulnerability_with_index_sort(a,b)}.map(&:last)
@@ -25,10 +25,12 @@ finding_indices = result.metadata["vulnerabilities"].map.with_index.sort{|a,b| v
 findings = Kaminari.paginate_array(findings).page(params[:page] || 1).per(params[:per_page] || 25) 
 %>
 
+<% move_vulnerability_task = Task.where(task_type: "ScumblrTask::MoveVulnerabilityTask").first %>
+<% create_vulnerability_jira_task = Task.where(task_type: "ScumblrTask::VulnerabilityJira").first %>
 
 <% findings.each_with_index do |finding, i| %>
 
-  <%= render partial:"results/metadata/vulnerability", locals: {finding: finding, finding_indices: finding_indices, accordion_id: accordion_id, i: i} %>
+  <%= render partial:"results/metadata/vulnerability", locals: {finding: finding, finding_indices: finding_indices, accordion_id: accordion_id, i: i, move_vulnerability_task: move_vulnerability_task, create_vulnerability_jira_task: create_vulnerability_jira_task} %>
 
 <% end %>
 

@@ -1,4 +1,9 @@
 <div class="panel">
+
+<% if @callback_task == true %>
+  <p><b>Callback Task</b><br/>This task is a callback task. This means it cannot be run on a scheduled basis. It will only run when triggered by an API call.<br/></p>
+<% end %>
+
 <% if task_type_description.present? %>
   <p><b>Description</b><br/>
   <%= task_type_description %><br/></p>

@@ -46,7 +46,7 @@ module Scumblr
     ["custom/", "../custom/"].each do |custom_path|
       if Dir.exists?("#{Rails.root.to_s}/#{custom_path}")
         r = Rails::Paths::Root.new("#{Rails.root.to_s}/#{custom_path}")
-        ["app/models", "app/controllers", "app/views"].each do |folder|
+        ["app/models", "app/controllers", "app/views", "app/workers"].each do |folder|
           new_root[custom_path + folder] = Rails::Paths::Path.new(r, custom_path + folder, [custom_path + folder], {eager_load: true})
         end
 

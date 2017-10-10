@@ -47,25 +47,36 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   def self.options
     {
       :sync_type => {name: "Sync Type (Organization/User)",
-                 description: "Should this task retrieve repos for an organization or for a user?",
-                 required: false,
-                 type: :choice,
-                 default: :both,
-                 choices: [:org, :user]},
+                     description: "Should this task retrieve repos for an organization or for a user?",
+                     required: false,
+                     type: :choice,
+                     default: :both,
+                     choices: [:org, :user]},
       :owner => {name: "Organization/User",
-                  description: "Specify the organization or user.",
-                  required: true,
-                  type: :string},
+                 description: "Specify the organization or user.",
+                 required: false,
+                 type: :string},
+      :owner_metadata => {name: "Organization/Users from Metadata",
+                          description: "Provide a metadata key to pull organizations or users from.",
+                          required: false,
+                          type: :system_metadata},
       :members => {name: "Import Organization Members' Repos",
-                  description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
-                  required: false,
-                  type: :boolean},
+                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
+                   required: false,
+                   type: :boolean},
+      :tags => {name: "Tag Results",
+                description: "Provide a tag for newly created results",
+                required: false,
+                default: "github",
+                type: :tag
+                },
       :scope_visibility => {name: "Repo Visibility",
-                  description: "Should the task sync public repos, private repos, or both.",
-                  required: true,
-                  type: :choice,
-                  default: :both,
-                  choices: [:both, :public, :private]}
+                            description: "Should the task sync public repos, private repos, or both.",
+                            required: true,
+                            type: :choice,
+                            default: :both,
+                            choices: [:both, :public, :private]},
+
     }
   end
 
@@ -94,16 +105,40 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   def run
 
-    get_repos(@options[:owner].to_s,@options[:sync_type])
+    @completed=0
+    @last_total = 0
 
-    if(@options[:sync_type] == "org" && @options[:members] == true)
-      members = @github.orgs.members.list @options[:owner].to_s
-
-      members.each do |m|
-        puts "Getting repos for #{m["login"]}"
-        get_repos(m["login"],"user")
+    owners =[]
+    if(@options[:owner_metadata])
+      begin
+        owners = SystemMetadata.find(@options[:owner_metadata]).metadata
+      rescue
+        owners = []
+        create_error("Could not parse System Metadata for users/organizations, skipping")
       end
     end
+    owners |= [@options[:owner]] if @options[:owner].present?
+
+    previous_results = @options.try(:[],:_self).try(:metadata).try(:[],"previous_results")
+    if(previous_results)
+      @last_total = previous_results["created"].to_a.count + previous_results["updated"].to_a.count
+    end
+
+    owners.each do |owner|
+      puts "Syncing #{owner}"
+      get_repos(owner.to_s,@options[:sync_type])
+
+      if(@options[:sync_type] == "org" && @options[:members] == true)
+        members = @github.orgs.members.list owner.to_s
+
+        members.each do |m|
+          puts "Getting repos for #{m["login"]}"
+          get_repos(m["login"],"user")
+        end
+      end
+    end
+
+
 
 
     return []
@@ -112,26 +147,41 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   private
 
+  def get_languages(name, repo)
+    begin
+      response = @github.repos.languages name, repo
+    rescue Github::Error::Forbidden=>e
+      handle_rate_limit(e)
+      retry
+    rescue
+
+      return nil
+    end
+    return response.body
+  end
 
   def get_repos(name, type)
+
     if(type == "org")
       begin
         response = @github.repos.list org: name
       rescue Github::Error::Forbidden=>e
-        handle_rate_limit(e)
+
         retry
+
       end
     else
       begin
+
         response = @github.repos.list user: name
       rescue Github::Error::Forbidden=>e
         handle_rate_limit(e)
         retry
+      rescue => e
+
       end
     end
     parse_results(response)
-
-
 
     while(response.has_next_page?)
       puts "Getting new page"
@@ -149,7 +199,6 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       sleep(wait_for + 1) if wait_for.to_i > 0
     elsif(e.try(:http_headers).try(:[],"x-ratelimit-remaining").present? && e.try(:http_headers).try(:[],"x-ratelimit-remaining").to_i <= 1)
 
-
       wait_for = e.http_headers["x-ratelimit-reset"].to_i - Time.now.to_i
 
       puts "Sleeping for #{wait_for}"
@@ -163,27 +212,56 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   def parse_results(response)
     puts "Rate limit: #{response.headers.ratelimit_remaining} of #{response.headers.ratelimit_limit} remaining. Reset in #{response.response.headers["x-ratelimit-reset"].to_i - DateTime.now.to_i} seconds (#{response.response.headers["x-ratelimit-reset"]})"
 
-
     response.each do |repo|
       if(@options[:scope_visibility] == "both" || (repo.private == true && @options[:scope_visibility] == "private") || (repo.private == false && @options[:scope_visibility] == "public"))
-        res = Result.where(url: repo.html_url).first_or_initialize
-        res.title = repo.full_name
+
+
+        res = Result.where(url: repo.html_url.downcase).first_or_initialize
+
+        res.title = repo.full_name.to_s + " (Github)"
         res.domain = "github.com"
         res.metadata ||={}
+        #search_metadata[:github_analyzer] = true
 
-        res.metadata["github_analyzer"] ||={}
-        res.metadata["github_analyzer"]["owner"] = repo["owner"]["login"]
-        res.metadata["github_analyzer"]["language"] = repo["language"]
-        res.metadata["github_analyzer"]["private"] = repo["private"]
-        res.metadata["github_analyzer"]["account_type"] = repo.owner.type
-        res.metadata["github_analyzer"]["git_clone_url"] = repo.clone_url
+        res.metadata["repository_data"] ||= {}
+        res.metadata["repository_data"]["name"] = repo["name"]
+        res.metadata["repository_data"]["slug"] = repo["name"]
+        res.metadata["repository_data"]["project"] = repo["owner"]["login"]
+        res.metadata["repository_data"]["project_name"] = repo["owner"]["login"]
+        res.metadata["repository_data"]["project_type"] = repo["owner"]["type"] == "User" ? "User" : "Project"
+        res.metadata["repository_data"]["private"] = repo["private"]
+        res.metadata["repository_data"]["source"] = "github"
+        res.metadata["repository_data"]["ssh_clone_url"] = "ssh://github.com/#{repo["full_name"]}.git"
+        res.metadata["repository_data"]["https_clone_url"] = repo["html_url"].to_s + ".git"
+        res.metadata["repository_data"]["link"] = repo["html_url"]
+        res.metadata["repository_data"]["repository_host"] = @github_api_endpoint.gsub(/\Ahttps?:\/\//,"").gsub(/\/.+/,"")
+
+        # Add programming language metadata including primary language as well as language per LOC
+        if repo["language"].present?
+          res.metadata["repository_data"]["primary_language"] = repo["language"]
+        end
+
+        languages = get_languages(repo["owner"]["login"], repo["name"])
+
+        if languages.present?
+          res.metadata["repository_data"]["languages"] = languages.to_hash
+        end
+
+        if @options[:tags].present?
+          res.add_tags(@options[:tags])
+        end
+
         res.save
+        @completed += 1
+        if(@completed % 10 == 0)
+          if(@last_total != 0)
+            update_sidekiq_status("Processing #{@last_total} results.  (#{@completed}/#{@last_total} completed)", @completed, @last_total)
+          else
+            update_sidekiq_status("Syncing stash for first time.  (#{@completed} completed)")
+          end
+        end
       end
     end
-
-
-
-
   end
 
 

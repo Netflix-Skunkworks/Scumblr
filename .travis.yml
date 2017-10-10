@@ -1,0 +1,15 @@
+script: "bundle exec rake test"
+language: ruby
+rvm:
+ - 2.3.1
+services:
+ - postgresql
+ - redis-server
+addons:
+ postgresql: "9.5"
+before_script:
+  - psql -c 'create database scumblr_test;' -U postgres
+  - bundle exec rake db:structure:load
+  - bundle exec rake db:test:prepare
+  - RAILS_ENV=test bundle exec sidekiq -d -L /tmp/sidekiq.log
+  - sleep 15

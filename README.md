@@ -2,6 +2,7 @@
 # Scumblr
 
 [![Join the chat at https://gitter.im/Netflix/Scumblr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Netflix/Scumblr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![](https://travis-ci.org/Netflix/Scumblr.svg?branch=master)
 
 ## What is Scumblr 2?
 Scumblr is a web application that allows performing periodic syncs of data sources (such as Github repositories and URLs) and performing analysis (such as static analysis, dynamic checks, and metadata collection) on the identified results. Scumblr helps you streamline proactive security through an intelligent automation framework to help you identify, track, and resolve security issues faster.  
@@ -73,6 +74,18 @@ You can create simple or complex workflows to be used along with your results. T
 Take a look at the [wiki](https://github.com/Netflix/Scumblr/wiki) for detailed instructions on setup, configuration, and use!
 
 ## Release History ##
+
+**Version 2.1** - "Reliablity, Useability and Performace Edition" - *September 26th, 2017*
+
+Significant changes include:
+-Major performance improvements to async tasks
+-Ability to utilize an external redis instance
+-Ability to route tasks to specific queues
+-Ability to schedule individual tasks separately within the application
+-Added concept of 'on-demand' and 'callback' tasks
+-Improved vulnerability handling
+-Bug fixes
+-Improved test coverage and integration with TravisCI
 
 **Version 2.0.2** - "XSS fix" - *November 30th, 2016*
 

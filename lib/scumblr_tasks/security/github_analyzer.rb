@@ -36,10 +36,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                              description: "Setting this token provides the access needed to search Github organizations or repos",
                              required: true
                              },
-      :github_api_endpoint => { name: "Github Endpoint",
-                                description: "Allow configurable endpoint for Github Enterprise deployments",
-                                required: false
-                              }
+     :github_api_endpoint => { name: "Github Endpoint",
+                               description: "Allow configurable endpoint for Github Enterprise deployments",
+                               required: false
+                               }
      }
   end
 
@@ -54,8 +54,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       :key_suffix => {name: "Key Suffix",
                       description: "Provide a key suffix for testing out experimental regular expressions",
                       required: false,
-                      type: :string
-                      },
+                      type: :string},
+      :tags => {name: "Tag Results",
+                description: "Provide a tag for newly created results",
+                required: false,
+                type: :tag
+                },
       :max_results => {name: "Limit search results",
                        description: "Limit search results.",
                        required: true,
@@ -97,8 +101,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                  choices: [:file, :path, :both]},
       :members => {name: "Scan Members Public Code of an Organization",
                    description: "Include members code of an organization.",
-                   required: false,
-                   type: :boolean}
+                   required: true,
+                   type: :choice,
+                   default: :both,
+                   choices: [:members_only, :both, :organization_only]}
     }
   end
 
@@ -128,11 +134,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     @terms = []
     @total_matches = 0
 
-    if @options[:members] == "0"
-      @options[:members] = false
-    else
-      @options[:members] = true
-    end
+    # End of remove
 
     if(@options[:key_suffix].present?)
       @key_suffix = "_" + @options[:key_suffix].to_s.strip
@@ -145,9 +147,8 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     @options[:max_results] = @options[:max_results].to_i > 0 ? @options[:max_results].to_i : 200
 
     # Check to make sure either search terms or url was provided for search
-    unless @options[:search_terms].present? or @options[:json_terms].present?
-      create_event("No search terms provided.")
-      raise 'No search terms provided.'
+    unless @options[:search_terms].present? or @options[:json_terms].present? or @options[:saved_terms].present?
+      raise ScumblrTask::TaskException.new("no search terms provided.")
       return
     end
 
@@ -156,8 +157,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         @options[:repo].present? ||
         @options[:saved_users].present? ||
         @options[:saved_repos].present?
-      create_event("No user, org, or repo provided.")
-      raise 'No user, org, or repo provided.'
+      raise ScumblrTask::TaskException.new("No user, org, or repo provided.")
       return
     end
 
@@ -173,7 +173,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         @terms = @terms + JSON.parse(RestClient.get @options[:json_terms])
       rescue => e
         create_event("Unable to retrieve results for #{@options[:json_terms]}.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-        raise "Unable to retrieve results for #{json_terms}!"
       end
     end
 
@@ -197,6 +196,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     end
 
     if @options[:saved_users].present? and @options[:saved_repos].present?
+
       create_event("Both user/originzation and repo provided, defaulting to user(s)/originzation(s).")
       # Append any repos to the search scope
       @search_type = "user"
@@ -213,6 +213,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
       # If there are staved payloads, load them.
       if saved_users.present?
+
         @search_type = "user"
         @saved_users_or_repos.concat(saved_users)
         @saved_users_or_repos = @saved_users_or_repos.reject(&:blank?)
@@ -220,6 +221,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     elsif(@options[:saved_users].present?)
       begin
+
         saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
       rescue
         saved_users = nil
@@ -231,6 +233,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         create_event("System Metadata payloads should be in array format, exp: [\"foo\", \"bar\"]", "Error")
       end
 
+
       # If there are staved payloads, load them.
       if saved_users.present?
         @search_type = "user"
@@ -239,6 +242,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
 
     elsif(@options[:saved_repos].present?)
+
       begin
         saved_repos = SystemMetadata.where(id: @options[:saved_repos]).try(:first).metadata
       rescue
@@ -259,13 +263,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       end
     end
 
-    # If for some reason terms are still empty, raise an exception.
-    if @terms.empty?
-      create_event("Could not parse search terms.")
-      raise 'Could not parse search terms.'
-      return
-    end
-
     if(@options[:saved_terms].present?)
       begin
         saved_terms = SystemMetadata.where(id: @options[:saved_terms]).try(:first).metadata
@@ -284,7 +281,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         @terms.concat(saved_terms)
         @terms = @terms.reject(&:blank?)
       end
+    end
 
+    # If for some reason terms are still empty, raise an exception.
+    if @terms.empty?
+      raise ScumblrTask::TaskException.new("Could not parse search terms.")
+      return
     end
 
     # make sure search terms are unique
@@ -293,10 +295,8 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # Check ratelimit for core lookups
     begin
       response = JSON.parse(RestClient.get "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}")
-      puts "#{@github_api_endpoint}/rate_limit?access_token=#{@github_oauth_token}"
       core_rate_limit = response["resources"]["core"]["remaining"].to_i
       no_limit = false
-      puts 1
       # If we have hit the core limit, sleep
       rate_limit_sleep(core_rate_limit, response["resources"]["core"]["reset"], no_limit)
     rescue => e
@@ -304,7 +304,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       if JSON.parse(e.response)["message"] == "Rate limiting is not enabled."
         no_limit = true
         core_rate_limit = 0
-        puts 1
       else
         create_event("Unable to retrieve rate limit from Github.\n\n. Exception: #{e.message}\n#{e.backtrace}")
         raise "Unable to retrieve rate limit for Github!"
@@ -317,6 +316,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       while true
         if @search_type == "user" and core_rate_limit >= 0
           @saved_users_or_repos.each do | user_or_repo |
+
 
             response = RestClient.get "#{@github_api_endpoint}/users/#{user_or_repo}?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
@@ -334,8 +334,8 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         end
       end
     rescue => e
-      create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-      raise "Unable to if suppiled input is an org"
+
+      create_event("Unable to determine if suppiled input is a valid org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
     end
 
     # Determine how many pages of users we need to retrieve
@@ -343,12 +343,12 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     # more_pages = false
     # pages = 1
     @scope_type_array.each_with_index do |scope_type, index|
-      puts index
+
       begin
         while true
           more_pages = false
           pages = 1
-          if @options[:members] == true and @scope_type == "Organization" and core_rate_limit >= 0
+          if ["members_only", "both"].include? @options[:members] and @scope_type == "Organization" and core_rate_limit >= 0
 
             response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}"
             json_response = JSON.parse(response)
@@ -379,17 +379,17 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
           break
         end
       rescue => e
-
-        create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-        raise "Unable to if suppiled input is an org"
+        raise ScumblrTask::TaskException.new("Unable to determine if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
         return
       end
 
       # Append each user from each page to the searched_scope array
-      if more_pages and @options[:members] == true
+      if more_pages and ["members_only", "both"].include? @options[:members]
+
         begin
           1.upto(pages.to_i) do | page |
             if core_rate_limit >= 0
+
               response = RestClient.get "#{@github_api_endpoint}/orgs/#{@saved_users_or_repos[index]}/members?access_token=#{@github_oauth_token}&page=#{page}"
               json_response = JSON.parse(response)
               core_rate_limit -= 1
@@ -403,32 +403,39 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             end
           end
         rescue => e
-          create_event("Unable to if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-          raise "Unable to if suppiled input is an org"
+          raise ScumblrTask::TaskException.new("Unable to determine if suppiled input is an org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
           return
         end
       end
 
     end
-    @search_scope
+    if @search_scope.blank?
+      raise ScumblrTask::TaskException.new("Search Scope is not defined, do the orgs/users you specified actually exist?")
+    else
+      @search_scope
+    end
 
   end
 
   def parse_search(response, json_response, user_type)
     # Parse out all of the important search metadata
     json_response["items"].each do | search |
+
       # For each hash in the json_response, parse out important fields
       search_metadata ||= {}
       #search_metadata[:github_analyzer] = true
-      search_metadata[:github_analyzer] ||= {}
-      search_metadata[:github_analyzer][:owner] = search["repository"]["owner"]["login"]
-      search_metadata[:github_analyzer][:language] = search["repository"]["language"]
-      search_metadata[:github_analyzer][:private] = search["repository"]["private"]
-      search_metadata[:github_analyzer][:account_type] = user_type
-      search_metadata[:github_analyzer][:git_clone_url] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
-
-      # Define data for vulnerability object
-      search_metadata[:github_analyzer_vulnerabilities] ||= {}
+      search_metadata["repository_data"] ||= {}
+      search_metadata["repository_data"]["name"] = search["repository"]["name"]
+      search_metadata["repository_data"]["slug"] = search["repository"]["name"]
+      search_metadata["repository_data"]["project"] = search["repository"]["owner"]["login"]
+      search_metadata["repository_data"]["project_name"] = search["repository"]["owner"]["login"]
+      search_metadata["repository_data"]["project_type"] = search["repository"]["owner"]["type"] == "User" ? "User" : "Project"
+      search_metadata["repository_data"]["private"] = search["repository"]["private"]
+      search_metadata["repository_data"]["source"] = "github"
+      search_metadata["repository_data"]["ssh_clone_url"] = "ssh://github.com/#{search["repository"]["full_name"]}.git"
+      search_metadata["repository_data"]["https_clone_url"] = search["repository"]["html_url"].to_s + ".git"
+      search_metadata["repository_data"]["link"] = search["repository"]["html_url"]
+      search_metadata["repository_data"]["repository_host"] = @github_api_endpoint.gsub(/\Ahttps?:\/\//,"").gsub(/\/.+/,"")
 
       # Parse out text matches if there are any
       vulnerabilities = []
@@ -463,36 +470,46 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             create_event("Unable to add metadata.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
           end
         end
-      else
-        if(@options[:key_suffix].present?)
-          vuln.key_suffix = @options[:key_suffix]
-        end
-        vuln.term = snippit["matches"].first["text"]
-        vuln.source = "github"
-        vuln.task_id = @options[:_self].id.to_s
-        vuln.type = '"' + snippit["matches"].first["text"] + '"' + " - #{snippit["property"]} match"
-        vuln.severity = @options[:severity]
-        vuln.file_name = search["name"]
-        vuln.url = search["html_url"]
-        vulnerabilities << vuln
+        # Can't seem to trigger this code path, consdier removing (S.B. Feb 2017)
+        # else
+        #   byebug
+        #   if(@options[:key_suffix].present?)
+        #     vuln.key_suffix = @options[:key_suffix]
+        #   end
+        #   vuln.term = snippit["matches"].first["text"]
+        #   vuln.source = "github"
+        #   vuln.task_id = @options[:_self].id.to_s
+        #   vuln.type = '"' + snippit["matches"].first["text"] + '"' + " - #{snippit["property"]} match"
+        #   vuln.severity = @options[:severity]
+        #   vuln.file_name = search["name"]
+        #   vuln.url = search["html_url"]
+        #   vulnerabilities << vuln
       end
 
-      res = Result.where(url: search["repository"]["html_url"]).first
+      res = Result.where(url: search["repository"]["html_url"].downcase).first
+
 
       if res.present?
         res.update_vulnerabilities(vulnerabilities)
-        res.metadata.merge!({"github_analyzer" => search_metadata[:github_analyzer]})
+        res.metadata.merge!({"repository_data" => search_metadata["repository_data"]})
+        if @options[:tags].present?
+          res.add_tags(@options[:tags])
+        end
         res.save!
         @results << res
         # Do not create new result simply append vulns to results
       else
-        github_result = Result.new(url: search["repository"]["html_url"], title: search["repository"]["full_name"], domain: "github.com", metadata: {"github_analyzer" => search_metadata[:github_analyzer]})
+        github_result = Result.new(url: search["repository"]["html_url"].downcase, title: search["repository"]["full_name"].to_s + " (Github)", domain: "github.com", metadata: {"repository_data" => search_metadata["repository_data"]})
+        if @options[:tags].present?
+          github_result.add_tags(@options[:tags])
+        end
         github_result.save!
         github_result.update_vulnerabilities(vulnerabilities)
         @results << github_result
       end
     end
   end
+
 
   def run
     # Store results in results array
@@ -515,6 +532,10 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
     puts "Checking #{@terms.length.to_s} search terms on #{@search_scope.length.to_s} scopes"
 
     @search_scope.each do |scope, type|
+      # If we are only looking for members, skip any orgs
+      if @options[:members] == "members_only" and type == "Organization"
+        next
+      end
       # For each scope (user, org, repo) check if the search terms match anything
       puts "Checking #{scope}"
       @retry_interval = 0
@@ -609,9 +630,9 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
             begin
               # If the scope is a repo, we need to set a different query string
               if type == "repo"
-                response = RestClient.get URI.escape("#{github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
+                response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
               else
-                response = RestClient.get URI.escape("#{github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+repo:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
+                response = RestClient.get URI.escape("#{@github_api_endpoint}/search/code?q=#{term.strip}+in:#{@options[:scope]}+user:#{scope}&access_token=#{@github_oauth_token}&page=#{page}"), :accept => "application/vnd.github.v3.text-match+json"
               end
             rescue RestClient::Exception => e
               begin
@@ -627,6 +648,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 next
               end
             rescue=>e
+
               create_event("Unknown error occurred\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
               next
             end

@@ -33,7 +33,12 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
   end
 
   def self.options
-    {}
+    {:tags => {name: "Tag Results",
+               description: "Provide a tag for newly created results",
+               required: false,
+               type: :tag
+              }
+    }
   end
 
 

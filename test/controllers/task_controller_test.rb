@@ -12,7 +12,9 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
       end
       ids += r.id.to_s
     end
+
     xhr :get, "/tasks/expandall.js?result_ids=#{ids}"
+
     assert_response :success
   end
 
@@ -20,6 +22,41 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     sign_in
     xhr :get, "/tasks/events.js"
     assert_response :success
+  end
+
+  # Scott Tests for task search ransack
+  test "verfiy search endpoint returns json" do
+    sign_in
+    get "/tasks/search"
+    assert response.body.include? "id"
+    assert JSON.parse(response.body) ? true : false
+  end
+
+  test "verfiy search endpoint returns filtered json" do
+    # we should get back some fixtures for this filter
+    sign_in
+    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubSyncAnalyzer"
+    json_response = JSON.parse(response.body)
+    assert json_response.count >= 0
+  end
+
+  test "verfiy search endpoint returns resolved system metadata when configured" do
+    # we should get back expanded system metadata for this fixture
+    sign_in
+    get "/tasks/search?q[task_type_eq]=ScumblrTask::GithubEventAnalyzer&resolve_system_metadata=true"
+    json_response = JSON.parse(response.body)
+    asserted = false
+    json_response.each do | response_object |
+      if response_object["id"] == 70
+        assert_equal("foo", response_object["options"]["github_terms"].first)
+        asserted = true
+      end
+    end
+
+    if asserted == false
+      skip("no owner_metadata found for task search, maybe you changed a fixture?")
+    end
+
   end
 
   test "verfiy get_metadata tasks no error rendering" do
@@ -62,6 +99,36 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "bulk schedule tasks no error" do
+    sign_in
+    ids = Task.ids
+    ActiveSupport::Deprecation.silence do
+      post "/tasks/schedule.html", {task_ids: ids, commit: "Schedule", hour: "1"}
+      assert_response :redirect
+    end
+    schedule = Sidekiq.get_schedule
+    assert_equal(Task.count, schedule.keys.count)
+    schedule.each do |task, metadata|
+      frequency = schedule[task]["cron"]
+      assert_equal("* 1 * * *", frequency)
+    end
+  end
+
+  test "bulk unschedule tasks no error" do
+    sign_in
+    ids = Task.ids
+    ActiveSupport::Deprecation.silence do
+      post "/tasks/schedule.html", {task_ids: ids, commit: "Unschedule"}
+      assert_response :redirect
+    end
+    schedule = Sidekiq.get_schedule
+    assert_equal(0, schedule.keys.count)
+    schedule.each do |task, metadata|
+      frequency = schedule[task]["cron"]
+      assert_equal(nil, frequency)
+    end
+  end
+
   test "bulk update tasks no error rendering" do
     sign_in
     ids = []
@@ -95,7 +162,7 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
   test "individual task run loads with no error" do
     sign_in
     res = Task.first
-    get "/tasks/#{res.id}/run"
+    get "/tasks/70/run"
     assert_response :redirect
   end
 

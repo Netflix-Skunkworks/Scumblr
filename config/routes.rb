@@ -19,7 +19,7 @@ class ActionDispatch::Routing::Mapper
     ["custom/config/routes.rb", "../custom/config/routes.rb"].each do |filename|
       instance_eval(File.read(Rails.root.join(filename))) if File.file?(filename)
     end
-    
+
   end
 end
 
@@ -41,7 +41,12 @@ Scumblr::Application.routes.draw do
     end
   end
 
-  resources :system_metadata
+  resources :system_metadata do
+    member do
+      get 'autocomplete', xhr: :get
+    end
+  end
+
   resources :events, only: [:index, :show] do
     collection do
       post 'search' => 'events#index'
@@ -101,7 +106,7 @@ Scumblr::Application.routes.draw do
       match 'update_metadata', via: [:get, :post]
       match 'get_metadata', via: [:get, :post]
       get 'summary', to: 'results#summary'
-      
+
       match 'render_metadata_partial', via: [:get, :post]
     end
 
@@ -115,22 +120,22 @@ Scumblr::Application.routes.draw do
       get 'options', to: 'task_types#options'
       get 'run', to: 'tasks#run'
       post 'bulk_update'
+      post 'schedule'
       get 'expandall', to: 'tasks#expandall'
+      get 'search', to: 'tasks#search'
       get :events
     end
 
 
     member do
       get 'run', to: 'tasks#run'
+      post 'run', to: 'tasks#run'
       get 'get_metadata'
       post 'enable', to: 'tasks#enable'
       post 'disable', to: 'tasks#disable'
       get 'summary', to: 'tasks#summary'
-
-    end
-
-    member do
       get 'options', to: 'task_types#options'
+      get 'on_demand_options', to: 'task_types#on_demand_options'
     end
   end
 

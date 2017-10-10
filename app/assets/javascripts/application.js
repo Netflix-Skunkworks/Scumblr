@@ -239,12 +239,75 @@ $(function(){
   $(document).on('click', "a > form > input.refresh", function(event) {
     event.stopPropagation();
   });
+
 });
 
 //Autosubmit facets form when a select box is changed. If inside ready submits multiplet times.
 $(document).on("change select2:change select2:select select2:unselect", "form.facets select",function(){
     $(this).closest("form").submit();
   })
+
+$(document).on("change", ".hide-toggle",function(){
+    
+    if((!$(this).hasClass("reverse-toggle") && this.checked) || (!this.checked && $(this).hasClass("reverse-toggle")))
+    {
+      $($(this).data("toggle")).show();
+    }
+    else
+    {
+      $($(this).data("toggle")).hide();
+    }
+  })
+
+$(document).on('click', '.submit_form_link', function(e) {
+ e.preventDefault();
+ $(this).closest('form').submit();
+});
+
+$(document).on('click', '.close-modal', function() {
+    $(".reveal-modal").foundation('reveal','close')
+})
+
+$(document).on('click', '.close-modal-on-submit', function() {
+    form = $(this).parent("form")[0]
+    if(form.checkValidity() == false)
+    {
+      msg="Error submitting form:"
+      $(form).find( ":invalid" ).each( function( index, node ) {
+
+          // Find the field's corresponding label
+          
+          label = $( "label[for=" + node.id + "] ").text().replace(/\  +/g,"").replace(/\*/g,"").replace(/\n/g,"").replace(/\t/g,"")
+          message = node.validationMessage || 'Invalid value.';
+
+          msg += "\r\n - " + label + ": " + message
+      });
+      alert(msg);
+      return false;
+    }
+    else
+    {
+      $(".reveal-modal").foundation('reveal','close') 
+    }
+
+      
+})
+
+$(document).on('click', '.remote-form', function() {
+  $("#preloader-modal").remove();
+  $("body").append('<div id="preloader-modal" style="height:500px" class="reveal-modal" data-reveal>'+ $(this).data("form") +' </div></div>')
+  $("#preloader-modal").foundation('reveal','open')
+  $.ajax({
+    method: "GET",
+    url: $(this).data("form-path"),
+    data: {}
+  })
+    .done(function( msg ) {
+
+    });
+  // show_preloader();
+  return false;
+})
 
 var ready = function(){
 
@@ -257,10 +320,7 @@ var ready = function(){
   });
 
 
-  $(document).on('click', '.submit_form_link', function(e) {
-   e.preventDefault();
-   $(this).closest('form').submit();
-  });
+
 
   //header_color();
 
@@ -363,8 +423,9 @@ var ready = function(){
     var context_object = this
     $(this).select2({
         placeholder: "Please choose",
+        allowClear: true,
         minimumInputLength: 0,
-        multiple: $(context_object).attr("data-multiple") != undefined,
+        multiple: $(context_object).attr("data-multiple") == true || $(context_object).attr("data-multiple") == "true",
 
         ajax: {
             url: function() {return this.attr("data-path") },
@@ -438,8 +499,9 @@ var ready = function(){
             if($(context_object).attr("data-initial") != undefined && $(context_object).attr("data-initial") != "placeholder_value")
             {
               data = $(context_object).data("initial")
-              $(context_object).attr("value", JSON.stringify(data))
+              // $(context_object).attr("value", JSON.stringify(data))
               callback(data);
+              
 
             }
             else if($(context_object).attr("data-parse-initial") != undefined)
@@ -457,7 +519,7 @@ var ready = function(){
 
                 data.push(d);
               });
-
+            
             callback(data);
 
           }
@@ -470,7 +532,7 @@ var ready = function(){
             {
               return JSON.stringify(item);
             }
-
+            
             return  item[$(context_object).attr("data-id-attribute")];
           }
           else
@@ -503,7 +565,7 @@ var ready = function(){
   $('.reveal-hidden').mouseover(function() { $(this).find(".hidden").show() });
   $('.reveal-hidden').mouseout(function() {$(this).find(".hidden").hide() } );
 
-
+  
 
 
   $('.preload-form').click(function() {
@@ -515,9 +577,7 @@ var ready = function(){
   })
 
 
-  $('.close-modal').click(function() {
-      $(".reveal-modal").foundation('reveal','close')
-  })
+  
 
   //Actions for index checkboxes
   $('#check_all_results').click(function() {
@@ -597,6 +657,13 @@ var ready = function(){
     if(!e.isDefaultPrevented())
     {
       $('#update_multiple_form').append($("#selection_table").find("input").clone(true,true).hide())
+    }
+  })
+
+  $('.schedule_tasks_button').click(function(e) {
+    if(!e.isDefaultPrevented())
+    {
+      $('#schedule_tasks_form').append($("#selection_table").find("input").clone(true,true).hide())
     }
   })
 

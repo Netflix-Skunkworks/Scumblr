@@ -1,0 +1,119 @@
+
+<table>
+  <tr>
+    <th><%= link_to "&#9658;".html_safe, expandall_tasks_path(), :id => "expandall_arrow", :remote=>true %></th>
+    <th></th>
+    <th></th>
+    <th>Name</th>
+    <th>Task Type</th>
+    <th>Query</th>
+    <th>Last Success</th>
+    <% if !defined?(hide_frequency) || hide_frequency!=true %>
+      <th>Frequency</th>
+    <% end %>
+    <th></th>
+  </tr>
+  <% tasks.partition{|v| v.enabled == true}.flatten.each do |task| %>
+    <tr class="<%= "disabled" if task.enabled != true %>">
+      <td><%= link_to "&#9658;".html_safe, summary_task_path(task), :id => "summary_icon_#{task.id}", :remote=>true %></td>
+      <td><%= check_box_tag "task_ids[]", task.id, false, {:class=>"result_checkbox"} %></td>
+      <% status_class = task.metadata.try(:[], "_last_status").to_s.downcase %>
+      <% status_class = "classification-" + status_class if status_class.present? %>
+      <% if task.metadata.try(:[], "_last_status") %>
+        <% message = task.metadata.try(:[], "_last_status").to_s %>
+        <% message +=  "<br/>" + h(task.metadata.try(:[], "_last_status_message").to_s) if task.metadata.try(:[], "_last_status_message") %>
+        <% message += "<br/>" + link_to("Event #{task.metadata.try(:[], "_last_status_event")}", event_path(task.metadata.try(:[], "_last_status_event"))) if task.metadata.try(:[], "_last_status_event") %>
+        <% message +=  "<br/>Last run: " + time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_run").to_s)) + " ago" if task.metadata.try(:[], "_last_run")%>
+        <% message +=  "<br/>Last success: " + time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_successful_run").to_s)) + " ago" if task.metadata.try(:[], "_last_successful_run") %>
+        
+        <% if task.metadata.try(:[], "current_events").try(:[], "Error").present? %>
+          <% message += search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["current_events"]["Error"].first(200).each do |error_event| %>
+              <%= hidden_field_tag 'q[id_in][]', error_event %>
+            <% end %>
+            <%= link_to 'Current Event Errors: ' + task.metadata.try(:[], "current_events").try(:[], "Error").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "current_events").try(:[], "Warn").present? %>
+          <% message += search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["current_events"]["Warn"].first(200).each do |warn_event| %>
+              <%= hidden_field_tag 'q[id_in][]', warn_event %>
+            <% end %>
+            <%= link_to 'Current Event Warnings: ' + task.metadata.try(:[], "current_events").try(:[], "Warn").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "current_results").try(:[], "created").present? %>
+          <% message += search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["current_results"]["created"].first(200).each do |created_result| %>
+              <%= hidden_field_tag 'q[id_in][]', created_result %>
+            <% end %>
+            <%= link_to 'Current Results Created: ' + task.metadata.try(:[], "current_results").try(:[], "created").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "current_results").try(:[], "updated").present? %>
+          <% message += search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["current_results"]["updated"].first(200).each_with_index do |index, updated_result| %>
+              <%= hidden_field_tag 'q[id_in][]', updated_result %>
+            <% end %>
+            <%= link_to 'Current Results Updated: ' + task.metadata.try(:[], "current_results").try(:[], "updated").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "previous_events").try(:[], "Error").present? %>
+          <% message += search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["previous_events"]["Error"].first(200).each do |error_event| %>
+              <%= hidden_field_tag 'q[id_in][]', error_event %>
+            <% end %>
+            <%= link_to 'Previous Event Errors: ' + task.metadata.try(:[], "previous_events").try(:[], "Error").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "previous_events").try(:[], "Warn").present? %>
+          <% message += search_form_for Event.search, :url=>search_events_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["previous_events"]["Warn"].first(200).each do |warn_event| %>
+              <%= hidden_field_tag 'q[id_in][]', warn_event %>
+            <% end %>
+            <%= link_to 'Previous Event Warnings: ' + task.metadata.try(:[], "previous_events").try(:[], "Warn").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "previous_results").try(:[], "created").present? %>
+          <% message += search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["previous_results"]["created"].first(200).each do |created_result| %>
+              <%= hidden_field_tag 'q[id_in][]', created_result %>
+            <% end %>
+            <%= link_to 'Previous Results Created: ' + task.metadata.try(:[], "previous_results").try(:[], "created").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+        <% if task.metadata.try(:[], "previous_results").try(:[], "updated").present? %>
+          <% message += search_form_for Result.search, :url=>search_results_path, :html => {:target=>'_blank'}, :method=>:post, :authenticity_token => false, id:"search_form" do |f| %>
+            <% task.metadata["previous_results"]["updated"].first(200).each do |updated_result| %>
+              <%= hidden_field_tag 'q[id_in][]', updated_result %>
+            <% end %>
+            <%= link_to 'Previous Results Updated: ' + task.metadata.try(:[], "previous_results").try(:[], "updated").length.to_s, "", {class: "submit_form_link", target: '_blank'} %>
+          <% end %>
+        <% end %>
+      <% end %>
+      <td class="<%= status_class %> has-tip bettertooltip" data-tooltip data-options="hover_delay: 500;" aria-haspopup="true"  title="<%= message %>">&nbsp;</td>
+      <td><%= link_to task.name, task %></td>
+      <td><%= task.task_type_name %></td>
+      <td><%= task.query %></td>
+      <td><%= time_ago_in_words(DateTime.parse(task.metadata.try(:[], "_last_successful_run").to_s)) + " ago" if task.metadata.try(:[], "_last_successful_run")%></td>
+      <% if !defined?(hide_frequency) || hide_frequency!=true %>
+        <td><%= task.frequency %></td>
+      <% end %>
+      <td>
+        <% if task.enabled %>
+          <%= link_to 'Disable', disable_task_path(task), method: :post, class: "button tiny" if can? :disable, task %>
+        <% else %>
+          <%= link_to 'Enable', enable_task_path(task), method: :post, class: "button tiny" if can? :enable, task %>
+        <% end %>
+        <%= link_to 'Edit', edit_task_path(task), class: "button tiny" if can? :edit, task %>
+        <%= link_to 'Duplicate', new_task_path(task_id: task.id), class: "button tiny" if can? :create, Task %>
+        <%= link_to 'Destroy', task, method: :delete, data: { confirm: 'Are you sure?' }, class: "button tiny alert" if can? :destroy, task %></td>
+    </tr>
+    <tr>
+      <td colspan="8" style="padding: 0; margin: 0; border: 0;">
+        <div id="summary_<%= task.id %>" style="display:none;"> </div>
+      </td>
+    </tr>
+  <% end %>
+</table>
+<br />

@@ -17,7 +17,17 @@ class StatusTest < ActiveSupport::TestCase
   end
 
   test "should reset_default on after_save callback" do
-    assert_equal(2, fixture_status.reset_default.count)
+    # require 'byebug'
+    # byebug
+    # puts 1
+    # DatabaseCleaner.clean
+    # DatabaseCleaner.start
+    # Result.delete_all
+    # Rake::Task["db:fixtures:load"].execute
+    # require 'active_record/fixtures'
+    # ActiveRecord::FixtureSet.create_fixtures(Rails.root.join('test', 'fixtures'), 'results')
+    # byebug
+    assert_equal(6, fixture_status.reset_default.count)
   end
 
   test "should to_string a name" do

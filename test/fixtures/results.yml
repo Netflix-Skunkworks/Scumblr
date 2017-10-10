@@ -70,6 +70,20 @@ result_1:
       informational: 0
   metadata_hash: {}
 
+result_275235:
+  id: 275235
+  title: https://github.com/scumblrtest2/test_repo
+  url: https://github.com/scumblrtest2/test_repo
+  status_id: 1
+  created_at: 2017-06-01 21:53:52.285090000 Z
+  updated_at: 2017-06-02 15:08:29.688119000 Z
+  domain:
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata: {}
+  metadata_hash:
+
 result_2:
   id: 2
   title: https://github.com/Netflix/grouper
@@ -111,8 +125,8 @@ result_2:
       match_location: content
     - id: da05be901b9be3c6fadec856d5f29158
       url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
-      term: Api
-      type: '"Api" - content match'
+      term: Apis
+      type: '"Apis" - content match'
       score: 1.131043
       source:
       - github
@@ -137,4 +151,172 @@ result_2:
       task_id:
         '2': 2
       key_suffix: {}
+  metadata_hash:
+
+result_4:
+  id: 4
+  title: https://github.com/Netflix/grouper3
+  url: https://github.com/Netflix/grouper3
+  status_id:
+  created_at: 2016-11-16 01:45:41.206070000 Z
+  updated_at: 2017-01-12 21:36:06.803003000 Z
+  domain: github.com
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata:
+    github_analyzer:
+      owner: Netflix
+      private: true
+      language:
+      account_type: Organization
+      git_clone_url: ssh://github.com/Netflix/grouper3.git
+    vulnerabilities:
+    - id: 2600a431554c04bbbcd2b74a57f18d54
+      url: https://github.com/Netflix/grouper3/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: ssss
+      type: '"sss" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '3'
+      severity: High
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        'use strict';
+
+        angular.module('grouper')
+          .service('SearchApi', function (GrouperRestangular
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    - id: 22222431554c04bbbcd2b74a57f18d22
+      url: https://www.netflix.com/bar/whatever?stuff=salkafdskjfs&things=salsjklfasj&bar=<script>alert()</script>
+      type: 'Reflected XSS'
+      task_id: '3'
+      source:
+      - detectify
+      severity: Observation
+      status: Open
+    - id: da05be901b9be3c6fadec856d5f29158
+      url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: sss
+      type: '"ssss" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '3'
+      severity: Observation
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        ) {
+            return GrouperRestangular.all('search');
+          })
+          .service('SearchService', function (SearchApi
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    vulnerability_count:
+      open: 3
+      closed: 0
+      source:
+        github: 3
+      task_id:
+        '2': 3
+      key_suffix: {}
+  metadata_hash:
+
+result_3:
+  id: 3
+  title: https://github.com/Netflix/grouper2
+  url: https://github.com/Netflix/grouper2
+  status_id:
+  created_at: 2016-11-16 01:45:41.206070000 Z
+  updated_at: 2017-01-12 21:36:06.803003000 Z
+  domain: github.com
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata:
+    github_analyzer:
+      owner: Netflix
+      private: true
+      language:
+      account_type: Organization
+      git_clone_url: ssh://github.com/Netflix/grouper2.git
+    vulnerabilities:
+    - id: 2600a431554c04bbbcd2b74a57f18d54
+      url: https://github.com/Netflix/grouper2/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: Api
+      type: '"Api" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '3'
+      severity: High
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        'use strict';
+
+        angular.module('grouper')
+          .service('SearchApi', function (GrouperRestangular
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    - id: 22222431554c04bbbcd2b74a57f18d22
+      url: https://www.netflix.com/bar/whatever?stuff=salkafdskjfs&things=salsjklfasj&bar=<script>alert()</script>
+      type: 'Reflected XSS'
+      task_id: '3'
+      source:
+      - detectify
+      severity: Observation
+      status: Open
+    - id: da05be901b9be3c6fadec856d5f29158
+      url: https://github.com/Netflix/grouper/blob/e4ff5ffe59451067881faeb08a46119c759e38b2/grouper/static/app/angular/search/services.js
+      term: Apis
+      type: '"Apis" - content match'
+      score: 1.131043
+      source:
+      - github
+      status: Open
+      task_id: '3'
+      severity: Observation
+      file_name: services.js
+      identified: '2016-11-15T17:45:41.211-08:00'
+      code_fragment: |-
+        ) {
+            return GrouperRestangular.all('search');
+          })
+          .service('SearchService', function (SearchApi
+      external_link: {}
+      attack_vectors: []
+      match_location: content
+    vulnerability_count:
+      open: 3
+      closed: 0
+      source:
+        github: 3
+      task_id:
+        '2': 3
+      key_suffix: {}
+  metadata_hash:
+
+result_277490:
+  id: 277490
+  title: https://altoromutual.com
+  url: https://altoromutual.com
+  status_id: 1
+  created_at: 2017-08-14 20:35:41.923202000 Z
+  updated_at: 2017-08-14 20:35:41.923202000 Z
+  domain:
+  user_id:
+  content:
+  metadata_archive: {}
+  metadata: {}
   metadata_hash:
