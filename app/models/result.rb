@@ -275,7 +275,6 @@ class Result < ActiveRecord::Base
 
     options ||= {}
     include_metadata_column = options[:include_metadata_column] || false
-    columns = options[:columns]
 
     q.delete("searches_id_in")
     options[:metadata_search] = q[:metadata_search]
@@ -307,7 +306,7 @@ class Result < ActiveRecord::Base
 
     begin
       results = Result.filter_search_with_metadata(ransack_search, per, page, options)
-    rescue => e
+    rescue => _e
       if(per == nil)
         results = ransack_search.result.select(Result.column_names.reject{|c| (c.starts_with("metadata") && include_metadata_column!=true) || c == "content" }.map{|c| "results."+c.to_s})
       else
