@@ -30,7 +30,7 @@ end
 
 Sidekiq.configure_client do |config|
   # If user has specified a redis connection string, use it
-  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3, size:15 } if Rails.configuration.try(:redis_connection_string) 
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 1.days
   end
@@ -38,12 +38,12 @@ end
 
 Sidekiq.configure_server do |config|
   # If user has specified a redis connection string, use it
-  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string) 
-  
-  # Setup sidekiq queues. 
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3 } if Rails.configuration.try(:redis_connection_string)
+
+  # Setup sidekiq queues.
   # If a user has specified command line queues, use those
   # otherwise if use has queues in config file, use those
-  # default to async_worker, worker, and runner queues 
+  # default to async_worker, worker, and runner queues
 
   if(config.options[:queues] == ["default"])
     if(ENV["SIDEKIQ_QUEUES"].present?)
@@ -51,11 +51,11 @@ Sidekiq.configure_server do |config|
     elsif(Rails.configuration.try(:sidekiq_queues))
       config.options[:queues] = Rails.configuration.try(:sidekiq_queues)
     else
-      config.options[:queues] = ["async_worker", "worker", "runner", "default"] 
+      config.options[:queues] = ["async_worker", "worker", "runner", "default"]
     end
   end
 
-  # Prevent runners and workers from taking all the workers 
+  # Prevent runners and workers from taking all the workers
   Sidekiq::Queue['runner'].process_limit = 5
   Sidekiq::Queue['worker'].process_limit = 10
 
