@@ -31,7 +31,7 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
   end
 
   def self.options
-    return {
+    return super.merge({
       :severity => {name: "Finding Severity",
                     description: "Set severity to either observation, high, medium, or low",
                     required: true,
@@ -108,20 +108,20 @@ class ScumblrTask::CurlAnalyzer < ScumblrTask::AsyncSidekiq
                              description: "Toggle to strip strip to hostname only (exp. http://netflix.com/movie/1234 becomes http://netflix.com",
                              required: false,
                              type: :boolean
-                             },
-      :sidekiq_worker_queue => {name: "Sidekiq Worker Queue",
-                             description: "Which Sidekiq queue should async workers run in? (Default: worker)",
-                             required: false,
-                             type: :sidekiq_queue
+                             }
+      # :sidekiq_worker_queue => {name: "Sidekiq Worker Queue",
+      #                        description: "Which Sidekiq queue should async workers run in? (Default: worker)",
+      #                        required: false,
+      #                        type: :sidekiq_queue
 
-                             },
-      :sidekiq_queue => {name: "Sidekiq Queue",
-                       description: "Which Sidekiq queue should the task run in? (Applies only to parent task, not async workers. Default: async_worker)",
-                       required: false,
-                       type: :sidekiq_queue
-                       },
+      #                        },
+      # :sidekiq_queue => {name: "Sidekiq Queue",
+      #                  description: "Which Sidekiq queue should the task run in? (Applies only to parent task, not async workers. Default: async_worker)",
+      #                  required: false,
+      #                  type: :sidekiq_queue
+      #                  },
 
-    }
+    })
   end
 
   def initialize(options={})

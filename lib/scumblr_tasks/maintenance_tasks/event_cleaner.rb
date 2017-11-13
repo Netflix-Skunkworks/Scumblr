@@ -23,13 +23,13 @@ class ScumblrTask::EventCleaner < ScumblrTask::Base
   end
 
   def self.options
-    return {
+    return super.merge({
       :days_to_keep => {name: "Days to keep",
         description: "Delete all events older than n days.",
         required: false,
         type: :text
       }
-    }
+    })
   end
 
   def self.description

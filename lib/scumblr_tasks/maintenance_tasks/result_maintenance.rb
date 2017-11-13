@@ -23,7 +23,7 @@ class ScumblrTask::ResultMaintenance < ScumblrTask::Async
   end
 
   def self.options
-    return {}
+    return super
   end
 
   def self.description
@@ -33,7 +33,7 @@ class ScumblrTask::ResultMaintenance < ScumblrTask::Async
   def initialize(options={})
     # Do setup
     super
-    
+
   end
 
   def perform_work(r)

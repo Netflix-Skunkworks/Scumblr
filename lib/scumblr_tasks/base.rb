@@ -41,7 +41,18 @@ module ScumblrTask
     end
 
     def self.options
-      return {}
+      return {:sidekiq_worker_queue => {name: "Sidekiq Worker Queue",
+                                         description: "Which Sidekiq queue should async workers run in? (Default: worker)",
+                                         required: false,
+                                         type: :sidekiq_queue
+
+                                         },
+               :sidekiq_queue => {name: "Sidekiq Queue",
+                                  description: "Which Sidekiq queue should the task run in? (Applies only to parent task, not async workers. Default: async_worker)",
+                                  required: false,
+                                  type: :sidekiq_queue
+                                  },
+               }
     end
 
     def self.config_options
@@ -63,7 +74,8 @@ module ScumblrTask
       # Setup event hash for storing event types and IDs with tasks
       # Each time the task runs, all event data is moved into the
       # previous events key.
-      runtime_options = nil      
+      runtime_options = nil
+
       if(@options[:_self].present? && @options.try(:[],:_params).try(:[],:_options) && @options[:_self].run_type == "on_demand")
         runtime_options = @options[:_params].delete(:_options)
         @options = @options[:_self].merge_options(runtime_options, @options)

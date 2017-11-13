@@ -40,7 +40,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
   def self.options
     # these should be a hash (key: val pairs)
-    {
+   return super.merge({
       :severity => {name: "Finding Severity",
                     description: "Set severity to either observation, high, medium, or low",
                     required: true,
@@ -55,7 +55,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
                         description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
                         required: true,
                         type: :system_metadata}
-    }
+    })
   end
 
   def self.description
