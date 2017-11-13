@@ -31,7 +31,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::AsyncSidekiq
   end
 
   def self.options
-    return {
+    return super.merge({
       :saved_result_filter=> {name: "Result Filter",
                               description: "Only run endpoint analyzer matching the given filter",
                               required: true,
@@ -56,7 +56,7 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::AsyncSidekiq
                           default: :High,
                           choices: [:High, :Medium, :Low]
                           }
-    }
+    })
   end
 
   def self.description
@@ -205,8 +205,8 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
     cmd = "bandit #{conf_str} #{sev_str} -r -f json #{local_repo_path.shellescape}"
     Rails.logger.warn "Running cmd: #{cmd}"
-    
-    
+
+
     data = ""
     begin
       pid, stdin, stdout, stderr = popen4(*tokenize_command(cmd))
@@ -225,7 +225,7 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     if !parsed_results.nil?
       results.push parsed_results
     end
-    
+
     return results
   end
 

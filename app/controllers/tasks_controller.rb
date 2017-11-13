@@ -34,6 +34,7 @@ class TasksController < ApplicationController
   # GET /tasks/1.json
   def show
     if (Task.task_type_valid?(@task.task_type))
+
       @task_type_options = @task.task_type.constantize.options
     else
       @task_type_options = []
@@ -119,7 +120,7 @@ class TasksController < ApplicationController
       @task.metadata ||={}
       if(params[:runtime_override_all] == "1")
         @task.metadata["runtime_override"] = true
-      else  
+      else
         @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
       end
     else
@@ -150,7 +151,7 @@ class TasksController < ApplicationController
       @task.metadata ||={}
       if(params[:runtime_override_all] == "1")
         @task.metadata["runtime_override"] = true
-      else  
+      else
         @task.metadata["runtime_override"] = params.try(:[],:task).try(:[], :options).try(:[], :runtime_override).to_a.reject(&:blank?)
       end
     else
@@ -184,7 +185,7 @@ class TasksController < ApplicationController
   end
 
   def run
-    
+
     if(params[:id].present?)
       if(request.method == "POST")
         task_params = request.body.read
@@ -204,9 +205,9 @@ class TasksController < ApplicationController
         format.html {redirect_to task_url(@task), :notice=>"Running task..."}
       end
     elsif(params[:task_type].present?)
-      
+
     else
-      
+
 
       TaskRunner.perform_async(nil)
       task_ids = Task.where(enabled:true, run_type: "scheduled").map{|s| s.id}
@@ -340,7 +341,7 @@ class TasksController < ApplicationController
         minute = params[:minute] || "*"
         month = params[:month] || "*"
         day_of_week = params[:day_of_week] || "*"
-        
+
         task_ids.each do |s|
           Task.find(s).schedule_with_params(minute, hour, day, month, day_of_week)
           events << Event.new(date: Time.now, action: "Scheduled", user_id: current_user.id, eventable_type:"Task", eventable_id: s)

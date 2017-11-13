@@ -44,7 +44,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-    {
+    return super.merge({
       :severity => {name: "Finding Severity",
                     description: "Set severity to either observation, high, medium, or low",
                     required: true,
@@ -105,7 +105,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                    type: :choice,
                    default: :both,
                    choices: [:members_only, :both, :organization_only]}
-    }
+    })
   end
 
   def rate_limit_sleep(remaining, reset, no_limit)

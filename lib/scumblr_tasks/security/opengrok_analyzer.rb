@@ -41,7 +41,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-    {
+    return super.merge({
       :severity => {name: "Finding Severity",
                     description: "Set severity to either observation, high, medium, or low",
                     required: true,
@@ -78,14 +78,14 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
                     required: false,
                     type: :choice,
                     default: :any,
-                    choices: [:any, :java, :javascript, :python, :ruby, :scala, :c, :"c++", :"c#"]} #,            
+                    choices: [:any, :java, :javascript, :python, :ruby, :scala, :c, :"c++", :"c#"]} #,
       #:files_projects => {name: "Return individual filenames, group by project, or containing repo",
       #                    description: "In the results, return paths to filenames or the repos that contains the file(s)",
       #                    required: true,
       #                    type: :choice,
       #                    default: :repo,
       #                    choices: [:files, :projects, :repos]}
-    }
+    })
   end
 
   def initialize(options={})
@@ -152,7 +152,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
 
   #search for something
   def perform_search(term, path, language)
-    
+
     tries ||= 2
     search_counter = 0
     # For each scope (user, org, repo) check if the search terms match anything
@@ -191,7 +191,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
           search_metadata[:file_name] = row.xpath('td[@class="f"]/a/@href').try(:text).split('/').last
         else
           search_metadata[:file_name] = row.xpath('td[@class="f"]/a/@href').try(:text).split('/').last
-        end 
+        end
 
         line_numbers = []
         temp = ''
@@ -237,7 +237,7 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
               vuln.code_fragment = line_numbers
             end
           end
-      
+
         rescue => e
           create_event("Warning Exception occurred.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
           puts e.message

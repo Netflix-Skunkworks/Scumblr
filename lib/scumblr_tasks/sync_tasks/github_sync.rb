@@ -45,7 +45,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-    {
+    return super.merge({
       :sync_type => {name: "Sync Type (Organization/User)",
                      description: "Should this task retrieve repos for an organization or for a user?",
                      required: false,
@@ -77,7 +77,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
                             default: :both,
                             choices: [:both, :public, :private]},
 
-    }
+    })
   end
 
 

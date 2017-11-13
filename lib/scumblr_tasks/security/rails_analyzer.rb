@@ -36,7 +36,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-    return {
+    return super.merge({
       :saved_result_filter=> {name: "Result Filter",
                               description: "Only run endpoint analyzer matching the given filter",
                               required: false,
@@ -61,10 +61,10 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
                     default: :High,
                     choices: [:Critical, :High, :Medium, :Low, :Informational]
                     }
-    }
+    })
   end
 
-  def run 
+  def run
     @semaphore = Mutex.new
     # require 'get_process_mem'
     # mem = GetProcessMem.new
@@ -84,7 +84,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
       # Rails.logger.info("[*] Memory: #{before_memory}")
       update_sidekiq_status("Processing result: #{r.id}.  (#{index}/#{@total_result_count})", index, @total_result_count)
       perform_work(r)
-      
+
 
       # after_memory = mem.mb
       # @options[:_self].metadata["memory"]["result"][r.id]["after"] = after_memory
@@ -144,17 +144,17 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
         line_index = index + 1
         if(line_index >= (line_no - 3) &&  line_index < (line_no))
           before[line_index] = line.chomp.truncate(255)
-        
+
         elsif(line_index == line_no)
           matched_line = line.chomp.truncate(255)
-        
+
         elsif(line_index > (line_no) &&  line_index <= (line_no + 3))
           after[line_index] = line.chomp.truncate(255)
         end
         if(line_index >= line_no+3)
           break
         end
-        
+
       end
     end
 
@@ -214,8 +214,8 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
         ensure
           [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
         end
-          
-          
+
+
 
         if(status_code == 127)
           begin
@@ -235,7 +235,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
             @no_brakeman_installation = true
           end
         end
-        
+
         report = File.read("#{fixedPath}/output.json")
         report = JSON.parse(report).merge({"railspath"=>fixedPath})
         results.push report
@@ -377,7 +377,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
               vuln.type = scan_result[:title].to_s
               vuln.severity = severity
               vuln.source = "Bundler Audit"
-              vuln.details = scan_result[:details].to_s 
+              vuln.details = scan_result[:details].to_s
               findings.push vuln
             end
           end
@@ -409,6 +409,6 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
     end
   end
 
-  
+
 
 end

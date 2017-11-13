@@ -33,25 +33,25 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
   end
 
   def self.options
-    {:tags => {name: "Tag Results",
+    return super.merge({:tags => {name: "Tag Results",
                description: "Provide a tag for newly created results",
                required: false,
                type: :tag
               }
-    }
+    })
   end
 
 
   def initialize(options={})
     super
-    
-    
+
+
   end
 
   def run
 
 
-    
+
     client = AWS::Route53::Client.new
 
     zones = client.list_hosted_zones
@@ -65,12 +65,12 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
 
       puts "Syncing #{zone_id}"
       records = client.list_resource_record_sets(:hosted_zone_id=>zone_id)
-      
+
       parse_records(records, zone_id, zone_name, zone_private)
-      
+
       while(records[:next_record_identifier].present?)
 
-        records = client.list_resource_record_sets(:hosted_zone_id=>zone_id, 
+        records = client.list_resource_record_sets(:hosted_zone_id=>zone_id,
           start_record_identifier:records[:next_record_identifier],
           start_record_type:records[:next_record_type],
           start_record_name:records[:next_record_name]
@@ -78,9 +78,9 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
         parse_records(records,zone_id, zone_name, zone_private)
 
       end
-      
-      
-      
+
+
+
 
 
 
@@ -94,7 +94,7 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
 
   def parse_records(records, zone_id, zone_name, zone_private)
 
-    
+
     records[:resource_record_sets].each do |record|
 
 
@@ -107,9 +107,9 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
         @results << {url: "http://" + record[:name], title: record[:name], domain: record[:name],
           metadata:{
             route53_metadata:{
-              record_type: record[:type], 
-              zone_id: zone_id, 
-              zone_name: zone_name, 
+              record_type: record[:type],
+              zone_id: zone_id,
+              zone_name: zone_name,
               zone_private: zone_private,
               values: record[:resource_records].map{|r| r[:value]}
             }
@@ -118,7 +118,7 @@ class ScumblrTask::Route53Sync < ScumblrTask::Base
       end
     end
 
-    
+
 
   end
 

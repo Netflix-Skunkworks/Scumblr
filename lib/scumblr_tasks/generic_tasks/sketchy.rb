@@ -22,7 +22,7 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
   end
 
   def self.options
-    return {
+    return super.merge({
       :saved_result_filter=> {name: "Result Filter",
                               description: "Only screenshot results matching the given filter",
                               required: false,
@@ -45,7 +45,7 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
                              type: :boolean,
                              default: false
                              }
-    }
+    })
   end
 
   def self.description
@@ -72,7 +72,7 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
 
     }
 
-    
+
   end
 
   def initialize(options={})
@@ -87,7 +87,7 @@ class ScumblrTask::Sketchy < ScumblrTask::Base
     @options.each do |k,v|
       puts "Option #{k}: #{v}"
     end
-    
+
     status_code_only = @options[:status_code_only] == 1 || @options[:status_code_only] == '1' || @options[:status_code_only] == true
 
     if(@options[:limit_to_results_without_attachments] == 1 || @options[:limit_to_results_without_attachments] == '1' || @options[:limit_to_results_without_attachments] == true)
