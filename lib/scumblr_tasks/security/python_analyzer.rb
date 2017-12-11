@@ -88,9 +88,7 @@ end
 class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
   def perform_work(result_id)
-                      require 'byebug'
-        byebug
-        puts 1
+
     r = Result.find(result_id)
 
     if(r.metadata.try(:[],"configuration").try(:[],"bandit").try(:[],"disabled") == true)
