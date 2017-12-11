@@ -88,7 +88,9 @@ end
 class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
   def perform_work(result_id)
-
+                      require 'byebug'
+        byebug
+        puts 1
     r = Result.find(result_id)
 
     if(r.metadata.try(:[],"configuration").try(:[],"bandit").try(:[],"disabled") == true)
@@ -121,11 +123,8 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           dsd.download
         end
 
-
-
         status = Timeout::timeout(600) do
         Rails.logger.info "Scanning"
-
           scan_with_bandit(repo_local_path).each do |scan_result|
           Rails.logger.info "Parsing results"
 
@@ -138,11 +137,29 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
               if(@options[:key_suffix].present?)
                 vuln.key_suffix = @options[:key_suffix]
               end
-              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "")
+
+              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "").split('/').drop(1).join('/')
               vuln.source_code_line = issue["line_number"].to_s
+
+              # Logic to set vuln url based on source
+              if r.url.include? "stash"
+                vuln.url = r.url + "/" + vuln.source_code_file
+              else
+                vuln.url = r.url + "/blob/master/" + vuln.source_code_file
+              end
+
+              vuln.match_location = "path"
+
+              # If we have code samples, try to get the right line numbers
+              if issue.try(:[], "code")
+                vuln.source_code = get_relevant_source(@temp_path + issue["filename"].to_s.gsub(@temp_path, ""), vuln.source_code_line.to_i)
+                vuln.match_location = "file"
+              end
+
               vuln.confidence_level = issue["issue_confidence"].to_s
               vuln.severity = issue["issue_severity"].to_s
               vuln.source = "Bandit"
+
               findings.push vuln
             end
           end
@@ -180,6 +197,45 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
       select {|s| not s.empty? }.
       map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
+  end
+
+  # Method to get before/after lines
+  def get_relevant_source(file_path, line_no)
+    the_hits = {}
+    before = {}
+    after ={}
+    matched_line={}
+    contents = []
+    Rails.logger.info file_path
+    if line_no.to_i <= 0 || file_path.strip == ""
+      return the_hits
+    end
+
+    File.open(file_path) do |file|
+      file.each_with_index do |line, index|
+        line_index = index + 1
+        if(line_index >= (line_no - 3) &&  line_index < (line_no))
+          before[line_index] = line.chomp.truncate(255)
+
+        elsif(line_index == line_no)
+          matched_line = line.chomp.truncate(255)
+
+        elsif(line_index > (line_no) &&  line_index <= (line_no + 3))
+          after[line_index] = line.chomp.truncate(255)
+        end
+        if(line_index >= line_no+3)
+          break
+        end
+
+      end
+    end
+
+    the_hits = {
+        :hit_line_number => line_no,
+        :hit_source_line => matched_line,
+        :before => before,
+        :after => after
+      }
   end
 
   def scan_with_bandit(local_repo_path)
