@@ -32,30 +32,30 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::AsyncSidekiq
 
   def self.options
     return super.merge({
-      :saved_result_filter=> {name: "Result Filter",
-                              description: "Only run endpoint analyzer matching the given filter",
-                              required: true,
-                              type: :saved_result_filter
-                              },
-      :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out experimental regularz expressions",
-                      required: false,
-                      type: :string
-                      },
-      :confidence_level => {name: "Confidence Level",
-                            description: "Confidence level to include in results",
-                            required: false,
-                            type: :choice,
-                            default: :High,
-                            choices: [:High, :Medium, :Low]
-                            },
-      :severity_level => {name: "Severity Level",
-                          description: "Severity level to include in results",
-                          required: false,
-                          type: :choice,
-                          default: :High,
-                          choices: [:High, :Medium, :Low]
-                          }
+                         :saved_result_filter=> {name: "Result Filter",
+                                                 description: "Only run endpoint analyzer matching the given filter",
+                                                 required: true,
+                                                 type: :saved_result_filter
+                                                 },
+                         :key_suffix => {name: "Key Suffix",
+                                         description: "Provide a key suffix for testing out experimental regularz expressions",
+                                         required: false,
+                                         type: :string
+                                         },
+                         :confidence_level => {name: "Confidence Level",
+                                               description: "Confidence level to include in results",
+                                               required: false,
+                                               type: :choice,
+                                               default: :High,
+                                               choices: [:High, :Medium, :Low]
+                                               },
+                         :severity_level => {name: "Severity Level",
+                                             description: "Severity level to include in results",
+                                             required: false,
+                                             type: :choice,
+                                             default: :High,
+                                             choices: [:High, :Medium, :Low]
+                                             }
     })
   end
 
@@ -65,10 +65,10 @@ class ScumblrTask::PythonAnalyzer < ScumblrTask::AsyncSidekiq
 
   def self.config_options
     {:downloads_tmp_dir =>{ name: "Repo Download Location",
-      description: "Location to download repos. Defaults to /tmp/python_analyzer",
-      required: false
-      }
-    }
+                            description: "Location to download repos. Defaults to /tmp/python_analyzer",
+                            required: false
+                            }
+     }
   end
 
   def initialize(options={})
@@ -121,16 +121,13 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           dsd.download
         end
 
-
-
         status = Timeout::timeout(600) do
-        Rails.logger.info "Scanning"
-
+          Rails.logger.info "Scanning"
           scan_with_bandit(repo_local_path).each do |scan_result|
-          Rails.logger.info "Parsing results"
+            Rails.logger.info "Parsing results"
 
             scan_result["results"].each do |issue|
-            Rails.logger.info "Creating vulnerabilities"
+              Rails.logger.info "Creating vulnerabilities"
               vuln = Vulnerability.new
               vuln.type = issue["issue_text"].to_s
               vuln.task_id = @options[:_self]
@@ -138,11 +135,29 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
               if(@options[:key_suffix].present?)
                 vuln.key_suffix = @options[:key_suffix]
               end
-              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "")
+
+              vuln.source_code_file = issue["filename"].to_s.gsub(@temp_path, "").split('/').drop(1).join('/')
               vuln.source_code_line = issue["line_number"].to_s
+
+              # Logic to set vuln url based on source
+              if r.url.include? "stash"
+                vuln.url = r.url + "/" + vuln.source_code_file
+              else
+                vuln.url = r.url + "/blob/master/" + vuln.source_code_file
+              end
+
+              vuln.match_location = ""
+
+              # If we have code samples, try to get the right line numbers
+              if issue.try(:[], "code")
+                vuln.source_code = get_relevant_source(@temp_path + issue["filename"].to_s.gsub(@temp_path, ""), vuln.source_code_line.to_i)
+                vuln.match_location = "source_code"
+              end
+
               vuln.confidence_level = issue["issue_confidence"].to_s
               vuln.severity = issue["issue_severity"].to_s
               vuln.source = "Bandit"
+
               findings.push vuln
             end
           end
@@ -155,14 +170,24 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
         r.metadata["python_results"]["git_repo"] = git_url
         r.metadata["python_results"]["results_date"] = Time.now.to_s
         if !findings.empty?
-          r.update_vulnerabilities(findings)
-        end
-        Rails.logger.info "Updating and saving"
 
-        #if r.changed?
-          r.save!
-        #end
-      Rails.logger.info "Saved"
+          # After we update vulnerabilities, collecdt a list of vuln ids
+          # which are either new or existing.
+          vuln_ids, vuln_metrics = r.update_vulnerabilities(findings)
+
+          # Loop through the existing vulnerabilities, skip if it's new or existing
+          # Vulns that aren't found anymore and were identified with the same task
+          # Mark as remedaited.
+          r.metadata["vulnerabilities"].each_with_object({}) do |vuln|
+            unless vuln_ids.include? vuln["id"] and vuln["task_id"] == @options[:_self].id.to_s
+              vuln["status"] = "Remediated"
+            end
+          end
+        end
+
+        Rails.logger.info "Updating and saving"
+        r.save
+        Rails.logger.info "Saved"
       end
       #now that we're done with it, delete the cloned repo
     ensure
@@ -180,6 +205,45 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
       select {|s| not s.empty? }.
       map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
+  end
+
+  # Method to get before/after lines
+  def get_relevant_source(file_path, line_no)
+    the_hits = {}
+    before = {}
+    after ={}
+    matched_line={}
+    contents = []
+    Rails.logger.info file_path
+    if line_no.to_i <= 0 || file_path.strip == ""
+      return the_hits
+    end
+
+    File.open(file_path) do |file|
+      file.each_with_index do |line, index|
+        line_index = index + 1
+        if(line_index >= (line_no - 3) &&  line_index < (line_no))
+          before[line_index] = line.chomp.truncate(255)
+
+        elsif(line_index == line_no)
+          matched_line = line.chomp.truncate(255)
+
+        elsif(line_index > (line_no) &&  line_index <= (line_no + 3))
+          after[line_index] = line.chomp.truncate(255)
+        end
+        if(line_index >= line_no+3)
+          break
+        end
+
+      end
+    end
+
+    the_hits = {
+      :hit_line_number => line_no,
+      :hit_source_line => matched_line,
+      :before => before,
+      :after => after
+    }
   end
 
   def scan_with_bandit(local_repo_path)
@@ -216,17 +280,17 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     else
       pid, status = Process::waitpid2(pid)
       status_code = status.exitstatus
-    ensure
-      [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+      ensure
+        [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+      end
+
+
+      parsed_results = JSON.parse(data.strip) rescue nil
+      if !parsed_results.nil?
+        results.push parsed_results
+      end
+
+      return results
     end
 
-
-    parsed_results = JSON.parse(data.strip) rescue nil
-    if !parsed_results.nil?
-      results.push parsed_results
-    end
-
-    return results
   end
-
-end
