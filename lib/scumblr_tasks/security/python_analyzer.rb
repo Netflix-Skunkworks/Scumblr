@@ -117,7 +117,7 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
           repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
           Rails.logger.info "Cloning to #{repo_local_path}"
-          dsd = RepoDownloader.new(git_url, repo_local_path)
+          dsd = RepoDownloader.new("git_url", repo_local_path)
           dsd.download
         end
 
@@ -178,8 +178,8 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           # Loop through the existing vulnerabilities, skip if it's new or existing
           # Vulns that aren't found anymore and were identified with the same task
           # Mark as remedaited.
-          r.metadata["vulnerabilities"].each_with_object({}) do |vuln|
-            unless vuln_ids.include? vuln["id"] and vuln["task_id"] == @options[:_self].id.to_s
+          r.metadata["vulnerabilities"].each() do |vuln|
+            unless vuln_ids.include? vuln["id"] and vuln["task_id"].to_s == @options[:_self].to_s
               vuln["status"] = "Remediated"
             end
           end
