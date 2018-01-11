@@ -225,9 +225,9 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         unless @github_oauth_token.blank?
 
           begin
-            content_response = JSON.parse RestClient.get(content["content_urls"] + "&access_token=#{@github_oauth_token}")
+            content_response = JSON.parse RestClient.get(content["content_urls"] + "?&access_token=#{@github_oauth_token}")
           rescue RestClient::ResourceNotFound
-            create_event("Request with access token and got 401. #{content["content_urls"]}&access_token=#{@github_oauth_token} retrying without access token.", "Warn")
+            create_event("Request with access token and got 401. #{content["content_urls"]}?&access_token=#{@github_oauth_token} retrying without access token.", "Warn")
             content_response = JSON.parse RestClient.get(content["content_urls"])
           end
         else
