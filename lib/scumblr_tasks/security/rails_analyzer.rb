@@ -392,10 +392,16 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
               r.metadata["rails_results"]["latest"] ||= {}
               r.metadata["rails_results"]["git_repo"] = git_url
               r.metadata["rails_results"]["results_date"] = Time.now.to_s
-              if !findings.empty?
-                # After we update vulnerabilities, collecdt a list of vuln ids
+              if findings.present?
+                # After we update vulnerabilities, collect a list of vuln ids
                 # which are either new or existing.
-                vuln_ids, vuln_metrics = r.update_vulnerabilities(findings)
+                begin
+                  vuln_ids, vuln_metrics = r.update_vulnerabilities(findings)
+                rescue Exception => e
+                  create_error("Error in auto-remediation.  Result: #{r.to_s}, findings: #{findings.to_s} MESSAGE: #{e.message} \n#{e.backtrace}")
+                  r.save
+                  return
+                end
 
                 # Loop through the existing vulnerabilities, skip if it's new or existing
                 # Vulns that aren't found anymore and were identified with the same task
