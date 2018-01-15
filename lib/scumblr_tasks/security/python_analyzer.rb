@@ -117,8 +117,13 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
           repo_local_path = "#{@temp_path}#{git_url.split('/').last.gsub(/\.git$/,"")}#{r.id}"
           Rails.logger.info "Cloning to #{repo_local_path}"
-          dsd = RepoDownloader.new("git_url", repo_local_path)
-          dsd.download
+          begin
+            dsd = RepoDownloader.new(git_url, repo_local_path)
+            dsd.download
+          rescue
+            create_event("#{r.id} is not found, mark repo as deprecated repo.", "WARN")
+            return
+          end
         end
 
         status = Timeout::timeout(600) do
