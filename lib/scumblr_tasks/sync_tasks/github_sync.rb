@@ -46,36 +46,36 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
   def self.options
     return super.merge({
-      :sync_type => {name: "Sync Type (Organization/User)",
-                     description: "Should this task retrieve repos for an organization or for a user?",
-                     required: false,
-                     type: :choice,
-                     default: :both,
-                     choices: [:org, :user]},
-      :owner => {name: "Organization/User",
-                 description: "Specify the organization or user.",
-                 required: false,
-                 type: :string},
-      :owner_metadata => {name: "Organization/Users from Metadata",
-                          description: "Provide a metadata key to pull organizations or users from.",
-                          required: false,
-                          type: :system_metadata},
-      :members => {name: "Import Organization Members' Repos",
-                   description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
-                   required: false,
-                   type: :boolean},
-      :tags => {name: "Tag Results",
-                description: "Provide a tag for newly created results",
-                required: false,
-                default: "github",
-                type: :tag
-                },
-      :scope_visibility => {name: "Repo Visibility",
-                            description: "Should the task sync public repos, private repos, or both.",
-                            required: true,
-                            type: :choice,
-                            default: :both,
-                            choices: [:both, :public, :private]},
+                         :sync_type => {name: "Sync Type (Organization/User)",
+                                        description: "Should this task retrieve repos for an organization or for a user?",
+                                        required: false,
+                                        type: :choice,
+                                        default: :both,
+                                        choices: [:org, :user]},
+                         :owner => {name: "Organization/User",
+                                    description: "Specify the organization or user.",
+                                    required: false,
+                                    type: :string},
+                         :owner_metadata => {name: "Organization/Users from Metadata",
+                                             description: "Provide a metadata key to pull organizations or users from.",
+                                             required: false,
+                                             type: :system_metadata},
+                         :members => {name: "Import Organization Members' Repos",
+                                      description: "If syncing for an organization, should the task also import Repos owned by members of the organization.",
+                                      required: false,
+                                      type: :boolean},
+                         :tags => {name: "Tag Results",
+                                   description: "Provide a tag for newly created results",
+                                   required: false,
+                                   default: "github",
+                                   type: :tag
+                                   },
+                         :scope_visibility => {name: "Repo Visibility",
+                                               description: "Should the task sync public repos, private repos, or both.",
+                                               required: true,
+                                               type: :choice,
+                                               default: :both,
+                                               choices: [:both, :public, :private]},
 
     })
   end
@@ -247,11 +247,17 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
           res.metadata["repository_data"]["languages"] = languages.to_hash
         end
 
-        if @options[:tags].present?
-          res.add_tags(@options[:tags])
+
+        res.save if res.changed?
+        begin
+          # capture validation exception which is non-breaking
+          if @options[:tags].present?
+            res.add_tags(@options[:tags])
+          end
+        rescue Exception => e
+          create_event("result: #{res.id}, tags: #{@options[:tags]}, message: #{e}", "Warn")
         end
 
-        res.save
         @completed += 1
         if(@completed % 10 == 0)
           if(@last_total != 0)
