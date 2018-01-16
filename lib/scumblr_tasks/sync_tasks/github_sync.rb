@@ -250,6 +250,7 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
 
         res.save if res.changed?
         begin
+          # capture validation exception which is non-breaking
           if @options[:tags].present?
             res.add_tags(@options[:tags])
           end
