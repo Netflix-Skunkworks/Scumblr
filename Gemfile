@@ -43,7 +43,7 @@ gem 'git'
 gem 'workflowable'
 
 #JIRA Integration
-gem 'jiralicious'
+#gem 'jiralicious'
 gem 'jira-ruby'
 #Authorization
 gem 'cancan'
@@ -181,10 +181,10 @@ group :test do
 end
 
 gem 'foundation-rails', '5.3.3.0'
-gem 'sass-rails',   '4.0.3'
+gem 'sass-rails',   '5.0.7'
 gem 'sass', '3.2.19'
 gem 'coffee-rails', '4.0.1'
-gem 'sprockets', '2.11.0'
+gem 'sprockets', '2.11.3'
 
 
 gem 'uglifier'
@@ -193,6 +193,7 @@ gem 'jquery-rails'
 
 gem 'rb-readline'
 
+gem 'crack', '0.3.2'
 
 # needed by  sidekiq
 gem 'json'

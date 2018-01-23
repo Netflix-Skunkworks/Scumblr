@@ -1,1 +1,1 @@
-<%= @result.metadata["jira_tickets"].map { |ticket|  "<tr><td><b>Jira Ticket</b></td><td><a href=\"#{Jiralicious.uri}/browse/#{ticket}\">#{ticket}</a></td></tr>" }.join("\n").html_safe %>
+<%= @result.metadata["jira_tickets"].map { |ticket|  "<tr><td><b>Jira Ticket</b></td><td><a href=\"#{Rails.configuration.try(:jira_url)}/browse/#{ticket}\">#{ticket}</a></td></tr>" }.join("\n").html_safe %>
