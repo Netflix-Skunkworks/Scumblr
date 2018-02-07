@@ -134,7 +134,7 @@ group :test do
 end
 
 # Used for Redis Cache
-gem "redis-store"
+gem "redis-store", ">= 1.4.1"
 gem "redis-rails"
 
 group :development, :dirtylaundrydev do
