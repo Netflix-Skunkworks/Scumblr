@@ -119,7 +119,11 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           Rails.logger.info "Cloning to #{repo_local_path}"
           begin
             dsd = RepoDownloader.new(git_url, repo_local_path)
-            dsd.download
+            download_status = dsd.download
+            # Double checking the download was successful before running Bandit
+            unless download_status.present?
+              return
+            end
           rescue
             create_event("#{r.id} is not found, mark repo as deprecated repo.", "WARN")
             return

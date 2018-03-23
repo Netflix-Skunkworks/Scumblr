@@ -70,7 +70,7 @@ class RepoDownloader
       g.fetch
     rescue => e
       create_event("Unable to clone from Git #{repo}.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
-      return
+      return false
     end
 
     if !Dir.exists?(save_path)
