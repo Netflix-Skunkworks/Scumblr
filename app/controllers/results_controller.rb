@@ -640,79 +640,78 @@ class ResultsController < ApplicationController
   end
 
   def update_screenshot
-
-    if(params[:sketch_url].present?)
-      sketch_url = params[:sketch_url]
-      if(params[:token].present? && !params[:sketch_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
-        sketch_url += "?token=#{params[:token]}"
-      end
-      begin
-        attachment=nil
-        if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-	  
-          attachment = @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
-        else
-          attachment =@result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
+    unless params[:job_status].present? and params[:job_status] == "FAILURE"
+      if(params[:sketch_url].present?)
+        sketch_url = params[:sketch_url]
+        if(params[:token].present? && !params[:sketch_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
+          sketch_url += "?token=#{params[:token]}"
         end
-        @result.events << Event.create(field: "Screenshot", action: "Created", new_value: attachment.try(:id)) if attachment
-      rescue Exception=>e
-        Rails.logger.error "Error adding screenshot"
-        Rails.logger.error e.message
-        Rails.logger.error e.backtrace
+        begin
+          attachment=nil
+          if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
+  	  
+            attachment = @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
+          else
+            attachment =@result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
+          end
+          @result.events << Event.create(field: "Screenshot", action: "Created", new_value: attachment.try(:id)) if attachment
+        rescue Exception=>e
+          Rails.logger.error "Error adding screenshot"
+          Rails.logger.error e.message
+          Rails.logger.error e.backtrace
+        end
+      end
+      if(params[:scrape_url].present?)
+        scrape_url = params[:scrape_url]
+        if(params[:token].present? && !params[:scrape_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
+          scrape_url += "?token=#{params[:token]}"
+        end
+        if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
+          content = open(URI(scrape_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
+        else
+          content = open(URI(scrape_url)).read
+        end
+        content = content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+        if(content != @result.content)
+          @result.update_attributes(:content=>content)
+
+        end
+      end
+
+      @result.metadata ||= {}
+      if(params[:html_url].present?)
+        if(params[:html_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
+          @result.metadata.merge!(sketchy_response: params[:html_url].to_s)
+        end
+      end
+
+      if(Rails.configuration.try(:sketchy_tag_status_code) == true || Rails.configuration.try(:sketchy_tag_status_code) == "true")
+        @result.metadata = @result.metadata.merge(:status_code => params[:url_response_code].to_s)
+
+        # store blacklisting info
+        if(params[:capture_status].to_s.include? "BLACKLISTED")
+          @result.metadata = @result.metadata.merge(:blacklisted => true)
+        end
+        # else
+        #   @result.metadata = @result.metadata.merge(:blacklisted => false)
+        # end
+
+        @result.save
+        if(@result.tags.where(name:"Status").empty?)
+
+          @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+          @result.events << Event.create(field: "Status Code", action: "Updated", new_value: params[:url_response_code].to_s,source: "Sketchy")
+        elsif(@result.tags.where(name:"Status", value:params[:url_response_code].to_s).empty?)
+          t = @result.tags.where(name:"Status").first
+          @result.taggings.where(tag: t).delete_all
+          old_status = t.value
+          @result.tags.where(name:"Status")
+          @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
+          @result.events << Event.create(field: "Status Code", action: "Updated", old_value: old_status, new_value: params[:url_response_code].to_s,source: "Sketchy")
+        end
+
       end
     end
-    if(params[:scrape_url].present?)
-      scrape_url = params[:scrape_url]
-      if(params[:token].present? && !params[:scrape_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
-        scrape_url += "?token=#{params[:token]}"
-      end
-      if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-        content = open(URI(scrape_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}).read
-      else
-        content = open(URI(scrape_url)).read
-      end
-      content = content.encode('utf-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-      if(content != @result.content)
-        @result.update_attributes(:content=>content)
-
-      end
-    end
-
-    @result.metadata ||= {}
-    if(params[:html_url].present?)
-      if(params[:html_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
-        @result.metadata.merge!(sketchy_response: params[:html_url].to_s)
-      end
-    end
-
-    if(Rails.configuration.try(:sketchy_tag_status_code) == true || Rails.configuration.try(:sketchy_tag_status_code) == "true")
-      @result.metadata = @result.metadata.merge(:status_code => params[:url_response_code].to_s)
-
-      # store blacklisting info
-      if(params[:capture_status].to_s.include? "BLACKLISTED")
-        @result.metadata = @result.metadata.merge(:blacklisted => true)
-      end
-      # else
-      #   @result.metadata = @result.metadata.merge(:blacklisted => false)
-      # end
-
-      @result.save
-      if(@result.tags.where(name:"Status").empty?)
-
-        @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
-        @result.events << Event.create(field: "Status Code", action: "Updated", new_value: params[:url_response_code].to_s,source: "Sketchy")
-      elsif(@result.tags.where(name:"Status", value:params[:url_response_code].to_s).empty?)
-        t = @result.tags.where(name:"Status").first
-        @result.taggings.where(tag: t).delete_all
-        old_status = t.value
-        @result.tags.where(name:"Status")
-        @result.tags << Tag.where(:name=>"Status", :value=>params[:url_response_code].to_s).first_or_create
-        @result.events << Event.create(field: "Status Code", action: "Updated", old_value: old_status, new_value: params[:url_response_code].to_s,source: "Sketchy")
-      end
-
-
-    end
-
     render plain: "OK", layout: false
   end
 
