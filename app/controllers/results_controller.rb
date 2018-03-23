@@ -641,7 +641,7 @@ class ResultsController < ApplicationController
 
   def update_screenshot
     # If we're in a failed state (aka localhost files), stop execution 
-    unless params[:sketch_url].present? and params[:sketch_url].to_s.includes? "127.0.0.1"
+    unless params[:sketch_url].present? and params[:sketch_url].to_s.include? "127.0.0.1"
       if(params[:sketch_url].present?)
         sketch_url = params[:sketch_url]
         if(params[:token].present? && !params[:sketch_url].match(/\Ahttps?:\/\/s3.amazonaws.com/))
