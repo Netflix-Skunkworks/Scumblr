@@ -818,7 +818,7 @@ GEM
     nested_form (0.3.2)
     net-http-persistent (2.9.4)
     netrc (0.11.0)
-    nokogiri (1.8.2)
+    nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
     oauth (0.5.1)
     oauth2 (1.2.0)
@@ -847,7 +847,7 @@ GEM
       slop (~> 3.4)
     quiet_assets (1.1.0)
       railties (>= 3.1, < 5.0)
-    rack (1.6.8)
+    rack (1.6.10)
     rack-contrib (1.1.0)
       rack (>= 0.9.1)
     rack-mini-profiler (0.10.7)
@@ -1163,4 +1163,4 @@ DEPENDENCIES
   zip
 
 BUNDLED WITH
-   1.15.4
+   1.16.3
