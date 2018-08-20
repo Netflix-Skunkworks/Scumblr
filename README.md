@@ -1,3 +1,10 @@
+---------------DEPRECATED/LOOKING FOR MAINTAINERS--------------
+August 20th, 2018
+
+We're starting to change directions with our security automation approach and are actively looking for a maintainer for the Scumblr project. We're going to leave Scumblr code online but are not planning on adding any new features or addressing open issues and pull requests. If you are interested in maintaining this project, please reach out to me (sbehrens@netflix.com).
+
+-Scott
+
 ![Scumblr](http://i.imgur.com/iFgqbrB.png)
 # Scumblr
 
