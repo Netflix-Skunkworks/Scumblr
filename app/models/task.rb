@@ -298,9 +298,6 @@ class Task < ActiveRecord::Base
     Rails.logger.debug "Results #{results}"
     new_status = Status.find_by_default(true).try(:id)
 
-    counter = 0
-    #foo = []
-
     results.each do |r|
 
       result = Result.where(:url=>r[:url].strip).first_or_initialize
