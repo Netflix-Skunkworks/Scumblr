@@ -125,21 +125,6 @@ Layout/EmptyLinesAroundBlockBody:
 Layout/EmptyLinesAroundClassBody:
   Enabled: false
 
-# Offense count: 18
-# Cop supports --auto-correct.
-Layout/EmptyLinesAroundExceptionHandlingKeywords:
-  Exclude:
-    - 'app/models/result.rb'
-    - 'app/models/system_metadata.rb'
-    - 'app/models/task.rb'
-    - 'app/workers/task_worker.rb'
-    - 'lib/helpers/vulnerability_helpers.rb'
-    - 'lib/scumblr_tasks/async.rb'
-    - 'lib/scumblr_tasks/async_sidekiq.rb'
-    - 'lib/scumblr_tasks/security/github_analyzer.rb'
-    - 'lib/scumblr_tasks/security/opengrok_analyzer.rb'
-    - 'lib/scumblr_tasks/sync_tasks/github_sync.rb'
-
 # Offense count: 123
 # Cop supports --auto-correct.
 Layout/EmptyLinesAroundMethodBody:
