@@ -33,7 +33,7 @@ class Status < ActiveRecord::Base
       default_status.each do |status|
         status.update_attributes(:default=>false) if status != self
       end
- 
+
       self.results << Result.where(status_id: nil)
     end
   end

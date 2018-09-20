@@ -66,5 +66,5 @@ class SearchProvider::Github < SearchProvider::Provider
     return results
   end
 
-  
+
 end

@@ -72,7 +72,7 @@ class SearchProvider::Google < SearchProvider::Provider
   def initialize(query, options={})
     super
 
-    
+
     @cx = options[:cx].present? ? options[:cx] : @google_cx
     @site_search = options[:site].present? ? options[:site] : nil
     @max_results = options[:max_results].to_i > 0 ? options[:max_results].to_i : 10
@@ -81,7 +81,7 @@ class SearchProvider::Google < SearchProvider::Provider
 
 
   def run
-    
+
     if(@cx.blank?)
       Rails.logger.error "Unable to search Google. No cx. Please define a cx as google_cx in the Scumblr initializer or pass in as a search option."
       return []

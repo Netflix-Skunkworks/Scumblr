@@ -39,7 +39,7 @@ task :run_tasks => :environment do
   job = TaskRunner.perform_async
 
   while(Sidekiq::Status::status(job) && Sidekiq::Status::status(job) != :complete && Sidekiq::Status::status(job) != :failed && Sidekiq::Status::status(job) != :interrupted)
-    puts "Running (#{job})"      
+    puts "Running (#{job})"
     puts
     sleep(2)
   end
@@ -73,13 +73,13 @@ task :sync_all => :environment do
 
   # Run all searches
   Rake::Task["perform_searches"].invoke
-  
+
   # Sleep 1 hours to ensure all search tasks have complete
   sleep(1.hour)
 
   # Generate screenshots
   Rake::Task["generate_screenshots"].invoke
-  
+
 end
 
 
@@ -89,7 +89,7 @@ end
 
 task :generate_screenshots => :environment do
 
-  #Find results without attachments 
+  #Find results without attachments
   results = Result.find(:all, :include => "result_attachments", :conditions => ['result_attachments.id is null'], :order=>"results.created_at desc")
   ScreenshotSyncTaskRunner.perform_async(results.map{|r| r.id})
 

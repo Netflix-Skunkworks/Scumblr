@@ -25,7 +25,7 @@ class Event < ActiveRecord::Base
   attr_accessor :field, :new_value, :old_value
 
 
-  
+
   def new_value_to_s
     if(self.event_changes.length == 0)
       return ""
@@ -69,10 +69,10 @@ class Event < ActiveRecord::Base
     else
       "Multiple"
     end
-      
+
   end
 
-  
+
   # Perform a ransack search against the results model
   # options:
   # => columns: which columns to select in the query
@@ -101,8 +101,8 @@ class Event < ActiveRecord::Base
         q[:date_gteq] = @parsed_after_date
       end
     end
-    
-    
+
+
     events = Event
     if(options[:columns])
       events = events.select(options[:columns])
@@ -111,7 +111,7 @@ class Event < ActiveRecord::Base
 
     events = events.includes(:eventable, :user).search(q.except([:chronic_date_lteq, :chronic_date_gteq]))
     events.sorts = 'created_at desc' if events.sorts.empty? && !options[:sql_only]==true
-    
+
 
     if(options[:sql_only]==true)
       return [events, events.result.to_sql]

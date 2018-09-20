@@ -19,7 +19,7 @@
 # which is a list of objects to perform_work on. Optionally define
 # @workers to be the number of worker threads
 class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
-  
+
   def initialize(options)
     @return_batched_results = false
     super(options)
@@ -62,12 +62,12 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       r.set "#{@_jid}:options", @options.to_json
     end
 
-    
-      
+
+
     begin
       queue = nil
       if(@options[:sidekiq_worker_queue].present?)
-        queue = @options[:sidekiq_worker_queue] 
+        queue = @options[:sidekiq_worker_queue]
       else
         queue = :async_worker
       end
@@ -105,30 +105,30 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       end
 
       sleep(1)
-      
+
     end
 
     @options[:_self] = _self
 
     _self.metadata["current_events"] ||= {}
     _self.metadata["current_results"] ||= {}
-    
+
     if(@_jid)
       Sidekiq.redis do |r|
         _self.metadata["current_events"]["Error"] = r.smembers("#{@_jid}:events:errors").to_a
         _self.metadata["current_events"]["Warning"] = r.smembers("#{@_jid}:events:warnings").to_a
         _self.metadata["current_results"]["updated"] = r.smembers("#{@_jid}:results:updated").to_a
         _self.metadata["current_results"]["created"] = r.smembers("#{@_jid}:results:created").to_a
-        r.del "#{@_jid}:events:errors", 
-              "#{@_jid}:events:warnings", 
-              "#{@_jid}:results:updated", 
+        r.del "#{@_jid}:events:errors",
+              "#{@_jid}:events:warnings",
+              "#{@_jid}:results:updated",
               "#{@_jid}:results:created",
               "#{@_jid}:options"
       end
     end
 
     save_trends
-    
+
     return []
   end
 
@@ -142,14 +142,14 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     if(@_jid.blank?)
       return
     end
-    
+
       # redis.set "@_jid:#{primary_key}:#{k}:value", 0
       # @chart_options[primary_key] = chart_options
       # @series_options[primary_key] = series_options
       # @trend_options[primary_key] = options
       # @trend_keys
     trend_data = {}
-    
+
     @trend_keys.each do |primary_key, sub_keys|
       trend_data[primary_key] = @options[:_self].metadata.try(:[],"trends").try(:[],primary_key) || {"data"=>[]}
 
@@ -180,7 +180,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       end
       # @options[:_self].metadata["trends"][primary_key] = trend_data
     end
-    
+
     @options[:_self].metadata ||= {}
     @options[:_self].metadata["trends"] ||={}
     @options[:_self].metadata["trends"].merge!(trend_data)
@@ -189,7 +189,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
     if(trend_data.try(:[],"open_vulnerability_count").try(:[],"open"))
       @options[:_self].metadata["latest_results_link"] = {text: "#{trend_data.try(:[],"open_vulnerability_count").try(:[],"open").to_i} results", search:"q[metadata_search]=vulnerability_count:task_id:#{@options[:_self].id}>0"}
     end
-    
+
 
   end
 
@@ -202,7 +202,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       @series_options ||= {}
       @trend_options ||={}
       Sidekiq.redis do |redis|
-        Array(sub_keys).each do |k|      
+        Array(sub_keys).each do |k|
           redis.set "#{@_jid}:trends:#{primary_key}:#{k}:value", 0
         end
       end
@@ -277,13 +277,13 @@ module ScumblrWorkers
     def update_trends(key, count, chart_options={}, series_options=[], options={})
       if(@_jid.present?)
         Sidekiq.redis do |redis|
-          Array(count).each do |k,v|      
+          Array(count).each do |k,v|
             redis.incrbyfloat "#{@_jid}:trends:#{key}:#{k}:value", v
           end
         end
       end
     end
-  
+
 
     def create_event(event, level="Error")
       if(event.respond_to?(:message))
@@ -299,7 +299,7 @@ module ScumblrWorkers
       else
         Rails.logger.debug details
       end
-      
+
       eventable_id = nil
       begin
         if(@options.try(:[],:_self).present?)

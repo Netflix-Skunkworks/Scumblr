@@ -59,7 +59,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     # else
     #   total = @results.count
     # end
-    
+
     #threads << Thread.new do
     #other_workers_running = false
     i = 1
@@ -184,9 +184,9 @@ class ScumblrTask::Async < ScumblrTask::Base
     @semaphore.synchronize {
       if !defined? @trends
         @trends = {}
-        
+
       end
-      
+
       @trend_options ||= {}
       @trend_options[key] ||= {}
       @trend_options[key]["chart_options"] = chart_options

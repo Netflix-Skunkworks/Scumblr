@@ -41,11 +41,11 @@ class SearchProvider::Ebay < SearchProvider::Provider
 
   def initialize(query, options={})
     super
-    
+
   end
 
   def run
-    
+
     url = URI.escape('http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords'\
              '&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=' + @ebay_access_key + '&'\
              'RESPONSE-DATA-FORMAT=JSON&REST-PAYLOAD&'\

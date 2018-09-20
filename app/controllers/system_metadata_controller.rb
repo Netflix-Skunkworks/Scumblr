@@ -36,8 +36,8 @@ class SystemMetadataController < ApplicationController
       if(params[:key])
         data = data.try(:[], params[:key])
       end
-      
-      data = data.select{ |d| 
+
+      data = data.select{ |d|
         if(d.class==Hash)
           d.values.to_s.match(/#{params[:q]}/i)
         else
@@ -51,7 +51,7 @@ class SystemMetadataController < ApplicationController
     respond_to do |format|
       format.json { render json: {results: paginated_data, meta:{total: data.count}}}
     end
-      
+
   end
 
   # POST /system_metadata

@@ -21,7 +21,7 @@ class TagsController < ApplicationController
     @tags = Tag.where("lower(name) like lower(?)", q).page(params[:page]).per(params[:per_page])
 
     respond_to do |format|
-      format.json { render json: @tags, meta: {total: @tags.total_count} , adapter: :json} 
+      format.json { render json: @tags, meta: {total: @tags.total_count} , adapter: :json}
     end
   end
 

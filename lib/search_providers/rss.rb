@@ -50,7 +50,7 @@ class SearchProvider::RSS < SearchProvider::Provider
       feed = RSS::Parser.parse(rss)
       feed_title = "#{feed.try(:channel).try(:title) || feed.try(:title)}"
       feed.items.each do |result|
-        
+
         if(result.try(:title).to_s.match(regex) || result.try(:description).to_s.match(regex) || result.try(:content).to_s.match(regex))
           results <<
           {
@@ -60,12 +60,12 @@ class SearchProvider::RSS < SearchProvider::Provider
           }
         end
       end
-      
+
 
     end
 
 
-    
+
     return results
   end
 end

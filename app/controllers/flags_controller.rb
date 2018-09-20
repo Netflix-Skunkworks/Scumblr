@@ -28,8 +28,8 @@ class FlagsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.json { render json: @flags, meta: {total: @flags.total_count} , adapter: :json} 
-      
+      format.json { render json: @flags, meta: {total: @flags.total_count} , adapter: :json}
+
     end
   end
 

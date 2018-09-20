@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class ResultsControllerTest < ActionDispatch::IntegrationTest
-  
+
   test "should get redirected to login" do
     host! 'localhost:3000'
     get '/'
@@ -26,7 +26,7 @@ class ResultsControllerTest < ActionDispatch::IntegrationTest
     sign_in
     get "/results.csv"
     assert_response :success
-  end  
+  end
 
   test "test single result page load html" do
     sign_in
@@ -114,7 +114,7 @@ class ResultsControllerTest < ActionDispatch::IntegrationTest
   test "verfiy post update_screenshot no error rendering" do
     sign_in
     res = Result.first
-    post "/results/#{res.id}/update_screenshot", {sketch_url: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", scrape_url: "https://www.google.com"}  
+    post "/results/#{res.id}/update_screenshot", {sketch_url: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", scrape_url: "https://www.google.com"}
     assert_response :success
   end
 

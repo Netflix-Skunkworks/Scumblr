@@ -481,12 +481,6 @@ Layout/TrailingBlankLines:
     - 'lib/workflowable/actions/status_change_notification.rb'
     - 'test/controllers/results_controller_test.rb'
 
-# Offense count: 128
-# Cop supports --auto-correct.
-# Configuration parameters: AllowInHeredoc.
-Layout/TrailingWhitespace:
-  Enabled: false
-
 # Offense count: 1
 Lint/AmbiguousBlockAssociation:
   Exclude:

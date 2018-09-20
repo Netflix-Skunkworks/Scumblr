@@ -36,7 +36,7 @@ class TaskWorker
       @task = Task.find(task_id)
 
       task_params.merge!(:_jid=>@jid)
-      
+
       if(@task)
         @task.events << Event.create(field: "Task", action: "Run", source: "Task Worker")
         at 0, "B:Running #{@task.name}"

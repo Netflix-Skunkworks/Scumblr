@@ -56,7 +56,7 @@ class RepoDownloader
       else
         repo = repo.gsub(/^#{repo_url_parts.scheme}:\/\//, "https://")
       end
-    else  
+    else
       repo = repo.gsub(/#{repo_url_parts.scheme}:\/\//, "https://#{github_token}@")
     end
 
@@ -83,7 +83,7 @@ class RepoDownloader
   # everything recursively
   def download()
     clone_res = nil
-    if @repo_url.to_s.strip != "" 
+    if @repo_url.to_s.strip != ""
       #puts "#" * 40
       #puts "save location: #{@save_location}"
       #puts "repo url: #{@repo_url}"
