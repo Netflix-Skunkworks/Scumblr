@@ -36,7 +36,7 @@ class TaskWorker
       @task = Task.find(task_id)
 
       task_params.merge!(:_jid=>@jid)
-      
+
       if(@task)
         @task.events << Event.create(field: "Task", action: "Run", source: "Task Worker")
         at 0, "B:Running #{@task.name}"
@@ -44,7 +44,6 @@ class TaskWorker
       else
         Event.create(action: "Error", source:"Task: #{@task.id}", details: "Unable to run task with id: #{task_id}. No such task.", eventable_type: "Task", eventable_id: task_id)
       end
-
     rescue Exception=>e
       msg = "Fatal low level exception in TaskWorker. Task id#{task_id}. Task params:#{task_params}. Exception: #{e.message}\r\n#{e.backtrace}"
       Event.create(action: "Fatal", source: "TaskWorker", details: msg,eventable_type: "Task", eventable_id: task_id)

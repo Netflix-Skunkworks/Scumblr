@@ -54,26 +54,26 @@ class ResultsController < ApplicationController
       render text: "Invalid Partial"
       return
     end
-  
-    if(params.try(:[],"filter") && @result.metadata.class == Hash)      
+
+    if(params.try(:[],"filter") && @result.metadata.class == Hash)
       params.try(:[],"filter").each do |key,values|
 
         values.reject!{|x| x.blank?}
         next if values.blank?
+
         filter = key.split(":")
         filter_on=nil
         filter_on = params["filter_on"][key].split(":") if params.try(:[],"filter_on").try(:[],key)
         begin
           @result.filter_metadata(@result.metadata, filter, values, filter_on)
         rescue
-          
         end
 
       end
-      
+
     end
 
-    
+
 
     respond_to do |format|
       format.html { render layout: false}
@@ -190,11 +190,11 @@ class ResultsController < ApplicationController
       task_results: {:method=>:task_results, :includes=>:task, :link=>{:method=>:task_id, :path=>:task_url, :params=>[:task_id]}, :attributes=>[:task_name, :task_type, :query, :created_at], name:"Tasks"},
       events: {
         name:"Events",
-        :method=>:events, 
-        :includes=>[:user, :event_changes], 
-        :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id}, 
-        :attributes=>[:date, :field_name, :action, :old_value_to_s, :new_value_to_s, :user, :details], 
-        :sort_keys=>[:date,nil, :action,  nil, nil,:user_id], 
+        :method=>:events,
+        :includes=>[:user, :event_changes],
+        :link=>{:method=>:id, :path=>:event_url, :params=>[:id], :sort_key=>:id},
+        :attributes=>[:date, :field_name, :action, :old_value_to_s, :new_value_to_s, :user, :details],
+        :sort_keys=>[:date,nil, :action,  nil, nil,:user_id],
         :labels=>[nil, nil,nil, "Old Value", "New Value",nil, "Details"],
         :formatters=>[nil, nil,nil, nil, nil,nil, :hint_icon]
 
@@ -588,7 +588,7 @@ class ResultsController < ApplicationController
         if status
           affected_results = Result.includes(:status).where.not(status_id: status.id).where(id: result_ids).map{|r| [r.id, r.status.try(:name)]}
           affected_results += Result.includes(:status).where(status_id: nil, id: result_ids).map{|r| [r.id, nil]}
-          
+
           events = []
           Result.where(id: result_ids).update_all({:status_id => status.id})
           affected_results.each do |r|
@@ -605,7 +605,7 @@ class ResultsController < ApplicationController
           affected_results = Result.includes(:user).where.not(user_id: user.id).where(id: result_ids).map{|r| [r.id, r.user.try(:email)]}
           affected_results += Result.includes(:user).where(user_id: nil, id: result_ids).map{|r| [r.id, r.user.try(:email)]}
           Result.where({:id=>result_ids}).update_all({:user_id => user.id})
-          
+
           events = []
           affected_results.each do |r|
             events << Event.new(date: Time.now, field: "Assignee", action: "Updated", user_id: current_user.id, old_value: r[1], new_value: user.email, eventable_type:"Result", eventable_id: r[0])
@@ -640,7 +640,7 @@ class ResultsController < ApplicationController
   end
 
   def update_screenshot
-    # If we're in a failed state (aka localhost files), stop execution 
+    # If we're in a failed state (aka localhost files), stop execution
     unless params[:sketch_url].present? and params[:sketch_url].to_s.include? "127.0.0.1"
       if(params[:sketch_url].present?)
         sketch_url = params[:sketch_url]
@@ -650,7 +650,7 @@ class ResultsController < ApplicationController
         begin
           attachment=nil
           if(Rails.configuration.try(:sketchy_verify_ssl) == false || Rails.configuration.try(:sketchy_verify_ssl) == "false")
-  	  
+
             attachment = @result.result_attachments.create(:attachment=>open(URI(sketch_url), {ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE}), :attachment_file_name=>File.basename(URI(sketch_url).path))
           else
             attachment =@result.result_attachments.create(:attachment=>open(URI(sketch_url)), :attachment_file_name=>File.basename(URI(sketch_url).path))
@@ -846,16 +846,16 @@ class ResultsController < ApplicationController
     end
 
     if(params.try(:[],"filter") && response.class == Hash)
-      
+
       params.try(:[],"filter").each do |key,values|
         filter = key.split(":")
         filter_on=nil
         filter_on = params["filter_on"][key].split(":") if params.try(:[],"filter_on").try(:[],key)
         @result.filter_metadata(response, filter, values, filter_on)
-        
+
 
       end
-      
+
     end
 
 
@@ -878,7 +878,7 @@ class ResultsController < ApplicationController
     end
 
     @result.save
-    
+
     respond_to do |format|
       format.js
       format.json { render json: response.to_json, layout: false}

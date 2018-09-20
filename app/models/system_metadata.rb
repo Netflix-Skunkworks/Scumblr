@@ -26,7 +26,6 @@ class SystemMetadata < ActiveRecord::Base
   def metadata_raw=(value)
     begin
       self.metadata = JSON(value)
-
     rescue
       self.metadata = ""
     end

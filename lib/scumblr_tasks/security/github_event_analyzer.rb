@@ -40,22 +40,22 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
 
   def self.options
     # these should be a hash (key: val pairs)
-   return super.merge({
-      :severity => {name: "Finding Severity",
-                    description: "Set severity to either observation, high, medium, or low",
-                    required: true,
-                    type: :choice,
-                    default: :observation,
-                    choices: [:observation, :high, :medium, :low]},
-      :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out experimental regular expressions",
-                      required: false,
-                      type: :string},
-      :github_terms => {name: "System Metadata Github Search Terms",
-                        description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
-                        required: true,
-                        type: :system_metadata}
-    })
+    return super.merge({
+       :severity => {name: "Finding Severity",
+                     description: "Set severity to either observation, high, medium, or low",
+                     required: true,
+                     type: :choice,
+                     default: :observation,
+                     choices: [:observation, :high, :medium, :low]},
+       :key_suffix => {name: "Key Suffix",
+                       description: "Provide a key suffix for testing out experimental regular expressions",
+                       required: false,
+                       type: :string},
+       :github_terms => {name: "System Metadata Github Search Terms",
+                         description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
+                         required: true,
+                         type: :system_metadata}
+     })
   end
 
   def self.description
@@ -239,7 +239,6 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
 
         begin
-
           @res = Result.where(url: url).first
           @res.update_vulnerabilities(vulnerabilities)
         rescue => e

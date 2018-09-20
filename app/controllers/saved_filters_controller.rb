@@ -63,7 +63,7 @@ class SavedFiltersController < ApplicationController
     if(stored_columns && @saved_filter.store_index_columns)
       @index_columns = stored_columns
     end
-    
+
     @index_columns ||= session[:results_index_columns] || Rails.configuration.try(:results_index_columns) || [:screenshot,:name, :status_id, :created_at, :updated_at]
     if(@saved_filter.user_id == current_user.id)
       @q, @results = @saved_filter.saved_filter_type.constantize.perform_search(@saved_filter.query)
@@ -76,10 +76,10 @@ class SavedFiltersController < ApplicationController
   end
 
   def update
-    
+
     if(@saved_filter.user_id == current_user.id)
 
-      
+
       respond_to do |format|
         @saved_filter.assign_attributes(saved_filter_params)
         @saved_filter.query = params[:q]
@@ -89,7 +89,7 @@ class SavedFiltersController < ApplicationController
           @saved_filter.index_columns = nil
         end
 
-        
+
         if(@saved_filter.save)
           format.html { redirect_to saved_filters_path(saved_filter_type: @saved_filter.saved_filter_type), notice: 'Filter was successfully updated.' }
           #format.json { head :no_content }

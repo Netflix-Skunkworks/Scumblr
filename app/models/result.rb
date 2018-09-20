@@ -80,10 +80,10 @@ class Result < ActiveRecord::Base
 
   def add_tags_by_id(tag_ids)
     Array(tag_ids).each do |tag_id|
-        # Create a tagging and save only if valid
-        # (tagging will be invalid if the result is already tagged with the given id)
-        tagging = self.taggings.build(tag_id: tag_id)
-        tagging.save if tagging.valid?
+      # Create a tagging and save only if valid
+      # (tagging will be invalid if the result is already tagged with the given id)
+      tagging = self.taggings.build(tag_id: tag_id)
+      tagging.save if tagging.valid?
     end
   end
 
@@ -239,7 +239,6 @@ class Result < ActiveRecord::Base
       else
         raise RuntimeError
       end
-
     rescue RuntimeError, EOFError => e
       Rails.logger.error "#{e.inspect}"
       if(attempts < 3)
@@ -252,9 +251,7 @@ class Result < ActiveRecord::Base
         Rails.logger.error message
       end
     end
-
   rescue StandardError=>e
-
     Rails.logger.error "Error communicating with sketchy: #{e.inspect} #{e.message}: #{e.backtrace}"
   end
 
@@ -347,7 +344,6 @@ class Result < ActiveRecord::Base
     end
 
     begin
-
       if(metadata.present?)
         query = ""
         params = []
@@ -450,11 +446,9 @@ class Result < ActiveRecord::Base
       # result.count
       result.load
     rescue=>e
-
       Rails.logger.error e.message
       Rails.logger.error e.backtrace
       raise "Invalid Metadata Search #{metadata}"
-
     end
     result
 
@@ -555,7 +549,6 @@ class Result < ActiveRecord::Base
 
     # Try to grab the data referenced by the key from the current position in the data
     begin
-
       # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
@@ -609,7 +602,6 @@ class Result < ActiveRecord::Base
         end
       end
     rescue
-
       r[k]=nil
       return r
     end
@@ -628,7 +620,6 @@ class Result < ActiveRecord::Base
         begin
           value = JSON.parse(value)
         rescue
-
         end
         # If the value is a hash, convert to json
       elsif(value.class == Hash)
@@ -700,7 +691,6 @@ class Result < ActiveRecord::Base
 
     # Try to grab the data referenced by the key from the current position in the data
     begin
-
       # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)

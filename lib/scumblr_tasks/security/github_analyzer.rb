@@ -221,7 +221,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     elsif(@options[:saved_users].present?)
       begin
-
         saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
       rescue
         saved_users = nil
@@ -334,7 +333,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         end
       end
     rescue => e
-
       create_event("Unable to determine if suppiled input is a valid org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
     end
 
@@ -536,6 +534,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       if @options[:members] == "members_only" and type == "Organization"
         next
       end
+
       # For each scope (user, org, repo) check if the search terms match anything
       puts "Checking #{scope}"
       @retry_interval = 0
@@ -648,7 +647,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 next
               end
             rescue=>e
-
               create_event("Unknown error occurred\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
               next
             end

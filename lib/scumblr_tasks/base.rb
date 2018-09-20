@@ -117,6 +117,7 @@ module ScumblrTask
           if @options[k].nil?
             next
           end
+
           @options[k].split(",").each do |tag_name|
             tags << Tag.where(name: tag_name.strip).first_or_create
           end

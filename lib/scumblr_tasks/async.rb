@@ -59,7 +59,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     # else
     #   total = @results.count
     # end
-    
+
     #threads << Thread.new do
     #other_workers_running = false
     i = 1
@@ -84,7 +84,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     #lets get some stuff in the queue (or not if there are no results to add to the queue)
     #while(threads[0].alive? && queue.empty?)
     #  sleep 0.01
-      #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
+    #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
     #end
 
     @workers.times do |i|
@@ -132,10 +132,10 @@ class ScumblrTask::Async < ScumblrTask::Base
                   end
                 else
                   #wait for a bit to let the other thread fill the queue
-                 # while(threads[0].alive? && queue.empty?)
-                 #   sleep 0.01
-                 #   Rails.logger.debug "in sleep waiting of queue to be filled"
-                 # end
+                  # while(threads[0].alive? && queue.empty?)
+                  #   sleep 0.01
+                  #   Rails.logger.debug "in sleep waiting of queue to be filled"
+                  # end
                 end
               rescue ThreadError => e
                 Rails.logger.debug e.inspect
@@ -143,7 +143,6 @@ class ScumblrTask::Async < ScumblrTask::Base
             end
           end
         rescue ActiveRecord::ConnectionTimeoutError=>e
-
           retries += 1
           if retries > @database_max_retries
             #Create an error indicating a thread could not acquire a database connection
@@ -184,9 +183,9 @@ class ScumblrTask::Async < ScumblrTask::Base
     @semaphore.synchronize {
       if !defined? @trends
         @trends = {}
-        
+
       end
-      
+
       @trend_options ||= {}
       @trend_options[key] ||= {}
       @trend_options[key]["chart_options"] = chart_options

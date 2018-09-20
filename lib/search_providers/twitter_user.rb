@@ -29,7 +29,7 @@ class SearchProvider::TwitterUser < SearchProvider::Provider
         required: false,
         type: :boolean,
         default: false
-      }  
+      }
     }
   end
 
@@ -69,7 +69,7 @@ class SearchProvider::TwitterUser < SearchProvider::Provider
   end
 
   def run
-    
+
 
 
     client = Twitter::REST::Client.new do |config|
@@ -78,14 +78,14 @@ class SearchProvider::TwitterUser < SearchProvider::Provider
       config.access_token    = @twitter_access_token
       config.access_token_secret = @twitter_access_token_secret
     end
-    
-    
+
+
       previous_results = nil
       page=1
       max_pages=51
       search_results = []
 
-      
+
       while(search_results.count < @options["results"] && page <= max_pages)
         Rails.logger.debug "Searching page #{page}"
         temp_results_count = 0
@@ -102,10 +102,9 @@ class SearchProvider::TwitterUser < SearchProvider::Provider
           end
           Rails.logger.warn "Rate limit exceeded. Waiting #{e.rate_limit.reset_in} seconds (Attempt #{attempts})"
           attempts += 1
-          
+
           sleep e.rate_limit.reset_in
           retry
-          
         rescue StandardError=>e
           Rails.logger.error "Error: " + e.message + " " + e.backtrace.inspect
           temp_results = []
@@ -120,18 +119,18 @@ class SearchProvider::TwitterUser < SearchProvider::Provider
         if(temp_results_count < 1)
           Rails.logger.debug "Quitting: No results"
           break
-        elsif(temp_results == previous_results) 
+        elsif(temp_results == previous_results)
           Rails.logger.debug "Quitting: Duplicate results"
         end
         previous_results = temp_results
 
       end
-      
+
 
 
       results = search_results.take(@options["results"]).map do |user|
 
-        { :url => encode(user.url.to_s), :title => "Twitter: @#{user.screen_name}", :domain => "twitter.com", :metadata=>{twitter_user_description: encode(user.description.to_s)}} 
+        { :url => encode(user.url.to_s), :title => "Twitter: @#{user.screen_name}", :domain => "twitter.com", :metadata=>{twitter_user_description: encode(user.description.to_s)}}
 
       end
       Rails.logger.debug "Done."

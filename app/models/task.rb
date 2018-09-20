@@ -53,9 +53,9 @@ class Task < ActiveRecord::Base
   def self.update_schedules
     Sidekiq.schedule = []
     Task.where(enabled:true).each do |t|
-      
+
       t.schedule(t.frequency) if(t.frequency.present?)
-      
+
     end
 
   end
@@ -72,6 +72,7 @@ class Task < ActiveRecord::Base
 
   def schedule(cron)
     return if(cron.blank?)
+
     Sidekiq.set_schedule("task: #{id}", { 'cron' => cron, 'class' => 'TaskRunner', 'args' => [id] })
   end
 
@@ -105,7 +106,7 @@ class Task < ActiveRecord::Base
       return
     end
 
-    
+
     task_type_options = self.task_type.constantize.options
     if(self.options.blank?)
       self.options = {}
@@ -118,7 +119,7 @@ class Task < ActiveRecord::Base
             errors.add value[:name], " must be specified or included in Runtime Override Options"
           end
         else
-        errors.add value[:name], " can't be blank"
+          errors.add value[:name], " can't be blank"
         end
       end
     end
@@ -202,9 +203,9 @@ class Task < ActiveRecord::Base
     if(task_options.nil?)
       task_options = self.options
     end
-    
+
     if(self.try(:metadata).try(:[],"runtime_override") != true)
-      runtime_options = runtime_options.with_indifferent_access.slice(*self.try(:metadata).try(:[],"runtime_override"))    
+      runtime_options = runtime_options.with_indifferent_access.slice(*self.try(:metadata).try(:[],"runtime_override"))
     end
     task_options.merge(runtime_options)
   end
@@ -255,7 +256,6 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
-
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id
@@ -297,9 +297,6 @@ class Task < ActiveRecord::Base
 
     Rails.logger.debug "Results #{results}"
     new_status = Status.find_by_default(true).try(:id)
-
-    counter = 0
-    #foo = []
 
     results.each do |r|
 

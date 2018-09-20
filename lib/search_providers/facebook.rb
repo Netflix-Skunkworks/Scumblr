@@ -64,6 +64,7 @@ module SearchProvider
       graph.search(@query, type: 'page'.freeze).map do |result|
         sub_result = graph.get_connection result['id'].to_i, 'feed'.freeze, fields: %w(id created_time caption message)
         next unless sub_result
+
         res << manage_sub_result(sub_result)
       end
       res.flatten!

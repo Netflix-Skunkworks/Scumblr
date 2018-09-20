@@ -8,7 +8,7 @@ class Workflowable::Actions::StatusChangeNotifcationAction < Workflowable::Actio
     #@options = Hash.new{ |h,k| h[k] = Hash.new(&h.default_proc) }
 
 
-    recipients = (@object.result.subscribers.map(&:subscriber_email) + @object.flag.subscribers.map(&:subscriber_email) + Array[*@object.result.try(:user).try(:email)]).uniq.compact 
+    recipients = (@object.result.subscribers.map(&:subscriber_email) + @object.flag.subscribers.map(&:subscriber_email) + Array[*@object.result.try(:user).try(:email)]).uniq.compact
 
     puts "***Recipients: #{recipients.inspect}"
 
@@ -21,13 +21,13 @@ class Workflowable::Actions::StatusChangeNotifcationAction < Workflowable::Actio
     end
 
     ::NotificationMailer.notification(
-      recipients, 
-      subject, 
+      recipients,
+      subject,
       message
 
     ).deliver
 
-    
+
   end
 
 end

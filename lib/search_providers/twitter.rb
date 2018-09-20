@@ -66,7 +66,7 @@ class SearchProvider::Twitter < SearchProvider::Provider
   end
 
   def run
-    
+
 
 
     client = Twitter::REST::Client.new do |config|

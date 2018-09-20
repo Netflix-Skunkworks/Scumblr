@@ -154,7 +154,6 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       handle_rate_limit(e)
       retry
     rescue
-
       return nil
     end
     return response.body
@@ -166,19 +165,15 @@ class ScumblrTask::GithubSyncAnalyzer < ScumblrTask::Base
       begin
         response = @github.repos.list org: name
       rescue Github::Error::Forbidden=>e
-
         retry
-
       end
     else
       begin
-
         response = @github.repos.list user: name
       rescue Github::Error::Forbidden=>e
         handle_rate_limit(e)
         retry
       rescue => e
-
       end
     end
     parse_results(response)

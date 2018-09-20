@@ -83,8 +83,8 @@ class SearchProvider::YouTube < SearchProvider::Provider
           url: "http://youtube.com/watch?v=" + result.id.videoId,
           domain: "youtube.com",
           metadata: {:youtube_id=>result.id.videoId, screenshot: result.snippet.thumbnails.high['url']}
-          
-          
+
+
         }
 
       end

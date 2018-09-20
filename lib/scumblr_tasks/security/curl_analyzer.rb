@@ -319,7 +319,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
   def perform_work(r)
     # Ensure metadata is defined before iterating results
     if(r.present?)
-        r = Result.find(r)
+      r = Result.find(r)
     end
 
     if(@options["_self"].present?)
@@ -526,9 +526,9 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
   def tokenize_command(cmd)
     # Prevents command injection on supplied curl command
-    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-      select {|s| not s.empty? }.
-      map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
+    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/)
+      .select {|s| not s.empty? }
+      .map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
   end
 
@@ -575,6 +575,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     if urls.count == 0
       return
     end
+
     urls.each do |url|
       puts "[*] Testing url #{url}"
       @options[:payloads].each do |payload|
@@ -630,7 +631,6 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
           [stdin, stdout, stderr].each { |io| io.close if !io.closed? }
           # Something else happened, so set exit_status to error
           exit_status = -1
-
         end
 
         data = data.encode('utf-8', :invalid => :replace, :undef => :replace)

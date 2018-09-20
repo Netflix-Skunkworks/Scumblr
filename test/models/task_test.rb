@@ -88,13 +88,13 @@ class TaskTest < ActiveSupport::TestCase
     assert_equal(1, google_search.metadata[:current_results].count)
   end
 
-#  test "should execute system metadata search for github" do
-#  	require 'byebug'
-#  	byebug
-#  	puts 1
-#    github_system_metadata_search.perform_task
-#    assert_equal("Failed", github_system_metadata_search.metadata["_last_status"])
-#  end
+  #  test "should execute system metadata search for github" do
+  #  	require 'byebug'
+  #  	byebug
+  #  	puts 1
+  #    github_system_metadata_search.perform_task
+  #    assert_equal("Failed", github_system_metadata_search.metadata["_last_status"])
+  #  end
 
   test "should execute badly configured curl task" do
     bad_curl_task.perform_task

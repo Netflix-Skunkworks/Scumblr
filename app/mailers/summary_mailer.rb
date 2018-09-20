@@ -20,7 +20,7 @@ class SummaryMailer < ActionMailer::Base
 
   def notification(recipients, filter, results)
     attachments['logo.png'] = File.read("#{Rails.root}/app/assets/images/scumblr_logo.png")
-    
+
     @results = results
     @filter = filter
     subject = "Scumblr: Daily update for: #{@filter.name}"

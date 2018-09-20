@@ -210,9 +210,9 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
   end
 
   def tokenize_command(cmd)
-    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-      select {|s| not s.empty? }.
-      map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
+    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/)
+      .select {|s| not s.empty? }
+      .map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
   end
 
@@ -282,15 +282,15 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
 
     data = ""
     begin
-      pid, stdin, stdout, stderr = popen4(*tokenize_command(cmd))
-      data += stdout.read
-    rescue
-      status_code = 127
+        pid, stdin, stdout, stderr = popen4(*tokenize_command(cmd))
+        data += stdout.read
+      rescue
+        status_code = 127
     else
       pid, status = Process::waitpid2(pid)
-      status_code = status.exitstatus
-      ensure
-        [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
+        status_code = status.exitstatus
+        ensure
+          [stdin, stdout, stderr].each { |io| io.close if !io.nil? && !io.closed? }
       end
 
 

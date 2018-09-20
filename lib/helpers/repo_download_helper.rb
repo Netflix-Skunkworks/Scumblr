@@ -28,9 +28,9 @@ class RepoDownloader
   end
 
   def tokenize_command(cmd)
-    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-    select {|s| not s.empty? }.
-    map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
+    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/)
+    .select {|s| not s.empty? }
+    .map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
   end
 
@@ -56,7 +56,7 @@ class RepoDownloader
       else
         repo = repo.gsub(/^#{repo_url_parts.scheme}:\/\//, "https://")
       end
-    else  
+    else
       repo = repo.gsub(/#{repo_url_parts.scheme}:\/\//, "https://#{github_token}@")
     end
 
@@ -76,6 +76,7 @@ class RepoDownloader
     if !Dir.exists?(save_path)
       return nil
     end
+
     return save_path
   end
 
@@ -83,7 +84,7 @@ class RepoDownloader
   # everything recursively
   def download()
     clone_res = nil
-    if @repo_url.to_s.strip != "" 
+    if @repo_url.to_s.strip != ""
       #puts "#" * 40
       #puts "save location: #{@save_location}"
       #puts "repo url: #{@repo_url}"
@@ -93,11 +94,11 @@ class RepoDownloader
   end
 
   def create_event(event, level="Error")
-      if(event.respond_to?(:message))
-        details = "An error occurred in Repo Download Helper. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"
-      else
-        details = "An error occurred in Repo Download Helper. Error #{event.to_s}"
-      end
+    if(event.respond_to?(:message))
+      details = "An error occurred in Repo Download Helper. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"
+    else
+      details = "An error occurred in Repo Download Helper. Error #{event.to_s}"
+    end
 
       if(level == "Error")
         Rails.logger.error details
@@ -118,7 +119,7 @@ class RepoDownloader
       end
     end
 
-    def create_error(event)
-      create_event(event, "Error")
-    end
+  def create_error(event)
+    create_event(event, "Error")
+  end
 end

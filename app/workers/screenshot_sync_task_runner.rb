@@ -39,9 +39,9 @@ class ScreenshotSyncTaskRunner
           # Event.create(field: "Sketchy Status Code", action: "Requested", source: "System Task", eventable_type: "Result", eventable_id: result_id.to_s )
         else
           Event.create(field: "Sketchy Screenshot", action: "Requested", source: "System Task", eventable_type: "Result", eventable_id: result_id.to_s )
-          
+
         end
-        
+
         job_ids << ScreenshotRunner.perform_async(result_id, status_code_only)
 
       end

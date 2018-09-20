@@ -30,7 +30,7 @@ end
 
 Sidekiq.configure_client do |config|
   # If user has specified a redis connection string, use it
-  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3, size:15 } if Rails.configuration.try(:redis_connection_string) 
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3, size:15 } if Rails.configuration.try(:redis_connection_string)
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 1.days
   end
@@ -77,13 +77,13 @@ end
 module Sidekiq::Status
   class << self
     def broadcast jid, status_updates
-        Sidekiq.redis do |conn|
-          conn.multi do
-            conn.hmset  "sidekiq:status:#{jid}", 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
-            conn.expire "sidekiq:status:#{jid}", 1.day.to_i
-            conn.publish "status_updates", jid
-          end[0]
-        end
+      Sidekiq.redis do |conn|
+        conn.multi do
+          conn.hmset  "sidekiq:status:#{jid}", 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
+          conn.expire "sidekiq:status:#{jid}", 1.day.to_i
+          conn.publish "status_updates", jid
+        end[0]
+      end
     end
   end
 end

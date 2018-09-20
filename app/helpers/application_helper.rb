@@ -51,7 +51,7 @@ module ApplicationHelper
     else
       return ('<span data-tooltip aria-haspopup="true" class="has-tip tip-left" title="'+ CGI::escapeHTML(text.to_s) +'"><i class="fi-info"></i></span>').html_safe
     end
-    
+
   end
 
 
@@ -76,7 +76,7 @@ module ApplicationHelper
       return Time.parse(value).to_s
     rescue
       return ""
-    end  
+    end
   end
 
 
