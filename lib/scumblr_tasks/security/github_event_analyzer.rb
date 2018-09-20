@@ -39,23 +39,23 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-   # these should be a hash (key: val pairs)
-   return super.merge({
-      :severity => {name: "Finding Severity",
-                    description: "Set severity to either observation, high, medium, or low",
-                    required: true,
-                    type: :choice,
-                    default: :observation,
-                    choices: [:observation, :high, :medium, :low]},
-      :key_suffix => {name: "Key Suffix",
-                      description: "Provide a key suffix for testing out experimental regular expressions",
-                      required: false,
-                      type: :string},
-      :github_terms => {name: "System Metadata Github Search Terms",
-                        description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
-                        required: true,
-                        type: :system_metadata}
-    })
+    # these should be a hash (key: val pairs)
+    return super.merge({
+       :severity => {name: "Finding Severity",
+                     description: "Set severity to either observation, high, medium, or low",
+                     required: true,
+                     type: :choice,
+                     default: :observation,
+                     choices: [:observation, :high, :medium, :low]},
+       :key_suffix => {name: "Key Suffix",
+                       description: "Provide a key suffix for testing out experimental regular expressions",
+                       required: false,
+                       type: :string},
+       :github_terms => {name: "System Metadata Github Search Terms",
+                         description: "Use system metadata search strings.  Expectes metadata to be in JSON array format.",
+                         required: true,
+                         type: :system_metadata}
+     })
   end
 
   def self.description

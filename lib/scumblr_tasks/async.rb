@@ -143,7 +143,6 @@ class ScumblrTask::Async < ScumblrTask::Base
             end
           end
         rescue ActiveRecord::ConnectionTimeoutError=>e
-
           retries += 1
           if retries > @database_max_retries
             #Create an error indicating a thread could not acquire a database connection

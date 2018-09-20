@@ -94,11 +94,11 @@ class RepoDownloader
   end
 
   def create_event(event, level="Error")
-      if(event.respond_to?(:message))
-        details = "An error occurred in Repo Download Helper. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"
-      else
-        details = "An error occurred in Repo Download Helper. Error #{event.to_s}"
-      end
+    if(event.respond_to?(:message))
+      details = "An error occurred in Repo Download Helper. Error: #{event.try(:message)}\n\n#{event.try(:backtrace)}"
+    else
+      details = "An error occurred in Repo Download Helper. Error #{event.to_s}"
+    end
 
       if(level == "Error")
         Rails.logger.error details
@@ -119,7 +119,7 @@ class RepoDownloader
       end
     end
 
-    def create_error(event)
-      create_event(event, "Error")
-    end
+  def create_error(event)
+    create_event(event, "Error")
+  end
 end

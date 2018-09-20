@@ -200,24 +200,6 @@ Layout/IndentationConsistency:
     - 'lib/search_providers/reddit.rb'
     - 'lib/search_providers/twitter_user.rb'
 
-# Offense count: 20
-# Cop supports --auto-correct.
-# Configuration parameters: Width, IgnoredPatterns.
-Layout/IndentationWidth:
-  Exclude:
-    - 'app/controllers/task_types_controller.rb'
-    - 'app/models/result.rb'
-    - 'app/models/task.rb'
-    - 'config/initializers/sidekiq.rb'
-    - 'lib/helpers/repo_download_helper.rb'
-    - 'lib/helpers/vulnerability_helpers.rb'
-    - 'lib/scumblr_tasks/async_sidekiq.rb'
-    - 'lib/scumblr_tasks/maintenance_tasks/vulnerability_cleaner.rb'
-    - 'lib/scumblr_tasks/security/curl_analyzer.rb'
-    - 'lib/scumblr_tasks/security/github_event_analyzer.rb'
-    - 'lib/scumblr_tasks/security/python_analyzer.rb'
-    - 'lib/scumblr_tasks/security/rails_analyzer.rb'
-
 # Offense count: 193
 # Cop supports --auto-correct.
 Layout/LeadingCommentSpace:

@@ -235,7 +235,6 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
               vuln.code_fragment = line_numbers
             end
           end
-
         rescue => e
           create_event("Warning Exception occurred.\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
           puts e.message

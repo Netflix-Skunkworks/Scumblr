@@ -80,10 +80,10 @@ class Result < ActiveRecord::Base
 
   def add_tags_by_id(tag_ids)
     Array(tag_ids).each do |tag_id|
-        # Create a tagging and save only if valid
-        # (tagging will be invalid if the result is already tagged with the given id)
-        tagging = self.taggings.build(tag_id: tag_id)
-        tagging.save if tagging.valid?
+      # Create a tagging and save only if valid
+      # (tagging will be invalid if the result is already tagged with the given id)
+      tagging = self.taggings.build(tag_id: tag_id)
+      tagging.save if tagging.valid?
     end
   end
 
@@ -239,7 +239,6 @@ class Result < ActiveRecord::Base
       else
         raise RuntimeError
       end
-
     rescue RuntimeError, EOFError => e
       Rails.logger.error "#{e.inspect}"
       if(attempts < 3)
@@ -252,9 +251,7 @@ class Result < ActiveRecord::Base
         Rails.logger.error message
       end
     end
-
   rescue StandardError=>e
-
     Rails.logger.error "Error communicating with sketchy: #{e.inspect} #{e.message}: #{e.backtrace}"
   end
 
@@ -449,7 +446,6 @@ class Result < ActiveRecord::Base
       # result.count
       result.load
     rescue=>e
-
       Rails.logger.error e.message
       Rails.logger.error e.backtrace
       raise "Invalid Metadata Search #{metadata}"
@@ -606,7 +602,6 @@ class Result < ActiveRecord::Base
         end
       end
     rescue
-
       r[k]=nil
       return r
     end

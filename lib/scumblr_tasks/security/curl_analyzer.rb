@@ -319,7 +319,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
   def perform_work(r)
     # Ensure metadata is defined before iterating results
     if(r.present?)
-        r = Result.find(r)
+      r = Result.find(r)
     end
 
     if(@options["_self"].present?)

@@ -333,7 +333,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
         end
       end
     rescue => e
-
       create_event("Unable to determine if suppiled input is a valid org.\n\n. Exception: #{e.message}\n#{e.backtrace}")
     end
 
@@ -648,7 +647,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
                 next
               end
             rescue=>e
-
               create_event("Unknown error occurred\n\n. Exception: #{e.message}\n#{e.backtrace}", "Warn")
               next
             end

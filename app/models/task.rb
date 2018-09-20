@@ -119,7 +119,7 @@ class Task < ActiveRecord::Base
             errors.add value[:name], " must be specified or included in Runtime Override Options"
           end
         else
-        errors.add value[:name], " can't be blank"
+          errors.add value[:name], " can't be blank"
         end
       end
     end
@@ -256,7 +256,6 @@ class Task < ActiveRecord::Base
       end
       task.metadata["_last_status_event"] = event.id
       task.save
-
     else
       event = Event.create(field: "Task", action: "Complete", source: "Task: #{task.name}", details: "Task completed in #{Time.now-t} seconds", eventable_type: "Task", eventable_id: task.id )
       #Thread.current["current_events"][event.action] << event.id

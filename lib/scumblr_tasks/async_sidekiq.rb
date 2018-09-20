@@ -193,25 +193,25 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
   end
 
-    # Initialize the trend objects to default values
-    def initialize_trends(primary_key, sub_keys, chart_options={}, series_options={}, options={})
-      @trend_keys ||= {}
-      @trend_keys[primary_key] ||= []
-      @trend_keys[primary_key] += sub_keys
-      @chart_options ||= {}
-      @series_options ||= {}
-      @trend_options ||={}
-      Sidekiq.redis do |redis|
-        Array(sub_keys).each do |k|
-          redis.set "#{@_jid}:trends:#{primary_key}:#{k}:value", 0
-        end
+  # Initialize the trend objects to default values
+  def initialize_trends(primary_key, sub_keys, chart_options={}, series_options={}, options={})
+    @trend_keys ||= {}
+    @trend_keys[primary_key] ||= []
+    @trend_keys[primary_key] += sub_keys
+    @chart_options ||= {}
+    @series_options ||= {}
+    @trend_options ||={}
+    Sidekiq.redis do |redis|
+      Array(sub_keys).each do |k|
+        redis.set "#{@_jid}:trends:#{primary_key}:#{k}:value", 0
       end
-
-      @chart_options[primary_key] = chart_options
-      @series_options[primary_key] = series_options
-      @trend_options[primary_key] = options
-
     end
+
+    @chart_options[primary_key] = chart_options
+    @series_options[primary_key] = series_options
+    @trend_options[primary_key] = options
+
+  end
 end
 
 
