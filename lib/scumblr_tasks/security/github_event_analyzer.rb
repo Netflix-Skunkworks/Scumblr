@@ -239,7 +239,6 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
         vulnerabilities = match_environment(vuln_url, content_response, hit_hash, regular_expressions, commit_email, commit_name, commit_branch)
 
         begin
-
           @res = Result.where(url: url).first
           @res.update_vulnerabilities(vulnerabilities)
         rescue => e

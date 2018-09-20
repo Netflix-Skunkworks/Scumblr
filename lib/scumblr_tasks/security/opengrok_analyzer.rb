@@ -135,7 +135,6 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
         @terms = @terms + JSON.parse(RestClient.get @options[:json_terms])
       rescue => e
         create_event("Unable to retrieve results for #{@options[:json_terms]}.\n\n. Exception: #{e.message}\n#{e.backtrace}")
-
       end
     end
 
@@ -161,7 +160,6 @@ class ScumblrTask::OpengrokAnalyzer < ScumblrTask::Base
     encoded_path = URI.encode(path)
     doc = ""
     begin
-
       search_url = "#{@opengrok_url}s?n=#{@options[:max_results]}&start=0&sort=relevancy&#{@search_scope}&q=#{encoded_term}&path=#{encoded_path}"
       if !language.nil?
         search_url += "&type=#{language}"

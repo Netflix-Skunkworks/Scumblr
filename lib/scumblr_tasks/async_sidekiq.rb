@@ -306,7 +306,6 @@ module ScumblrWorkers
           eventable_id = @options.try(:[],:_self).class == Fixnum ? @options.try(:[],:_self) : @options.try(:[],:_self).try(:[],:id)
         end
       rescue
-
       end
 
       event_details = Event.create(action: level, eventable_id: eventable_id, eventable_type: "Task", source: "Task: #{self.class.to_s}", details: details)

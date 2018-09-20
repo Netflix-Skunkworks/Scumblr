@@ -347,7 +347,6 @@ class Result < ActiveRecord::Base
     end
 
     begin
-
       if(metadata.present?)
         query = ""
         params = []
@@ -454,7 +453,6 @@ class Result < ActiveRecord::Base
       Rails.logger.error e.message
       Rails.logger.error e.backtrace
       raise "Invalid Metadata Search #{metadata}"
-
     end
     result
 
@@ -555,7 +553,6 @@ class Result < ActiveRecord::Base
 
     # Try to grab the data referenced by the key from the current position in the data
     begin
-
       # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)
@@ -628,7 +625,6 @@ class Result < ActiveRecord::Base
         begin
           value = JSON.parse(value)
         rescue
-
         end
         # If the value is a hash, convert to json
       elsif(value.class == Hash)
@@ -700,7 +696,6 @@ class Result < ActiveRecord::Base
 
     # Try to grab the data referenced by the key from the current position in the data
     begin
-
       # For an integer key, treat data like an array and pull the indexed value
       if(/\A\d+\z/.match(k))
         data = data.try(:[],k.to_i)

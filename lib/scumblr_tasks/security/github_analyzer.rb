@@ -221,7 +221,6 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
 
     elsif(@options[:saved_users].present?)
       begin
-
         saved_users = SystemMetadata.where(id: @options[:saved_users]).try(:first).metadata
       rescue
         saved_users = nil

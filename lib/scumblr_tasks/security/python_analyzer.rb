@@ -210,9 +210,9 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
   end
 
   def tokenize_command(cmd)
-    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/).
-      select {|s| not s.empty? }.
-      map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
+    res = cmd.split(/\s(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/)
+      .select {|s| not s.empty? }
+      .map {|s| s.gsub(/(^ +)|( +$)|(^["']+)|(["']+$)/,'')}
     return res
   end
 

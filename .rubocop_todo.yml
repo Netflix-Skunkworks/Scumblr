@@ -74,18 +74,6 @@ Layout/DefEndAlignment:
     - 'lib/scumblr_tasks/security/python_analyzer.rb'
     - 'lib/scumblr_tasks/security/rails_analyzer.rb'
 
-# Offense count: 9
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: leading, trailing
-Layout/DotPosition:
-  Exclude:
-    - 'config/initializers/dump_fixtures.rb'
-    - 'lib/helpers/repo_download_helper.rb'
-    - 'lib/scumblr_tasks/security/curl_analyzer.rb'
-    - 'lib/scumblr_tasks/security/python_analyzer.rb'
-    - 'lib/scumblr_tasks/security/rails_analyzer.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 Layout/ElseAlignment:
@@ -122,18 +110,6 @@ Layout/EmptyLinesAroundAccessModifier:
 Layout/EmptyLinesAroundArguments:
   Exclude:
     - 'lib/workflowable/actions/status_change_notification.rb'
-
-# Offense count: 14
-# Cop supports --auto-correct.
-Layout/EmptyLinesAroundBeginBody:
-  Exclude:
-    - 'app/models/result.rb'
-    - 'lib/scumblr_tasks/async_sidekiq.rb'
-    - 'lib/scumblr_tasks/security/curl_analyzer.rb'
-    - 'lib/scumblr_tasks/security/github_analyzer.rb'
-    - 'lib/scumblr_tasks/security/github_event_analyzer.rb'
-    - 'lib/scumblr_tasks/security/opengrok_analyzer.rb'
-    - 'lib/scumblr_tasks/sync_tasks/github_sync.rb'
 
 # Offense count: 75
 # Cop supports --auto-correct.
