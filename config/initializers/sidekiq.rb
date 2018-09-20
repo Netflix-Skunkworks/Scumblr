@@ -30,7 +30,7 @@ end
 
 Sidekiq.configure_client do |config|
   # If user has specified a redis connection string, use it
-  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3, size:15 } if Rails.configuration.try(:redis_connection_string) 
+  config.redis = { url: Rails.configuration.try(:redis_connection_string), network_timeout: 3, size:15 } if Rails.configuration.try(:redis_connection_string)
   config.client_middleware do |chain|
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 1.days
   end

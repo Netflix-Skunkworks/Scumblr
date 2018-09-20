@@ -575,6 +575,7 @@ class ScumblrWorkers::CurlAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
     if urls.count == 0
       return
     end
+
     urls.each do |url|
       puts "[*] Testing url #{url}"
       @options[:payloads].each do |payload|

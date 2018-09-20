@@ -273,6 +273,7 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
         if(r.metadata.try(:[],"configuration").try(:[],"brakeman").try(:[],"disabled") == true)
           return nil
         end
+
         repo_local_path = ""
         unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?)
           create_error("No URL for result: #{r.id.to_s}")

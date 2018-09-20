@@ -63,16 +63,6 @@ Layout/ClosingParenthesisIndentation:
   Exclude:
     - 'lib/scumblr_tasks/sync_tasks/route53_sync.rb'
 
-# Offense count: 10
-# Cop supports --auto-correct.
-Layout/CommentIndentation:
-  Exclude:
-    - 'db/schema.rb'
-    - 'lib/scumblr_tasks/async.rb'
-    - 'lib/scumblr_tasks/async_sidekiq.rb'
-    - 'lib/scumblr_tasks/security/github_event_analyzer.rb'
-    - 'test/models/task_test.rb'
-
 # Offense count: 4
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyleAlignWith, AutoCorrect, Severity.
@@ -101,20 +91,6 @@ Layout/DotPosition:
 Layout/ElseAlignment:
   Exclude:
     - 'lib/scumblr_tasks/security/rails_analyzer.rb'
-
-# Offense count: 9
-# Cop supports --auto-correct.
-Layout/EmptyLineAfterGuardClause:
-  Exclude:
-    - 'app/controllers/results_controller.rb'
-    - 'app/models/task.rb'
-    - 'lib/helpers/repo_download_helper.rb'
-    - 'lib/helpers/vulnerability_helpers.rb'
-    - 'lib/scumblr_tasks/base.rb'
-    - 'lib/scumblr_tasks/security/curl_analyzer.rb'
-    - 'lib/scumblr_tasks/security/github_analyzer.rb'
-    - 'lib/scumblr_tasks/security/rails_analyzer.rb'
-    - 'lib/search_providers/facebook.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -458,28 +434,6 @@ Layout/Tab:
     - 'app/controllers/results_controller.rb'
     - 'test/models/task_test.rb'
     - 'test/test_helper.rb'
-
-# Offense count: 15
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: final_newline, final_blank_line
-Layout/TrailingBlankLines:
-  Exclude:
-    - '.pryrc'
-    - 'app/models/event.rb'
-    - 'app/workers/task_runner.rb'
-    - 'config/initializers/mtlsalbe_strategy.rb'
-    - 'config/initializers/paperclip.rb'
-    - 'config/initializers/ransack.rb'
-    - 'config/initializers/reload.rb'
-    - 'config/initializers/tasks.rb'
-    - 'lib/scumblr_tasks/async_sidekiq.rb'
-    - 'lib/search_providers/facebook.rb'
-    - 'lib/tasks/sync_tasks.rake'
-    - 'lib/workflowable/actions/comment_action.rb'
-    - 'lib/workflowable/actions/notification_action.rb'
-    - 'lib/workflowable/actions/status_change_notification.rb'
-    - 'test/controllers/results_controller_test.rb'
 
 # Offense count: 1
 Lint/AmbiguousBlockAssociation:

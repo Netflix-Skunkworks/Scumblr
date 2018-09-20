@@ -536,6 +536,7 @@ class ScumblrTask::GithubAnalyzer < ScumblrTask::Base
       if @options[:members] == "members_only" and type == "Organization"
         next
       end
+
       # For each scope (user, org, repo) check if the search terms match anything
       puts "Checking #{scope}"
       @retry_interval = 0

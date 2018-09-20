@@ -60,6 +60,7 @@ class ResultsController < ApplicationController
 
         values.reject!{|x| x.blank?}
         next if values.blank?
+
         filter = key.split(":")
         filter_on=nil
         filter_on = params["filter_on"][key].split(":") if params.try(:[],"filter_on").try(:[],key)

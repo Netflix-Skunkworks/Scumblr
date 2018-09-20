@@ -84,7 +84,7 @@ class ScumblrTask::Async < ScumblrTask::Base
     #lets get some stuff in the queue (or not if there are no results to add to the queue)
     #while(threads[0].alive? && queue.empty?)
     #  sleep 0.01
-      #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
+    #Rails.logger.debug "waiting for queue to have something in it, or if first thread died"
     #end
 
     @workers.times do |i|
@@ -132,10 +132,10 @@ class ScumblrTask::Async < ScumblrTask::Base
                   end
                 else
                   #wait for a bit to let the other thread fill the queue
-                 # while(threads[0].alive? && queue.empty?)
-                 #   sleep 0.01
-                 #   Rails.logger.debug "in sleep waiting of queue to be filled"
-                 # end
+                  # while(threads[0].alive? && queue.empty?)
+                  #   sleep 0.01
+                  #   Rails.logger.debug "in sleep waiting of queue to be filled"
+                  # end
                 end
               rescue ThreadError => e
                 Rails.logger.debug e.inspect

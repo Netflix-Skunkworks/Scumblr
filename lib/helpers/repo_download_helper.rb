@@ -76,6 +76,7 @@ class RepoDownloader
     if !Dir.exists?(save_path)
       return nil
     end
+
     return save_path
   end
 

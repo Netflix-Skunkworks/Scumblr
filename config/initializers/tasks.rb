@@ -42,5 +42,3 @@ Scumblr::Application.configure do
     puts "no timeout command found, consider installing coreutils for better handling of task timeouts"
   end
 end
-
-

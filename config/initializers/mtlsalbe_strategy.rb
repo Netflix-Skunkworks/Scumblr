@@ -18,7 +18,7 @@ module Devise
   module Strategies
     class MTLSable < Base
       def valid?
-        if Rails.configuration.try(:enable_mtls_auth) 
+        if Rails.configuration.try(:enable_mtls_auth)
           return request.headers["HTTP-X-CLIENT-VERIFY"] == "SUCCESS"
         else
           return false

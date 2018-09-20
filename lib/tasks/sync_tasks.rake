@@ -94,5 +94,3 @@ task :generate_screenshots => :environment do
   ScreenshotSyncTaskRunner.perform_async(results.map{|r| r.id})
 
 end
-
-

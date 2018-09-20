@@ -143,11 +143,11 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
       return
     end
 
-      # redis.set "@_jid:#{primary_key}:#{k}:value", 0
-      # @chart_options[primary_key] = chart_options
-      # @series_options[primary_key] = series_options
-      # @trend_options[primary_key] = options
-      # @trend_keys
+    # redis.set "@_jid:#{primary_key}:#{k}:value", 0
+    # @chart_options[primary_key] = chart_options
+    # @series_options[primary_key] = series_options
+    # @trend_options[primary_key] = options
+    # @trend_keys
     trend_data = {}
 
     @trend_keys.each do |primary_key, sub_keys|
@@ -193,7 +193,7 @@ class ScumblrTask::AsyncSidekiq < ScumblrTask::Base
 
   end
 
-  # Initialize the trend objects to default values
+    # Initialize the trend objects to default values
     def initialize_trends(primary_key, sub_keys, chart_options={}, series_options={}, options={})
       @trend_keys ||= {}
       @trend_keys[primary_key] ||= []

@@ -72,6 +72,7 @@ class Task < ActiveRecord::Base
 
   def schedule(cron)
     return if(cron.blank?)
+
     Sidekiq.set_schedule("task: #{id}", { 'cron' => cron, 'class' => 'TaskRunner', 'args' => [id] })
   end
 

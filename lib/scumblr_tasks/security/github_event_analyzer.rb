@@ -39,7 +39,7 @@ class ScumblrTask::GithubEventAnalyzer < ScumblrTask::Base
   end
 
   def self.options
-    # these should be a hash (key: val pairs)
+   # these should be a hash (key: val pairs)
    return super.merge({
       :severity => {name: "Finding Severity",
                     description: "Set severity to either observation, high, medium, or low",
