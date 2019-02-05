@@ -273,11 +273,16 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
         if(r.metadata.try(:[],"configuration").try(:[],"brakeman").try(:[],"disabled") == true)
           return nil
         end
-        repo_local_path = ""
-        unless (r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?)
-          create_error("No URL for result: #{r.id.to_s}")
-        else
+
+        if r.metadata.try(:[], "repository_data").present? && r.metadata["repository_data"].try(:[], "ssh_clone_url").present?
           git_url = r.metadata["repository_data"]["ssh_clone_url"]
+        elsif r.metadata.try(:[], "stash").present? && r.metadata["stash"].try(:[], "ssh_url").present?
+          git_url = r.metadata["repository_data"].try(:[], "ssh_clone_url")
+        else
+          create_error("No URL for result: #{r.id.to_s}")
+          return nil
+        end
+        repo_local_path = ""
           Rails.logger.info "Cloning and scanning #{git_url}"
           findings = []
           begin
@@ -422,7 +427,6 @@ class ScumblrTask::RailsAnalyzer < ScumblrTask::Base
               create_error("#{e.message} \n#{e.backtrace}")
             end
           end
-        end
       end
 
 
