@@ -163,7 +163,7 @@ class ScumblrWorkers::PythonAnalyzerWorker < ScumblrWorkers::AsyncSidekiqWorker
                 vuln.match_location = "source_code"
               end
 
-              vuln.confidence_level = issue["issue_confidence"].to_s
+              vuln.confidence_level = issue["issue_confidence"].to_s.lower().capitalize()
               vuln.severity = issue["issue_severity"].to_s
               vuln.source = "Bandit"
 
