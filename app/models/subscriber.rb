@@ -20,6 +20,6 @@ class Subscriber < ActiveRecord::Base
   validates :user_id, :uniqueness=> {scope: [:subscribable_id, :subscribable_type, :email]}
 
   def subscriber_email
-    return user.present? ? user.email : email
+    user.present? ? user.email : email
   end
 end

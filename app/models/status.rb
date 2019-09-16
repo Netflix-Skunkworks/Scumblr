@@ -23,7 +23,7 @@ class Status < ActiveRecord::Base
   def set_defaults
     self.is_invalid = false if self.is_invalid.nil?
     self.closed = false if self.closed.nil?
-    return true
+    true
   end
 
   def reset_default
